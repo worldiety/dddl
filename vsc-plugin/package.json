@@ -1,0 +1,74 @@
+{
+  "name": "worldiety domain driven design language",
+  "displayName": "wdy ddd",
+  "icon": "assets/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/worldiety/dddl.git"
+  },
+  "publisher": "worldiety",
+  "description": "Add syntax highlighting for wdy dddl, the requirements engineering and ubiquitous language language.",
+  "version": "0.0.5",
+  "engines": {
+    "vscode": "^1.55.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:ddd",
+    "onCommand:wdyspec.encodeXML",
+    "onCommand:wdyspec.previewHTML"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "ddd",
+        "aliases": [
+          "ddd"
+        ],
+        "extensions": [
+          ".ddd"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "wdyspec.encodeXML",
+        "title": "Encode as XML",
+        "category": "wdyspec"
+      },
+      {
+        "command": "wdyspec.previewHTML",
+        "title": "preview as HTML",
+        "category": "wdyspec"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/glob": "8.1.0",
+    "@types/mocha": "10.0.1",
+    "@types/node": "20.3.1",
+    "@types/vscode": "^1.55.0",
+    "@typescript-eslint/eslint-plugin": "5.60.0",
+    "@typescript-eslint/parser": "5.60.0",
+    "eslint": "8.43.0",
+    "glob": "10.3.0",
+    "mocha": "10.2.0",
+    "typescript": "5.1.3",
+    "vscode-test": "^1.5.0"
+  }
+}
