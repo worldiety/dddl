@@ -191,9 +191,9 @@ func Parse(fname string) (*Doc, error) {
 	return v, nil
 }
 
-func ParseText(text string) (*Doc, error) {
+func ParseText(filename, text string) (*Doc, error) {
 	parser := NewParser()
-	return parser.ParseBytes("Modell.wvw", []byte(text))
+	return parser.ParseBytes(filename, []byte(text))
 }
 
 func NewParser() *participle.Parser[Doc] {

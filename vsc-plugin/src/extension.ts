@@ -250,6 +250,8 @@ class CatCodingPanel {
 			"            </body>\n" +
 			"            </html>`\n" +
 			"       "
+
+        webview.html = this._getHtmlForWebview(webview,"abc")
         // Vary the webview's content based on where it is located in the editor.
         /*switch (this._panel.viewColumn) {
             case vscode.ViewColumn.Two:
@@ -276,6 +278,7 @@ class CatCodingPanel {
     private _getHtmlForWebview(webview: vscode.Webview, catGifPath: string) {
         // Local path to main script run in the webview
         const scriptPathOnDisk = vscode.Uri.joinPath(this._extensionUri, 'media', 'main.js');
+        const tailwind = vscode.Uri.joinPath(this._extensionUri, 'media', 'tailwind.js');
 
         // And the uri we use to load this script in the webview
         const scriptUri = webview.asWebviewUri(scriptPathOnDisk);
@@ -306,12 +309,14 @@ class CatCodingPanel {
 
 				<link href="${stylesResetUri}" rel="stylesheet">
 				<link href="${stylesMainUri}" rel="stylesheet">
+				 <script src="${tailwind}" type="text/javascript"></script>
 
 				<title>Cat Coding</title>
 			</head>
 			<body>
 				<img src="${catGifPath}" width="300" />
-				<h1 id="lines-of-code-counter">0</h1>
+				<h1 class="bg-yellow-500" id="lines-of-code-counter">0asdadsadas</h1>
+			
 
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>

@@ -1,24 +1,18 @@
-// Package main provides the ddd lsp server.
-package main
+package lsp
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/worldiety/dddl/lsp"
 	"github.com/worldiety/dddl/lsp/protocol"
 	"log"
-	"os"
 )
 
-func main() {
-	reader := bufio.NewReader(os.Stdin)
-	server := lsp.NewServer()
-
-	log.Println("hallo")
-
+func HandleRequests(ctx context.Context, server *Server, reader *bufio.Reader) {
 	// Continuously read and respond to requests
 	for {
+
 		request, err := readRequest(reader)
 		if err != nil {
 			log.Println("Error while reading request:", err)
@@ -151,12 +145,19 @@ func main() {
 		default:
 			log.Printf("Unknown method '%s'\n", methodName)
 		}
+
+		// check, if we must close our processing
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
 	}
 }
 
 // Send response or log error message.
 func sendResponse(response interface{}, requestId float64) {
-	if err := lsp.SendResponse(response, requestId); err != nil {
+	if err := SendResponse(response, requestId); err != nil {
 		log.Println(err)
 	}
 }
