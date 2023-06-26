@@ -99,6 +99,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 // Reset the webview options so we use latest uri for `localResourceRoots`.
                 webviewPanel.webview.options = getWebviewOptions(context.extensionUri);
                 PreviewPanel.revive(webviewPanel, context.extensionUri);
+
                 // PreviewPanel.currentPanel._html = state TODO how to do that, when to save, broken example?
             }
         });
@@ -197,7 +198,8 @@ class PreviewPanel {
     }
 
     public static revive(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
-        PreviewPanel.currentPanel = new PreviewPanel(panel, extensionUri, "TODO cannot revive from nothing");
+        //PreviewPanel.currentPanel = new PreviewPanel(panel, extensionUri, "TODO cannot revive from nothing");
+        PreviewPanel.createOrShow(extensionUri, "<p>Einen Moment bitte...</p>");
     }
 
     private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, html: string) {

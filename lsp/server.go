@@ -10,18 +10,27 @@ import (
 	"golang.org/x/exp/slog"
 	"log"
 	"strings"
+	"sync"
 )
+
+type jobQueueEntry struct {
+	lastId int
+	queue  chan func()
+}
 
 // DYML language server.
 type Server struct {
 	// Map from Uri's to files.
 	files             map[protocol.DocumentURI]File
 	lastPreviewParams *PreviewHtmlParams
+	jobQueues         map[string]jobQueueEntry
+	jobQueuesLock     sync.Mutex
 }
 
 func NewServer() *Server {
 	return &Server{
-		files: make(map[protocol.DocumentURI]File),
+		files:     make(map[protocol.DocumentURI]File),
+		jobQueues: map[string]jobQueueEntry{},
 	}
 }
 
@@ -192,67 +201,72 @@ func (s *Server) EncodeXML(filename protocol.DocumentURI) string {
 }
 
 func (s *Server) sendPreviewHtml() {
-	if s.lastPreviewParams == nil {
-		slog.Warn("cannot send preview html, never requested a preview")
-		return
-	}
+	s.async("previewHtml", func() {
+		if s.lastPreviewParams == nil {
+			slog.Warn("cannot send preview html, never requested a preview")
+			return
+		}
 
-	html := s.RenderPreviewHtml(*s.lastPreviewParams)
-	err := SendNotification("custom/newAsyncPreviewHtml", html)
-	if err != nil {
-		log.Printf("cannot send diagnostics: %v", err)
-	}
+		html := s.RenderPreviewHtml(*s.lastPreviewParams)
+		err := SendNotification("custom/newAsyncPreviewHtml", html)
+		if err != nil {
+			log.Printf("cannot send diagnostics: %v", err)
+		}
+	})
 }
 
 // sendDiagnostics sends any parser errors.
 func (s *Server) sendDiagnostics() {
-	for _, file := range s.files {
-		var diagnostics []protocol.Diagnostic
+	s.async("diagnostics", func() {
+		for _, file := range s.files {
+			var diagnostics []protocol.Diagnostic
 
-		_, err := parser.ParseText(string(file.Uri), file.Content)
-		if err != nil {
-			switch err := err.(type) {
-			case participle.Error:
-				pos := err.Position()
+			_, err := parser.ParseText(string(file.Uri), file.Content)
+			if err != nil {
+				switch err := err.(type) {
+				case participle.Error:
+					pos := err.Position()
 
-				diagnostics = append(diagnostics, protocol.Diagnostic{
-					Range: protocol.Range{
-						Start: protocol.Position{
-							// Subtract 1 since dyml has 1 based lines and columns, but LSP wants 0 based
-							Line:      uint32(pos.Line) - 1,
-							Character: uint32(pos.Column) - 1,
+					diagnostics = append(diagnostics, protocol.Diagnostic{
+						Range: protocol.Range{
+							Start: protocol.Position{
+								// Subtract 1 since dyml has 1 based lines and columns, but LSP wants 0 based
+								Line:      uint32(pos.Line) - 1,
+								Character: uint32(pos.Column) - 1,
+							},
+							// we don't know the length, so just always pick the next 3 chars
+							End: protocol.Position{
+								Line:      uint32(pos.Line) - 1,
+								Character: uint32(pos.Column+3) - 1,
+							},
 						},
-						// we don't know the length, so just always pick the next 3 chars
-						End: protocol.Position{
-							Line:      uint32(pos.Line) - 1,
-							Character: uint32(pos.Column+3) - 1,
-						},
-					},
-					Severity: protocol.SeverityError,
-					Message:  err.Error(),
-				})
+						Severity: protocol.SeverityError,
+						Message:  err.Error(),
+					})
 
-			default:
-				diagnostics = append(diagnostics, protocol.Diagnostic{
-					Severity: protocol.SeverityError,
-					Message:  err.Error(),
-				})
+				default:
+					diagnostics = append(diagnostics, protocol.Diagnostic{
+						Severity: protocol.SeverityError,
+						Message:  err.Error(),
+					})
+				}
+			} else {
+				// we must always send the diagnostics, otherwise error message will not disappear
+				diagnostics = make([]protocol.Diagnostic, 0)
 			}
-		} else {
-			// we must always send the diagnostics, otherwise error message will not disappear
-			diagnostics = make([]protocol.Diagnostic, 0)
+
+			err = SendNotification("textDocument/publishDiagnostics", protocol.PublishDiagnosticsParams{
+				URI:         protocol.DocumentURI(file.Uri),
+				Diagnostics: diagnostics,
+			})
+
+			if err != nil {
+				log.Printf("cannot send diagnostics: %v", err)
+			}
+
 		}
+	})
 
-		err = SendNotification("textDocument/publishDiagnostics", protocol.PublishDiagnosticsParams{
-			URI:         protocol.DocumentURI(file.Uri),
-			Diagnostics: diagnostics,
-		})
-
-		if err != nil {
-			log.Printf("cannot send diagnostics: %v", err)
-		}
-
-	}
 }
 
 type PreviewHtmlParams struct {
