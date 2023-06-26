@@ -1,7 +1,6 @@
 package puml
 
 import (
-	"fmt"
 	"github.com/worldiety/dddl/parser"
 	"github.com/worldiety/dddl/plantuml"
 	"golang.org/x/exp/slog"
@@ -53,7 +52,7 @@ func Workflow(doc *parser.Doc, flow *parser.Workflow) *plantuml.Diagram {
 	// a common stop this does not make sense,
 	// because we have to define the correct branches for each return
 
-	fmt.Println(plantuml.String(diag))
+	//log.Println(plantuml.String(diag))
 	return diag
 }
 

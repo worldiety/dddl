@@ -7,7 +7,11 @@ import {LanguageClient, LanguageClientOptions, ServerOptions, TransportKind} fro
 
 let client: LanguageClient;
 
-export function activate(context: vscode.ExtensionContext) {
+async function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export async function activate(context: vscode.ExtensionContext) {
 
     // Select correct language server binary for this platform.
     let platform = `${os.platform()}-${os.arch()}`;
@@ -34,7 +38,10 @@ export function activate(context: vscode.ExtensionContext) {
         serverOptions,
         clientOptions
     );
-    client.start();
+    await client.start();
+
+   // await sleep(1000);
+
 
     // Request an XML preview from the language server and show that result in a new editor.
     context.subscriptions.push(vscode.commands.registerCommand("wdyspec.encodeXML", () => {
@@ -56,29 +63,43 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand("wdyspec.previewHTML", () => {
         let doc = "file://" + vscode.window.activeTextEditor?.document.uri.fsPath;
         if (doc) {
-            client.sendRequest("custom/previewHTML", doc).then((resp) => {
-                console.log("shall preview", resp);
+            PreviewPanel.createOrShow(context.extensionUri, "<p>Einen Moment bitte...</p>");
+            let tailwindUri = PreviewPanel.currentPanel?._tailwindUri;
+
+            client.onNotification("custom/newAsyncPreviewHtml",resp => {
+                console.log("shall async preview")
 
                 if (typeof resp === "string") {
-                    let uri = vscode.Uri.parse(resp);
-                    CatCodingPanel.createOrShow(context.extensionUri, uri);
+                    if (PreviewPanel.currentPanel!=null){
+                        PreviewPanel.currentPanel._html = resp
+                        PreviewPanel.currentPanel._update() // do not capture focus
+                    }
                 } else {
                     console.log("cannot handle resp, not a string");
                 }
+            });
 
+            client.sendRequest("custom/previewHTML", {doc:doc,tailwindUri:tailwindUri?.toString()}).then((resp) => {
+                console.log("shall preview", resp);
 
+                if (typeof resp === "string") {
+                    PreviewPanel.createOrShow(context.extensionUri, resp);
+                } else {
+                    console.log("cannot handle resp, not a string");
+                }
             });
         }
     }));
 
     if (vscode.window.registerWebviewPanelSerializer) {
         // Make sure we register a serializer in activation event
-        vscode.window.registerWebviewPanelSerializer(CatCodingPanel.viewType, {
+        vscode.window.registerWebviewPanelSerializer(PreviewPanel.viewType, {
             async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
                 console.log(`Got state: ${state}`);
                 // Reset the webview options so we use latest uri for `localResourceRoots`.
                 webviewPanel.webview.options = getWebviewOptions(context.extensionUri);
-                CatCodingPanel.revive(webviewPanel, context.extensionUri);
+                PreviewPanel.revive(webviewPanel, context.extensionUri);
+                // PreviewPanel.currentPanel._html = state TODO how to do that, when to save, broken example?
             }
         });
     }
@@ -129,54 +150,62 @@ function getWebviewOptions(extensionUri: vscode.Uri): vscode.WebviewOptions {
         enableScripts: true,
 
         // And restrict the webview to only loading content from our extension's `media` directory.
-        localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media')]
+        //localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media')]
+        localResourceRoots: [
+            extensionUri
+        ]
     };
 }
 
 /**
  * Manages cat coding webview panels
  */
-class CatCodingPanel {
+class PreviewPanel {
     /**
      * Track the currently panel. Only allow a single panel to exist at a time.
      */
-    public static currentPanel: CatCodingPanel | undefined;
+    public static currentPanel: PreviewPanel | undefined;
 
     public static readonly viewType = 'catCoding';
 
     private readonly _panel: vscode.WebviewPanel;
     private readonly _extensionUri: vscode.Uri;
-    private readonly _viewUri: vscode.Uri;
+    public readonly _tailwindUri: vscode.Uri;
+    public _html: string;
     private _disposables: vscode.Disposable[] = [];
 
-    public static createOrShow(extensionUri: vscode.Uri, viewUri: vscode.Uri) {
+    public static createOrShow(extensionUri: vscode.Uri, html: string) {
         const column = getViewColumn(true);
 
         // If we already have a panel, show it.
-        if (CatCodingPanel.currentPanel) {
-            CatCodingPanel.currentPanel._panel.reveal(column);
+        if (PreviewPanel.currentPanel) {
+            PreviewPanel.currentPanel._html = html
+            PreviewPanel.currentPanel._update()
+            PreviewPanel.currentPanel._panel.reveal(column);
             return;
         }
 
         // Otherwise, create a new panel.
         const panel = vscode.window.createWebviewPanel(
-            CatCodingPanel.viewType,
+            PreviewPanel.viewType,
             'Cat Coding',
             column || vscode.ViewColumn.One,
             getWebviewOptions(extensionUri),
         );
 
-        CatCodingPanel.currentPanel = new CatCodingPanel(panel, extensionUri, viewUri);
+        PreviewPanel.currentPanel = new PreviewPanel(panel, extensionUri, html);
     }
 
     public static revive(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
-        CatCodingPanel.currentPanel = new CatCodingPanel(panel, extensionUri, vscode.Uri.parse("???"));
+        PreviewPanel.currentPanel = new PreviewPanel(panel, extensionUri, "TODO cannot revive from nothing");
     }
 
-    private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, viewUri: vscode.Uri) {
+    private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, html: string) {
         this._panel = panel;
         this._extensionUri = extensionUri;
-        this._viewUri = viewUri;
+        this._html = html;
+
+        this._tailwindUri = panel.webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'tailwind.js'));
 
         // Set the webview's initial html content
         this._update();
@@ -217,7 +246,7 @@ class CatCodingPanel {
     }
 
     public dispose() {
-        CatCodingPanel.currentPanel = undefined;
+        PreviewPanel.currentPanel = undefined;
 
         // Clean up our resources
         this._panel.dispose();
@@ -230,28 +259,12 @@ class CatCodingPanel {
         }
     }
 
-    private _update() {
+    public _update() {
         const webview = this._panel.webview;
 
-		webview.html="<html><body><a href='"+this._viewUri+"'>vorschau</a></body></html>";
-		webview.html="<!DOCTYPE html>\n" +
-			"            <html lang=\"en\"\">\n" +
-			"            <head>\n" +
-			"                <meta charset=\"UTF-8\">\n" +
-			"                <title>Preview</title>\n" +
-			"                <style>\n" +
-			"                    html { width: 100%; height: 100%; min-height: 100%; display: flex; }\n" +
-			"                    body { flex: 1; display: flex; }\n" +
-			"                    iframe { flex: 1; border: none; background: white; }\n" +
-			"                </style>\n" +
-			"            </head>\n" +
-			"            <body>\n" +
-			"                <iframe src=\""+this._viewUri+"\"></iframe>\n" +
-			"            </body>\n" +
-			"            </html>`\n" +
-			"       "
+		webview.html=this._html
 
-        webview.html = this._getHtmlForWebview(webview,"abc")
+       // webview.html = this._getHtmlForWebview(webview,"abc")
         // Vary the webview's content based on where it is located in the editor.
         /*switch (this._panel.viewColumn) {
             case vscode.ViewColumn.Two:
@@ -278,7 +291,6 @@ class CatCodingPanel {
     private _getHtmlForWebview(webview: vscode.Webview, catGifPath: string) {
         // Local path to main script run in the webview
         const scriptPathOnDisk = vscode.Uri.joinPath(this._extensionUri, 'media', 'main.js');
-        const tailwind = vscode.Uri.joinPath(this._extensionUri, 'media', 'tailwind.js');
 
         // And the uri we use to load this script in the webview
         const scriptUri = webview.asWebviewUri(scriptPathOnDisk);
@@ -290,6 +302,8 @@ class CatCodingPanel {
         // Uri to load styles into webview
         const stylesResetUri = webview.asWebviewUri(styleResetPath);
         const stylesMainUri = webview.asWebviewUri(stylesPathMainPath);
+
+        const tailwindUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'tailwind.js'));
 
         // Use a nonce to only allow specific scripts to be run
         const nonce = getNonce();
@@ -303,13 +317,12 @@ class CatCodingPanel {
 					Use a content security policy to only allow loading images from https or from our extension directory,
 					and only allow scripts that have a specific nonce.
 				-->
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; img-src ${webview.cspSource} https:; script-src 'nonce-${nonce}';">
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; img-src ${webview.cspSource} https:; script-src 'nonce-${nonce}';">
 
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-				<link href="${stylesResetUri}" rel="stylesheet">
-				<link href="${stylesMainUri}" rel="stylesheet">
-				 <script src="${tailwind}" type="text/javascript"></script>
+			
+				 <script src="${tailwindUri}" type="text/javascript" nonce="${nonce}"></script>
 
 				<title>Cat Coding</title>
 			</head>
@@ -317,7 +330,8 @@ class CatCodingPanel {
 				<img src="${catGifPath}" width="300" />
 				<h1 class="bg-yellow-500" id="lines-of-code-counter">0asdadsadas</h1>
 			
-
+                <p>${tailwindUri}</p>
+                 <p>${this._extensionUri}</p>
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`;

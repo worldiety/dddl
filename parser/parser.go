@@ -8,10 +8,19 @@ import (
 	"strings"
 )
 
-// TODO manuelle TODOS
 type Doc struct {
 	node
 	Contexts []*Context `@@*`
+}
+
+func (n *Doc) ContextByName(name string) *Context {
+	for _, context := range n.Contexts {
+		if context.Name.Name == name {
+			return context
+		}
+	}
+
+	return nil
 }
 
 func (n *Doc) DataByName(name string) *Data {

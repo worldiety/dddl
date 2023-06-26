@@ -66,6 +66,12 @@ func parseAndLint(parse Parser, lint Linter, model EditorPreview, text string) E
 		return model
 	}
 
+	model = lintOnly(doc, lint, model)
+
+	return model
+}
+
+func lintOnly(doc *parser.Doc, lint Linter, model EditorPreview) EditorPreview {
 	model.Doc = transform(doc)
 	//fmt.Printf("%#v", model)
 

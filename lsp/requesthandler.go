@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/worldiety/dddl/lsp/protocol"
 	"log"
 )
@@ -108,15 +107,16 @@ func HandleRequests(ctx context.Context, server *Server, reader *bufio.Reader) {
 
 		case "custom/previewHTML":
 			log.Println(string(request["params"]))
-			var params []protocol.DocumentURI
+			var params PreviewHtmlParams
 			if err := json.Unmarshal(request["params"], &params); err != nil {
 				log.Println(err)
 				continue
 			}
-			sendResponse("http://localhost:8080", requestId)
+			html := server.RenderPreviewHtml(params)
+			sendResponse(html, requestId)
 
 		case "textDocument/codeLens":
-			log.Println(string(request["params"]))
+			/*log.Println(string(request["params"]))
 			var params protocol.CodeLensParams
 			if err := json.Unmarshal(request["params"], &params); err != nil {
 				log.Println(err)
@@ -142,6 +142,8 @@ func HandleRequests(ctx context.Context, server *Server, reader *bufio.Reader) {
 				},
 				Data: nil,
 			}, requestId)
+			*/
+			//TODO what is code lens? when to use hover?
 		default:
 			log.Printf("Unknown method '%s'\n", methodName)
 		}

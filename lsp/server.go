@@ -3,8 +3,11 @@ package lsp
 import (
 	"fmt"
 	"github.com/alecthomas/participle/v2"
+	"github.com/worldiety/dddl/linter"
 	"github.com/worldiety/dddl/lsp/protocol"
 	"github.com/worldiety/dddl/parser"
+	"github.com/worldiety/dddl/web/editor"
+	"golang.org/x/exp/slog"
 	"log"
 	"strings"
 )
@@ -12,7 +15,8 @@ import (
 // DYML language server.
 type Server struct {
 	// Map from Uri's to files.
-	files map[protocol.DocumentURI]File
+	files             map[protocol.DocumentURI]File
+	lastPreviewParams *PreviewHtmlParams
 }
 
 func NewServer() *Server {
@@ -116,11 +120,16 @@ func (s *Server) loadFileToMem(uri protocol.DocumentURI) {
 
 // A document was saved.
 func (s *Server) DidSaveTextDocument(params *protocol.DidSaveTextDocumentParams) {
-	s.files[params.TextDocument.URI] = File{
-		Uri:     params.TextDocument.URI,
-		Content: *params.Text,
+	if params.Text != nil {
+		// this happens by definition, but why and when exactly?
+		s.files[params.TextDocument.URI] = File{
+			Uri:     params.TextDocument.URI,
+			Content: *params.Text,
+		}
 	}
+
 	s.sendDiagnostics()
+	s.sendPreviewHtml()
 }
 
 // A document was opened.
@@ -146,6 +155,7 @@ func (s *Server) DidChangeTextDocument(params *protocol.DidChangeTextDocumentPar
 	}
 
 	s.sendDiagnostics()
+	s.sendPreviewHtml()
 }
 
 func (s *Server) FullSemanticTokens(params *protocol.SemanticTokensParams) protocol.SemanticTokens {
@@ -179,6 +189,19 @@ func (s *Server) EncodeXML(filename protocol.DocumentURI) string {
 	_ = in
 
 	return out.String()
+}
+
+func (s *Server) sendPreviewHtml() {
+	if s.lastPreviewParams == nil {
+		slog.Warn("cannot send preview html, never requested a preview")
+		return
+	}
+
+	html := s.RenderPreviewHtml(*s.lastPreviewParams)
+	err := SendNotification("custom/newAsyncPreviewHtml", html)
+	if err != nil {
+		log.Printf("cannot send diagnostics: %v", err)
+	}
 }
 
 // sendDiagnostics sends any parser errors.
@@ -230,4 +253,46 @@ func (s *Server) sendDiagnostics() {
 		}
 
 	}
+}
+
+type PreviewHtmlParams struct {
+	Doc         protocol.DocumentURI
+	TailwindUri protocol.DocumentURI
+}
+
+func (s *Server) RenderPreviewHtml(params PreviewHtmlParams) string {
+	log.Println(params)
+	s.lastPreviewParams = &params
+
+	var model editor.EditorPreview
+	model.VSCode.ScriptUris = append(model.VSCode.ScriptUris, string(params.TailwindUri))
+
+	superDoc := &parser.Doc{}
+	for _, file := range s.files {
+		doc, err := parser.ParseText(string(file.Uri), file.Content)
+		if err != nil {
+			model.Error += err.Error() + "\n"
+		}
+
+		for _, context := range doc.Contexts {
+			ctx := superDoc.ContextByName(context.Name.Name)
+			if ctx == nil {
+				superDoc.Contexts = append(superDoc.Contexts, context)
+			} else {
+				for _, element := range context.Elements {
+					ctx.Elements = append(ctx.Elements, element) // just append it
+				}
+
+				if ctx.Definition == nil {
+					ctx.Definition = context.Definition // maybe non-nil, TODO double definition is a lint-error
+				}
+			}
+		}
+	}
+
+	linter := editor.Linter(func(doc *parser.Doc) []linter.Hint {
+		return linter.Lint(doc)
+	})
+
+	return editor.RenderViewHtml(linter, superDoc, model)
 }

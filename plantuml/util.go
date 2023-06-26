@@ -123,7 +123,7 @@ func RenderLocal(fileType string, renderable Renderable) ([]byte, error) {
 
 	buf, err = cmd.Output()
 	if err != nil {
-		fmt.Println(tmp)
+		log.Println(tmp)
 		return buf, err
 	}
 

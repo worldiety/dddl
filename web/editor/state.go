@@ -2,6 +2,11 @@ package editor
 
 import "html/template"
 
+type VSCode struct {
+	Nonce      string
+	ScriptUris []string
+}
+
 type EditorPreview struct {
 	devMode    bool
 	Title      string
@@ -10,6 +15,7 @@ type EditorPreview struct {
 	EditorText string
 	Error      string
 	LastSaved  string
+	VSCode     VSCode
 }
 
 func (m EditorPreview) DevMode() bool {
