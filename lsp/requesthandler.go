@@ -96,14 +96,25 @@ func HandleRequests(ctx context.Context, server *Server, reader *bufio.Reader) {
 				continue
 			}
 			sendResponse(server.FullSemanticTokens(&params), requestId)
-		case "custom/encodeXML":
+		case "custom/exportAsciiDoc":
 			log.Println(string(request["params"]))
 			var params []protocol.DocumentURI
 			if err := json.Unmarshal(request["params"], &params); err != nil {
 				log.Println(err)
 				continue
 			}
-			sendResponse(server.EncodeXML(params[0]), requestId)
+			sendResponse(server.AsciiDoc(params[0]), requestId)
+
+		case "custom/webViewParams":
+			var params PreviewHtmlParams
+			if err := json.Unmarshal(request["params"], &params); err != nil {
+				log.Println(err)
+				continue
+			}
+			server.lastPreviewParams = &params
+			log.Println("updated webview params", params)
+
+			server.sendPreviewHtml()
 
 		case "custom/previewHTML":
 			log.Println(string(request["params"]))

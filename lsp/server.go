@@ -8,7 +8,10 @@ import (
 	"github.com/worldiety/dddl/parser"
 	"github.com/worldiety/dddl/web/editor"
 	"golang.org/x/exp/slog"
+	"io/fs"
 	"log"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 )
@@ -25,6 +28,7 @@ type Server struct {
 	lastPreviewParams *PreviewHtmlParams
 	jobQueues         map[string]jobQueueEntry
 	jobQueuesLock     sync.Mutex
+	rootPath          string
 }
 
 func NewServer() *Server {
@@ -34,9 +38,39 @@ func NewServer() *Server {
 	}
 }
 
+func (s *Server) reloadFiles() {
+	err := filepath.Walk(s.rootPath, func(path string, info fs.FileInfo, err error) error {
+		if info.IsDir() || strings.HasPrefix(info.Name(), ".") {
+			return nil
+		}
+
+		if strings.HasSuffix(path, ".ddd") {
+			buf, err := os.ReadFile(path)
+			if err != nil {
+				return fmt.Errorf("failed to read '%s': %w", path, err)
+			}
+
+			uri := protocol.DocumentURI("file://" + path)
+			s.files[uri] = File{
+				Uri:     uri,
+				Content: string(buf),
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		log.Printf("failed to reload files: %v\n", err)
+	}
+}
+
 // Handle a client's request to initialize and respond with our capabilities.
 func (s *Server) Initialize(params *protocol.InitializeParams) protocol.InitializeResult {
-	log.Println(params)
+	log.Printf("%+v", params)
+	s.rootPath = params.RootPath
+	s.reloadFiles()
+
 	// For a perfect server we would need to check params.Capabilities to know
 	// what information the client can handle.
 	return protocol.InitializeResult{
@@ -123,10 +157,6 @@ func (s *Server) hoverText(token *VSCToken) string {
 
 }
 
-func (s *Server) loadFileToMem(uri protocol.DocumentURI) {
-
-}
-
 // A document was saved.
 func (s *Server) DidSaveTextDocument(params *protocol.DidSaveTextDocumentParams) {
 	if params.Text != nil {
@@ -186,16 +216,19 @@ func (s *Server) FullSemanticTokens(params *protocol.SemanticTokensParams) proto
 	}
 }
 
-func (s *Server) EncodeXML(filename protocol.DocumentURI) string {
+func (s *Server) AsciiDoc(filename protocol.DocumentURI) string {
 	var out strings.Builder
-	in := strings.NewReader(s.files[filename].Content)
+	doc, err := s.parseSuperDoc()
+	if doc == nil {
+		return err.Error()
+	}
 
-	/*enc := encoder.NewXMLEncoder(filepath.Base(string(filename)), in, &out)
-	err := enc.Encode()
-	if err != nil {
-		return ""
-	}*/
-	_ = in
+	out.WriteString("= Implement me\n\n")
+	for _, context := range doc.Contexts {
+		out.WriteString("== ")
+		out.WriteString(context.Name.Name)
+		out.WriteString("\n")
+	}
 
 	return out.String()
 }
@@ -204,13 +237,17 @@ func (s *Server) sendPreviewHtml() {
 	s.async("previewHtml", func() {
 		if s.lastPreviewParams == nil {
 			slog.Warn("cannot send preview html, never requested a preview")
+			err := SendNotification("custom/newAsyncPreviewHtml", "missing WebView preview params from LSP client")
+			if err != nil {
+				log.Printf("cannot send unbound previewhtml: %v", err)
+			}
 			return
 		}
 
 		html := s.RenderPreviewHtml(*s.lastPreviewParams)
 		err := SendNotification("custom/newAsyncPreviewHtml", html)
 		if err != nil {
-			log.Printf("cannot send diagnostics: %v", err)
+			log.Printf("cannot send previewhtml: %v", err)
 		}
 	})
 }
@@ -274,18 +311,17 @@ type PreviewHtmlParams struct {
 	TailwindUri protocol.DocumentURI
 }
 
-func (s *Server) RenderPreviewHtml(params PreviewHtmlParams) string {
-	log.Println(params)
-	s.lastPreviewParams = &params
-
-	var model editor.EditorPreview
-	model.VSCode.ScriptUris = append(model.VSCode.ScriptUris, string(params.TailwindUri))
-
+func (s *Server) parseSuperDoc() (*parser.Doc, error) {
+	var superErr error
 	superDoc := &parser.Doc{}
 	for _, file := range s.files {
 		doc, err := parser.ParseText(string(file.Uri), file.Content)
 		if err != nil {
-			model.Error += err.Error() + "\n"
+			if superErr == nil {
+				superErr = err
+			} else {
+				superErr = fmt.Errorf("also occurred: %w and %w", superErr, err)
+			}
 		}
 
 		for _, context := range doc.Contexts {
@@ -304,9 +340,28 @@ func (s *Server) RenderPreviewHtml(params PreviewHtmlParams) string {
 		}
 	}
 
+	return superDoc, superErr
+}
+
+func (s *Server) RenderPreviewHtml(params PreviewHtmlParams) string {
+	log.Println(params)
+	s.lastPreviewParams = &params
+
+	var model editor.EditorPreview
+	model.VSCode.ScriptUris = append(model.VSCode.ScriptUris, string(s.lastPreviewParams.TailwindUri))
+
+	doc, err := s.parseSuperDoc()
+	if doc == nil {
+		return err.Error()
+	}
+
+	if err != nil {
+		model.Error = err.Error()
+	}
+
 	linter := editor.Linter(func(doc *parser.Doc) []linter.Hint {
 		return linter.Lint(doc)
 	})
 
-	return editor.RenderViewHtml(linter, superDoc, model)
+	return editor.RenderViewHtml(linter, doc, model)
 }

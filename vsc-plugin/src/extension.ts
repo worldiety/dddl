@@ -44,13 +44,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
 
     // Request an XML preview from the language server and show that result in a new editor.
-    context.subscriptions.push(vscode.commands.registerCommand("wdyspec.encodeXML", () => {
+    context.subscriptions.push(vscode.commands.registerCommand("dddl.exportAsciiDoc", () => {
         let doc = "file://" + vscode.window.activeTextEditor?.document.uri.fsPath;
         if (doc) {
-            client.sendRequest("custom/encodeXML", doc).then((resp) => {
+            client.sendRequest("custom/exportAsciiDoc", doc).then((resp) => {
                 vscode.workspace.openTextDocument({
                     content: String(resp),
-                    language: "xml"
+                    language: "asciidoc"
                 }).then((document) => {
                     vscode.window.showTextDocument(document);
                 });
@@ -60,25 +60,28 @@ export async function activate(context: vscode.ExtensionContext) {
 
 
     //preview???
+
+
+
+    client.onNotification("custom/newAsyncPreviewHtml",resp => {
+        console.log("shall async preview")
+
+        if (typeof resp === "string") {
+            if (PreviewPanel.currentPanel!=null){
+                PreviewPanel.currentPanel._html = resp
+                PreviewPanel.currentPanel._update() // do not capture focus
+            }
+        } else {
+            console.log("cannot handle resp, not a string");
+        }
+    });
+
     context.subscriptions.push(vscode.commands.registerCommand("wdyspec.previewHTML", () => {
         let doc = "file://" + vscode.window.activeTextEditor?.document.uri.fsPath;
         if (doc) {
             PreviewPanel.createOrShow(context.extensionUri, "<p>Einen Moment bitte...</p>");
+
             let tailwindUri = PreviewPanel.currentPanel?._tailwindUri;
-
-            client.onNotification("custom/newAsyncPreviewHtml",resp => {
-                console.log("shall async preview")
-
-                if (typeof resp === "string") {
-                    if (PreviewPanel.currentPanel!=null){
-                        PreviewPanel.currentPanel._html = resp
-                        PreviewPanel.currentPanel._update() // do not capture focus
-                    }
-                } else {
-                    console.log("cannot handle resp, not a string");
-                }
-            });
-
             client.sendRequest("custom/previewHTML", {doc:doc,tailwindUri:tailwindUri?.toString()}).then((resp) => {
                 console.log("shall preview", resp);
 
@@ -189,8 +192,8 @@ class PreviewPanel {
         // Otherwise, create a new panel.
         const panel = vscode.window.createWebviewPanel(
             PreviewPanel.viewType,
-            'Cat Coding',
-            column || vscode.ViewColumn.One,
+            'wdy dddl preview',
+            vscode.ViewColumn.Two,
             getWebviewOptions(extensionUri),
         );
 
@@ -200,6 +203,10 @@ class PreviewPanel {
     public static revive(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
         //PreviewPanel.currentPanel = new PreviewPanel(panel, extensionUri, "TODO cannot revive from nothing");
         PreviewPanel.createOrShow(extensionUri, "<p>Einen Moment bitte...</p>");
+
+        let tailwindUri = PreviewPanel.currentPanel?._tailwindUri;
+        client.sendRequest("custom/webViewParams",{TailwindUri:tailwindUri?.toString()}).catch(e=>console.log(e))
+
     }
 
     private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, html: string) {

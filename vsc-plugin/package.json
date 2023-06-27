@@ -22,6 +22,11 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configurationDefaults": {
+      "[ddd]": {
+         "editor.semanticHighlighting.enabled": true
+      }
+    },
     "languages": [
       {
         "id": "ddd",
@@ -36,14 +41,14 @@
     ],
     "commands": [
       {
-        "command": "wdyspec.encodeXML",
-        "title": "Encode as XML",
-        "category": "wdyspec"
+        "command": "dddl.exportAsciiDoc",
+        "title": "Encode as AsciiDoc",
+        "category": "wdy"
       },
       {
         "command": "wdyspec.previewHTML",
         "title": "preview as HTML",
-        "category": "wdyspec"
+        "category": "wdy"
       }
     ]
   },

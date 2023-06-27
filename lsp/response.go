@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sync"
 )
 
 type Response struct {
@@ -16,8 +17,13 @@ type Notification struct {
 	Params interface{} `json:"params"`
 }
 
+// async queue calls using SendNotification will corrupt SendResponse and other SendNotification calls.
+var msgWriteLock sync.Mutex
+
 // Send a response as one to the given request.
 func SendResponse(response interface{}, requestId float64) error {
+	msgWriteLock.Lock()
+	defer msgWriteLock.Unlock()
 
 	responseBytes, err := json.Marshal(Response{
 		Id:     requestId,
@@ -36,6 +42,9 @@ func SendResponse(response interface{}, requestId float64) error {
 
 // Send a notification, which holds some information we push to the client.
 func SendNotification(method string, notification interface{}) error {
+	msgWriteLock.Lock()
+	defer msgWriteLock.Unlock()
+
 	responseBytes, err := json.Marshal(Notification{
 		Method: method,
 		Params: notification,
