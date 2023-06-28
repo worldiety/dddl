@@ -1,12 +1,35 @@
-# dyml-vscode
+# DDDL
 
-A VS code extension to add support for [DYML](https://github.com/golangee/dyml). It will feature syntax highlighting and syntax checking.
+Die worldiety _Domain-Driven Design Language_ kann zur Unterstützung einer strukturierten Anforderungserhebung dienen.
+Dazu wird eine Interpretation verschiedener Elemente basierend auf den strategischen Mustern des Domain-Driven Design mit Hilfe einer domänenspezifischen Sprache bereitgestellt.  
 
-Currently WIP.
+Grundsätzlich tragen die TxT-Dateien die Endung _*.ddd_ und können nach Belieben arrangiert und verschachtelt werden.
 
-## Development
-You need [VS Code](https://code.visualstudio.com/) to try this extension. Run `npm install`, then open this project in vscode and select `Run > Start Debugging` or press `F5`. You need to have a go compiler and npm installed.
+## Bounded Context
 
-It might be useful to see the extensions output, which you can show by opening `View > Output` and selecting it in the dropdown on the right. `DYML Language Server` and `Log (Extension Host)` might be of interest here.
+Es können beliebig viele _Bounded Kontexte_ definiert werden, wobei bei Wiederholungen in mehreren Dateien nur eine Definition und ein TODO zulässig ist.
 
-To package the application into a `.vsix` file run `make`. You might need to `npm install -g vsce` first. This package can then be installed in vscode by opening the overflow menu in the extension tab, and selecting `Install from VSIX`.
+```ddd
+Kontext Produktbestellung
+    
+    TODO: "Die Definition muss noch überarbeitet werden."
+    
+    "Die Produktbestellung ist die zentrale und wertschöpfende Domäne..."
+
+```
+
+## Daten
+
+```ddd
+// Daten gehören immer zu einem übergeordneten Kontext
+Daten Kunde = Privatkunde oder Firmenkunde
+    TODO: "Besser beschreiben"
+    
+    "Ein Kunde ist ein zu überladener Begriff."
+    
+Daten Firmenkunde =
+    Vorname
+    und Nachname
+    und Adresse
+    
+```

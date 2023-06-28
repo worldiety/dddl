@@ -290,6 +290,46 @@ func (s *Server) sendDiagnostics() {
 			} else {
 				// we must always send the diagnostics, otherwise error message will not disappear
 				diagnostics = make([]protocol.Diagnostic, 0)
+
+			}
+
+			if len(diagnostics) == 0 {
+				// we have no errors, so its worth to lint the entire thing
+				doc, err := s.parseSuperDoc()
+				if err != nil {
+					log.Println("unexpected superdoc parser error", err)
+				}
+
+				if doc != nil {
+					hints := linter.Lint(doc)
+					for _, hint := range hints {
+						hintFname := filepath.Base(hint.ParentIdent.Pos.Filename)
+						baseFname := filepath.Base(string(file.Uri)) // TODO assumption not correct for files in distinct folders
+
+						if baseFname == hintFname {
+							pos := hint.ParentIdent.Position()
+							end := hint.ParentIdent.EndPosition()
+							diagnostics = append(diagnostics, protocol.Diagnostic{
+								Range: protocol.Range{
+									Start: protocol.Position{
+										// Subtract 1 since dyml has 1 based lines and columns, but LSP wants 0 based
+										Line:      uint32(pos.Line) - 1,
+										Character: uint32(pos.Column) - 1,
+									},
+									// we don't know the length, so just always pick the next 3 chars
+									End: protocol.Position{
+										Line:      uint32(end.Line) - 1,
+										Character: uint32(end.Column) - 1,
+									},
+								},
+								Severity: protocol.SeverityWarning,
+								Message: hint.String(func(ident *parser.Ident) string {
+									return ident.Name
+								}),
+							})
+						}
+					}
+				}
 			}
 
 			err = SendNotification("textDocument/publishDiagnostics", protocol.PublishDiagnosticsParams{

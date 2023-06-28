@@ -1,13 +1,13 @@
 {
   "name": "dddl",
-  "displayName": "worldiety domain driven design language",
+  "displayName": "DDDL",
   "icon": "assets/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/worldiety/dddl.git"
   },
   "publisher": "worldiety",
-  "description": "Add syntax highlighting for wdy dddl, the requirements engineering and ubiquitous language language.",
+  "description": "Fügt die Unterstützung für die worldiety domain driven design language hinzu.",
   "version": "0.0.5",
   "engines": {
     "vscode": "^1.55.0"
@@ -15,11 +15,7 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onLanguage:ddd",
-    "onCommand:wdyspec.encodeXML",
-    "onCommand:wdyspec.previewHTML"
-  ],
+
   "main": "./out/extension.js",
   "contributes": {
     "configurationDefaults": {
