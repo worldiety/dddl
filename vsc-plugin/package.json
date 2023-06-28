@@ -8,7 +8,7 @@
   },
   "publisher": "worldiety",
   "description": "Fügt die Unterstützung für die worldiety domain driven design language hinzu.",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "engines": {
     "vscode": "^1.55.0"
   },
