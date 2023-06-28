@@ -3,9 +3,9 @@ package editor
 import (
 	"embed"
 	"fmt"
+	"github.com/worldiety/dddl/html"
 	"github.com/worldiety/dddl/linter"
 	"github.com/worldiety/dddl/parser"
-	"gitlab.worldiety.net/tschinke/html"
 	"golang.org/x/exp/slog"
 	"html/template"
 	"net/http"

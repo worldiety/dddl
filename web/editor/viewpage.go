@@ -1,8 +1,8 @@
 package editor
 
 import (
+	"github.com/worldiety/dddl/html"
 	"github.com/worldiety/dddl/parser"
-	"gitlab.worldiety.net/tschinke/html"
 	"net/http"
 	"net/http/httptest"
 )
