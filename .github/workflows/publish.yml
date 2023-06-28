@@ -1,0 +1,31 @@
+name: Publish Extension
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2.4.1
+      - uses: actions/setup-go@v2.1.4
+      
+      - name: Install dependencies
+        run: |
+          cd vsc-plugin
+          npm install
+          npm i -g vsce
+        
+      - name: Build
+        run: |
+          cd vsc-plugin
+          make
+      
+      - name: Publish
+        run: |
+          cd vsc-plugin
+          vsce publish -p ${{ secrets.VSCE_PAT }}

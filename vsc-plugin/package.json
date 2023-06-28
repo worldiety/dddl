@@ -1,6 +1,6 @@
 {
-  "name": "worldiety domain driven design language",
-  "displayName": "wdy ddd",
+  "name": "dddl",
+  "displayName": "worldiety domain driven design language",
   "icon": "assets/icon.png",
   "repository": {
     "type": "git",
