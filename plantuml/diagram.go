@@ -4,9 +4,16 @@ import "io"
 
 const ThemeCerulean = "https://raw.githubusercontent.com/bschwarz/puml-themes/master/themes/cerulean/puml-theme-cerulean.puml"
 
+type DefaultTextAlignment string
+
+const (
+	DTACenter = "skinparam defaulttextalignment center"
+)
+
 type Diagram struct {
-	includes    []string
-	renderables []Renderable
+	includes             []string
+	Renderables          []Renderable
+	DefaultTextAlignment DefaultTextAlignment
 }
 
 func NewDiagram() *Diagram {
@@ -15,7 +22,7 @@ func NewDiagram() *Diagram {
 }
 
 func (d *Diagram) Add(r ...Renderable) *Diagram {
-	d.renderables = append(d.renderables, r...)
+	d.Renderables = append(d.Renderables, r...)
 	return d
 }
 
@@ -27,13 +34,18 @@ func (d *Diagram) Include(inc ...string) *Diagram {
 func (d *Diagram) Render(wr io.Writer) error {
 	w := strWriter{Writer: wr}
 	w.Print("@startuml\n")
+	if d.DefaultTextAlignment != "" {
+		w.Print(string(d.DefaultTextAlignment))
+		w.Print("\n")
+	}
+
 	for _, include := range d.includes {
 		w.Print("!include ")
 		w.Print(include)
 		w.Print("\n")
 	}
 
-	for _, renderable := range d.renderables {
+	for _, renderable := range d.Renderables {
 		if err := renderable.Render(wr); err != nil {
 			return err
 		}

@@ -49,7 +49,7 @@ func main() {
 	})
 
 	parse := editor.Parser(func(text string) (*parser.Doc, error) {
-		doc, err := parser.ParseText(text)
+		doc, err := parser.ParseText("???", text)
 		if err != nil {
 			return nil, fmt.Errorf("cannot parse model: %w", err)
 		}

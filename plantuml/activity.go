@@ -39,6 +39,7 @@ type Stmt struct {
 	Block         []*Stmt
 	PartitionStmt *PartitionStmt
 	Note          *ActivityNote
+	Swimlane      *Swimlane
 }
 
 func (n *Stmt) Render(wr io.Writer) error {
@@ -57,6 +58,12 @@ func (n *Stmt) Render(wr io.Writer) error {
 
 	if n.State != nil {
 		if err := n.State.Render(wr); err != nil {
+			return err
+		}
+	}
+
+	if n.Swimlane != nil {
+		if err := n.Swimlane.Render(wr); err != nil {
 			return err
 		}
 	}
@@ -132,6 +139,17 @@ func (n *StartStmt) Render(wr io.Writer) error {
 			return err
 		}
 	}
+
+	return w.Err
+}
+
+type Swimlane struct {
+	Text string
+}
+
+func (n *Swimlane) Render(wr io.Writer) error {
+	w := strWriter{Writer: wr}
+	w.Printf("|%s|\n", n.Text)
 
 	return w.Err
 }

@@ -44,9 +44,6 @@ func (n *KeywordTodo) EndPosition() lexer.Position {
 	return offsetPosText(n.Position(), "TODO")
 }
 
-type Text struct {
-}
-
 type ToDo struct {
 	node
 	KeywordTodo *KeywordTodo `@@ ":"`
@@ -90,6 +87,15 @@ func (n *Definition) Position() lexer.Position {
 func (n *Definition) EndPosition() lexer.Position {
 	pos := offsetPosText(n.Position(), n.Text)
 	return pos
+}
+
+type Text struct {
+	node
+	Value string `@Text`
+}
+
+func (n *Text) Children() []Node {
+	return nil
 }
 
 type ToDoText struct {

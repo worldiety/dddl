@@ -7,8 +7,8 @@ type Workflow struct {
 	ToDo         *ToDo       `@@? `
 	Dependencies *Input      `("Abhängigkeiten" ":" @@)?`
 	Input        *Input      ` ("Eingabe" ":" @@`
-	Output       *Output     `"Ausgabe" ":" @@`
-	Block        *Stmts      `("Ablauf" "{" @@ "}")?)?`
+	Output       *Output     `"Ausgabe" ":" @@)?`
+	Block        *Stmts      `("Ablauf" "{" @@ "}")?`
 	Definition   *Definition `@@?)?`
 }
 
@@ -37,6 +37,7 @@ func (n *Workflow) Children() []Node {
 	if n.Definition != nil {
 		res = append(res, n.Definition)
 	}
+
 	return res
 }
 
@@ -58,16 +59,71 @@ func (n *Stmts) Children() []Node {
 	return res
 }
 
+type ScribbleOrIdent struct {
+	node
+	Name     *Ident `(@@`
+	Scribble *Text  `|@@)`
+}
+
+func (n *ScribbleOrIdent) Text() string {
+	if n.Name != nil {
+		return n.Name.Name
+	}
+
+	return n.Scribble.Value
+}
+
+func (n *ScribbleOrIdent) Children() []Node {
+	if n.Name != nil {
+		return []Node{n.Name}
+	}
+	return []Node{n.Scribble}
+}
+
+type EventStmt struct {
+	node
+	KeywordEvent    *KeywordEvent    `@@`
+	ScribbleOrIdent *ScribbleOrIdent `@@`
+}
+
+func (n *EventStmt) Children() []Node {
+	return []Node{n.KeywordEvent, n.ScribbleOrIdent}
+}
+
+type ActorStmt struct {
+	node
+	KeywordEvent    *KeywordActor    `@@`
+	ScribbleOrIdent *ScribbleOrIdent `@@`
+	Block           *Stmts           `"{" @@ "}"`
+}
+
+func (n *ActorStmt) Children() []Node {
+	return []Node{n.KeywordEvent, n.ScribbleOrIdent, n.Block}
+}
+
+type ActivityStmt struct {
+	node
+	KeywordEvent    *KeywordActivity `@@`
+	ScribbleOrIdent *ScribbleOrIdent `@@`
+}
+
+func (n *ActivityStmt) Children() []Node {
+	return []Node{n.KeywordEvent, n.ScribbleOrIdent}
+}
+
 type Stmt struct {
 	node
 
-	IfStmt     *IfStmt     `@@`
-	EachStmt   *EachStmt   `|@@`
-	ToDo       *ToDo       `|@@`
-	ReturnStmt *ReturnStmt `|@@`
-	WhileStmt  *WhileStmt  `|@@`
-	CallStmt   *CallStmt   `|@@`
-	Block      *Stmts      `|"{" @@ "}"`
+	IfStmt     *IfStmt       `@@`
+	Event      *EventStmt    `|@@`
+	Activity   *ActivityStmt `|@@`
+	Actor      *ActorStmt    `|@@`
+	EachStmt   *EachStmt     `|@@`
+	ToDo       *ToDo         `|@@`
+	ReturnStmt *ReturnStmt   `|@@`
+	WhileStmt  *WhileStmt    `|@@`
+	CallStmt   *CallStmt     `|@@`
+	Block      *Stmts        `|"{" @@ "}"`
 }
 
 func (n *Stmt) Children() []Node {
@@ -102,6 +158,18 @@ func (n *Stmt) Children() []Node {
 
 	if n.Block != nil {
 		res = append(res, n.Block)
+	}
+
+	if n.Event != nil {
+		res = append(res, n.Event)
+	}
+
+	if n.Actor != nil {
+		res = append(res, n.Actor)
+	}
+
+	if n.Activity != nil {
+		res = append(res, n.Activity)
 	}
 
 	return res

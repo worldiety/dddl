@@ -1,13 +1,16 @@
 package puml
 
 import (
+	"fmt"
 	"github.com/worldiety/dddl/parser"
 	"github.com/worldiety/dddl/plantuml"
+	"golang.org/x/exp/slices"
 	"golang.org/x/exp/slog"
 )
 
 func Workflow(doc *parser.Doc, flow *parser.Workflow) *plantuml.Diagram {
 	diag := plantuml.NewDiagram()
+	diag.DefaultTextAlignment = plantuml.DTACenter
 	ac := plantuml.NewActivity()
 	diag.Add(ac)
 
@@ -53,6 +56,18 @@ func Workflow(doc *parser.Doc, flow *parser.Workflow) *plantuml.Diagram {
 	// because we have to define the correct branches for each return
 
 	//log.Println(plantuml.String(diag))
+
+	// pick first swimlane, if any
+	_ = parser.Walk(flow, func(n parser.Node) error {
+		if actor, ok := n.(*parser.ActorStmt); ok {
+			stmt := &plantuml.Swimlane{Text: actor.ScribbleOrIdent.Text()}
+			diag.Renderables = slices.Insert(diag.Renderables, 0, plantuml.Renderable(stmt))
+			return fmt.Errorf("done")
+		}
+
+		return nil
+	})
+
 	return diag
 }
 
@@ -74,6 +89,23 @@ func fromStmt(stmt *parser.Stmt) *plantuml.Stmt {
 
 	if stmt.WhileStmt != nil {
 		return &plantuml.Stmt{While: fromWhileStmt(stmt.WhileStmt)}
+	}
+
+	if stmt.Event != nil {
+		return &plantuml.Stmt{State: fromEventStmt(stmt.Event)}
+	}
+
+	if stmt.Actor != nil {
+		pstmt := &plantuml.Stmt{Swimlane: fromActorStatement(stmt.Actor)}
+		for _, statement := range stmt.Actor.Block.Statements {
+			pstmt.Block = append(pstmt.Block, fromStmt(statement))
+		}
+
+		return pstmt
+	}
+
+	if stmt.Activity != nil {
+		return &plantuml.Stmt{State: fromActivityStmt(stmt.Activity)}
 	}
 
 	if stmt.EachStmt != nil {
@@ -114,6 +146,34 @@ func fromReturnStmt(n *parser.ReturnStmt) *plantuml.StopStmt {
 	}
 
 	return stop
+}
+
+func bpmSym(symbol BpmnSymbol) string {
+	return fmt.Sprintf("<size:25><font:bpmn><U+%s></font></size>", symbol)
+}
+
+func fromEventStmt(n *parser.EventStmt) *plantuml.ActivityState {
+	eventName := n.ScribbleOrIdent.Text()
+	ac := plantuml.NewActivityState(eventName)
+	ac.Color = "#ff992a"
+	ac.Name = bpmSym(bpmn_icon_start_event_none) + "\n"
+	ac.Name += "//Ereignis//\n" + eventName
+	return ac
+}
+
+func fromActorStatement(n *parser.ActorStmt) *plantuml.Swimlane {
+	actor := n.ScribbleOrIdent.Text()
+	lane := &plantuml.Swimlane{Text: actor}
+	return lane
+}
+
+func fromActivityStmt(n *parser.ActivityStmt) *plantuml.ActivityState {
+	eventName := n.ScribbleOrIdent.Text()
+	ac := plantuml.NewActivityState(eventName)
+	ac.Color = "#3399fe"
+	ac.Name = bpmSym(bpmn_icon_task) + "\n"
+	ac.Name += "//Arbeitsschritt//\n" + eventName
+	return ac
 }
 
 func fromCallStmt(n *parser.CallStmt) *plantuml.ActivityState {

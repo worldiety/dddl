@@ -9,7 +9,8 @@ type Node interface {
 }
 
 type node struct {
-	Pos lexer.Position
+	Pos    lexer.Position
+	EndPos lexer.Position
 }
 
 func (n *node) Position() lexer.Position {
@@ -17,7 +18,7 @@ func (n *node) Position() lexer.Position {
 }
 
 func (n *node) EndPosition() lexer.Position {
-	return n.Position()
+	return n.EndPos
 }
 
 func Walk(n Node, visitor func(n Node) error) error {

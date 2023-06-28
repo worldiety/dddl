@@ -18,7 +18,7 @@ Kontext Produktbestellung
 
 ```
 
-## Daten
+### Daten
 
 ```ddd
 // Daten gehören immer zu einem übergeordneten Kontext
@@ -33,3 +33,34 @@ Daten Firmenkunde =
     und Adresse
     
 ```
+
+### Arbeitsabläufe
+
+```ddd
+Arbeitsablauf Zeitloggen =
+
+Ablauf{
+    Akteur Mitarbeiter {
+        Ereignis "Aufgabe erledigt"
+        Schritt "Auf Abschicken klicken"
+    }
+
+    Akteur Rechnungssteller{
+        Ereignis "Monatslog abgeschlossen"
+        Schritt "schließt Monat ab"
+    }
+
+}
+
+"Zeitloggen macht Spaß."
+```
+
+## Voraussetzungen
+
+### MacOS
+
+```bash
+brew install plantuml
+```
+
+Download und Installation der [bpmn.ttf](https://github.com/bpmn-io/bpmn-font/tree/master/dist/font) aus dem bpmn-font Projekt.
