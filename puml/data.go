@@ -9,14 +9,14 @@ func Data(doc *parser.Doc, data *parser.Data) *plantuml.Diagram {
 	diag := plantuml.NewDiagram()
 
 	if len(data.ChoiceTypes()) > 0 {
-		diag.Add(plantuml.NewInterface(data.Name.Name).NoteRight(plantuml.NewNote(Data2Str(data))))
+		diag.Add(plantuml.NewInterface(data.Name.Value).NoteRight(plantuml.NewNote(Data2Str(data))))
 		for _, choice := range data.ChoiceTypes() {
 			choiceName := TypeDeclToStr(choice)
 			choiceData := doc.DataByName(choiceName)
 			if choiceData == nil {
-				diag.Add(plantuml.NewClass(choiceName).Extends(data.Name.Name))
+				diag.Add(plantuml.NewClass(choiceName).Extends(data.Name.Value))
 			} else {
-				diag.Add(Class(doc, choiceData).Extends(data.Name.Name))
+				diag.Add(Class(doc, choiceData).Extends(data.Name.Value))
 			}
 		}
 
@@ -28,7 +28,7 @@ func Data(doc *parser.Doc, data *parser.Data) *plantuml.Diagram {
 }
 
 func Class(doc *parser.Doc, data *parser.Data) *plantuml.Class {
-	c := plantuml.NewClass(data.Name.Name)
+	c := plantuml.NewClass(data.Name.Value)
 	for _, declaration := range data.FieldTypes() {
 		c.AddAttrs(plantuml.Attr{
 			Visibility: plantuml.Public,
@@ -40,7 +40,7 @@ func Class(doc *parser.Doc, data *parser.Data) *plantuml.Class {
 }
 
 func TypeDeclToStr(decl *parser.TypeDeclaration) string {
-	tmp := decl.Name.Name
+	tmp := decl.Name.Value
 	if len(decl.Params) > 0 {
 		tmp += "<"
 		for i, param := range decl.Params {
@@ -56,7 +56,7 @@ func TypeDeclToStr(decl *parser.TypeDeclaration) string {
 }
 
 func Data2Str(data *parser.Data) string {
-	tmp := data.Name.Name + " = \n"
+	tmp := data.Name.Value + " = \n"
 	for i, declaration := range data.ChoiceTypes() {
 		tmp += typeDeclToLinkStr(declaration)
 		if i < len(data.ChoiceTypes())-1 {

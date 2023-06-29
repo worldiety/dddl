@@ -67,6 +67,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
         if (typeof resp === "string") {
             if (PreviewPanel.currentPanel != null) {
+                if (resp==="lastPreviewParams missing"){
+                    let tailwindUri = PreviewPanel.currentPanel?._tailwindUri;
+                    client.sendRequest("custom/webViewParams", {TailwindUri: tailwindUri?.toString()}).catch(e => console.log(e))
+
+                }
+
                 PreviewPanel.currentPanel._html = resp
                 PreviewPanel.currentPanel._update() // do not capture focus
             }
@@ -140,11 +146,6 @@ export function deactivate(): Thenable<void> | undefined {
 
 //================
 
-const cats = {
-    'Coding Cat': 'https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif',
-    'Compiling Cat': 'https://media.giphy.com/media/mlvseq9yvZhba/giphy.gif',
-    'Testing Cat': 'https://media.giphy.com/media/3oriO0OEd9QIDdllqo/giphy.gif'
-};
 
 
 function getWebviewOptions(extensionUri: vscode.Uri): vscode.WebviewOptions {

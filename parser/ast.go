@@ -21,6 +21,10 @@ func (n *node) EndPosition() lexer.Position {
 	return n.EndPos
 }
 
+func (n *node) Children() []Node {
+	return nil
+}
+
 func Walk(n Node, visitor func(n Node) error) error {
 	if n == nil {
 		return nil

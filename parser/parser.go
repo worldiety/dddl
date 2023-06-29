@@ -15,7 +15,7 @@ type Doc struct {
 
 func (n *Doc) ContextByName(name string) *Context {
 	for _, context := range n.Contexts {
-		if context.Name.Name == name {
+		if context.Name.Value == name {
 			return context
 		}
 	}
@@ -27,7 +27,7 @@ func (n *Doc) DataByName(name string) *Data {
 	for _, context := range n.Contexts {
 		for _, element := range context.Elements {
 			if element.DataType != nil {
-				if element.DataType.Name.Name == name {
+				if element.DataType.Name.Value == name {
 					return element.DataType
 				}
 			}
@@ -41,7 +41,7 @@ func (n *Doc) WorkflowByName(name string) *Workflow {
 	for _, context := range n.Contexts {
 		for _, element := range context.Elements {
 			if element.Workflow != nil {
-				if element.Workflow.Name.Name == name {
+				if element.Workflow.Name.Value == name {
 					return element.Workflow
 				}
 			}
@@ -78,7 +78,7 @@ func (n *Context) DataTypes() []*Data {
 	}
 
 	slices.SortFunc(res, func(a, b *Data) bool {
-		return a.Name.Name < b.Name.Name
+		return a.Name.Value < b.Name.Value
 	})
 
 	return res
@@ -93,7 +93,7 @@ func (n *Context) Workflows() []*Workflow {
 	}
 
 	slices.SortFunc(res, func(a, b *Workflow) bool {
-		return a.Name.Name < b.Name.Name
+		return a.Name.Value < b.Name.Value
 	})
 
 	return res

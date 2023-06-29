@@ -77,7 +77,7 @@ func lintOnly(doc *parser.Doc, lint Linter, model EditorPreview) EditorPreview {
 
 	for _, hint := range lint(doc) {
 		str := hint.String(func(ident *parser.Ident) string {
-			return fmt.Sprintf(`<a class="text-green-600" href="#%s">%s</a>`, ident.Name, ident.Name)
+			return fmt.Sprintf(`<a class="text-green-600" href="#%s">%s</a>`, ident.Value, ident.Value)
 		})
 		model.Hints = append(model.Hints, template.HTML(str))
 	}

@@ -35,7 +35,7 @@ func Unique(hints []Hint) []Hint {
 	var res []Hint
 	tmp := map[string]struct{}{}
 	for _, hint := range hints {
-		key := hint.Message + hint.ParentIdent.Name
+		key := hint.Message + hint.ParentIdent.Value
 		if _, ok := tmp[key]; ok {
 			continue
 		}

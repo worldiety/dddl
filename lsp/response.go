@@ -34,7 +34,7 @@ func SendResponse(response interface{}, requestId float64) error {
 	}
 
 	responseData := fmt.Sprintf("Content-Length: %d\r\n\r\n%s", len(responseBytes), responseBytes)
-	log.Printf("Sending response: %s", responseBytes)
+	//log.Printf("Sending response: %s", responseBytes)
 	fmt.Print(responseData)
 
 	return nil
@@ -54,7 +54,8 @@ func SendNotification(method string, notification interface{}) error {
 	}
 
 	responseData := fmt.Sprintf("Content-Length: %d\r\n\r\n%s", len(responseBytes), responseBytes)
-	log.Printf("Sending notification: %s", responseBytes)
+	//log.Printf("Sending notification: %s", responseBytes)
+	log.Printf("Sending notification: %s", method)
 	fmt.Print(responseData)
 
 	return nil

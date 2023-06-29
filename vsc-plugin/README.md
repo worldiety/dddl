@@ -9,7 +9,7 @@ Grundsätzlich tragen die TxT-Dateien die Endung _*.ddd_ und können nach Belieb
 
 Es können beliebig viele _Bounded Kontexte_ definiert werden, wobei bei Wiederholungen in mehreren Dateien nur eine Definition und ein TODO zulässig ist.
 
-```ddd
+```java
 Kontext Produktbestellung
     
     TODO: "Die Definition muss noch überarbeitet werden."
@@ -20,7 +20,7 @@ Kontext Produktbestellung
 
 ### Daten
 
-```ddd
+```gradle
 // Daten gehören immer zu einem übergeordneten Kontext
 Daten Kunde = Privatkunde oder Firmenkunde
     TODO: "Besser beschreiben"
@@ -36,7 +36,7 @@ Daten Firmenkunde =
 
 ### Arbeitsabläufe
 
-```ddd
+```ruby
 Arbeitsablauf Zeitloggen =
 
 Ablauf{

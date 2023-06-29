@@ -5,45 +5,6 @@ import (
 	"strings"
 )
 
-// Ident refers to the rules of an Identifier used by the Lexer.
-type Ident struct {
-	node
-
-	Name string `@Name`
-}
-
-func (n *Ident) EndPosition() lexer.Position {
-	return offsetPosText(n.Position(), n.Name)
-}
-
-func (n *Ident) Children() []Node {
-	return nil
-}
-
-func (n *Ident) IsUniverse() bool {
-	// Boolean is not defined, we encourage to use a choicetype
-	switch n.Name {
-	//list, set, map, string, int, float
-	case "Liste", "Menge", "Zuordnung", "Text", "Zahl", "Gleitkommazahl":
-		return true
-	default:
-		return false
-	}
-}
-
-type KeywordTodo struct {
-	node
-	Keyword string `"TODO"`
-}
-
-func (d *KeywordTodo) Children() []Node {
-	return nil
-}
-
-func (n *KeywordTodo) EndPosition() lexer.Position {
-	return offsetPosText(n.Position(), "TODO")
-}
-
 type ToDo struct {
 	node
 	KeywordTodo *KeywordTodo `@@ ":"`
@@ -71,31 +32,6 @@ func offsetPosText(pos lexer.Position, text string) lexer.Position {
 	pos.Column = lastLineLen
 
 	return pos
-}
-
-type Definition struct {
-	node
-	Text string `@Text`
-}
-
-func (n *Definition) Position() lexer.Position {
-	pos := n.node.Position()
-	pos.Column++ // fix "
-	return pos
-}
-
-func (n *Definition) EndPosition() lexer.Position {
-	pos := offsetPosText(n.Position(), n.Text)
-	return pos
-}
-
-type Text struct {
-	node
-	Value string `@Text`
-}
-
-func (n *Text) Children() []Node {
-	return nil
 }
 
 type ToDoText struct {
@@ -147,32 +83,6 @@ func (n *Definition) Children() []Node {
 	return nil
 }
 
-type KeywordData struct {
-	node
-	Keyword string `"Daten"`
-}
-
-func (d *KeywordData) Children() []Node {
-	return nil
-}
-
-func (n *KeywordData) EndPosition() lexer.Position {
-	return offsetPosText(n.Position(), "Daten")
-}
-
-type KeywordContext struct {
-	node
-	Keyword string `"Kontext"`
-}
-
-func (d *KeywordContext) Children() []Node {
-	return nil
-}
-
-func (n *KeywordContext) EndPosition() lexer.Position {
-	return offsetPosText(n.Position(), "Kontext")
-}
-
 // A Data is either a choice or a compound data type.
 // Combining both is probably hard to understand.
 // Without massive lookahead, we cannot distinguish that, so we will
@@ -180,13 +90,13 @@ func (n *KeywordContext) EndPosition() lexer.Position {
 type Data struct {
 	node
 	KeywordData *KeywordData       `@@`
-	Name        *Ident             ` @@ ( "="`
+	Name        *Ident             ` @@ ( "{"`
 	ToDo        *ToDo              `@@? `
 	First       *TypeDeclaration   ` (@@ `
 	Fields      []*TypeDeclaration `("und" @@)*`
 	Choices     []*TypeDeclaration `("oder" @@)*)?  `
 
-	Definition *Definition `@@?)?`
+	Definition *Definition `@@? "}")? `
 }
 
 func (d *Data) Empty() bool {

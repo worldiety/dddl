@@ -10,8 +10,9 @@ import (
 
 // TokenTypes is a list of our supported types from the LSP spec.
 // This array is sent once to the editor and after that only integers are used to refer
-// to this array.
-var TokenTypes = []string{"type", "string", "comment", "keyword", "struct", "function"}
+// to this array. See also
+// https://code.visualstudio.com/api/language-extensions/semantic-highlight-guide
+var TokenTypes = []string{"type", "string", "comment", "keyword", "struct", "function", "namespace"}
 
 // These are indices into the TokenTypes array.
 const (
@@ -21,6 +22,7 @@ const (
 	TokenKeyword
 	TokenStruct
 	TokenFunc
+	TokenNamespace
 )
 
 // File is a file that is located at an Uri and has Content.
@@ -86,19 +88,57 @@ func getTokenType(node parser.Node) int {
 	switch node.(type) {
 	case *parser.Ident:
 		return TokenType
-	case *parser.KeywordData:
+	case *parser.KeywordTodo,
+		*parser.KeywordContext,
+		*parser.KeywordActor,
+		*parser.KeywordEvent,
+		*parser.KeywordData,
+		*parser.KeywordActivity,
+		*parser.KeywordIf,
+		*parser.KeywordThen,
+		*parser.KeywordElse,
+		*parser.KeywordDecision,
+		*parser.KeywordReturn,
+		*parser.KeywordReturnError,
+		*parser.KeywordWorkflow:
 		return TokenKeyword
-	case *parser.KeywordTodo, *parser.ToDoText:
-		return TokenFunc
 
+	case *parser.Literal, *parser.Definition:
+		return TokenString
 	default:
 		return TokenComment
 	}
 }
 
+func isSemanticToken(n parser.Node) bool {
+	switch n.(type) {
+	case *parser.KeywordTodo,
+		*parser.KeywordActor,
+		*parser.KeywordEvent,
+		*parser.KeywordData,
+		*parser.KeywordContext,
+		*parser.KeywordActivity,
+		*parser.KeywordIf,
+		*parser.KeywordThen,
+		*parser.KeywordElse,
+		*parser.KeywordDecision,
+		*parser.KeywordReturn,
+		*parser.KeywordReturnError,
+		*parser.KeywordWorkflow:
+		return true
+	case *parser.Ident, *parser.Literal, *parser.Definition:
+		return true
+	}
+
+	return false
+}
+
 func IntoTokens(doc *parser.Doc) VSCTokens {
 	var tokens VSCTokens
 	err := parser.Walk(doc, func(n parser.Node) error {
+		if !isSemanticToken(n) {
+			return nil
+		}
 		// 1:3 -> 1:5 => just start and end col
 		// 1:3 -> 2:5 => start until EOL and end from SOL to end col
 		// 1:3 -> 3:5 => like above, but with full lines between
@@ -122,37 +162,40 @@ func IntoTokens(doc *parser.Doc) VSCTokens {
 
 			return nil
 		} else {
-			log.Printf("ignored: multiline token %T: %+v->%+v\n", n, start, end)
+			/*
+				log.Printf("ignored: multiline token %T: %+v->%+v\n", n, start, end)
 
-			tokens = append(tokens, VSCToken{
-				Node:          n,
-				Line:          start.Line - 1,
-				StartChar:     start.Column - 1,
-				Length:        1000, // don't know how long a line is
-				TokenType:     getTokenType(n),
-				TokenModifier: 0,
-			})
-
-			// everything in-between
-			for i := 0; i < end.Line-start.Line; i++ {
 				tokens = append(tokens, VSCToken{
 					Node:          n,
-					Line:          start.Line + i,
-					StartChar:     0,    // don't know start-of-line
-					Length:        1000, // don't know end-of-line
+					Line:          start.Line - 1,
+					StartChar:     start.Column - 1,
+					Length:        1000, // don't know how long a line is
 					TokenType:     getTokenType(n),
 					TokenModifier: 0,
 				})
-			}
 
-			tokens = append(tokens, VSCToken{
-				Node:          n,
-				Line:          end.Line - 1,
-				StartChar:     0,
-				Length:        end.Column, // don't know how long a line is
-				TokenType:     getTokenType(n),
-				TokenModifier: 0,
-			})
+				// everything in-between
+				for i := 0; i < end.Line-start.Line; i++ {
+					tokens = append(tokens, VSCToken{
+						Node:          n,
+						Line:          start.Line + i,
+						StartChar:     0,    // don't know start-of-line
+						Length:        1000, // don't know end-of-line
+						TokenType:     getTokenType(n),
+						TokenModifier: 0,
+					})
+				}
+
+				tokens = append(tokens, VSCToken{
+					Node:          n,
+					Line:          end.Line - 1,
+					StartChar:     0,
+					Length:        end.Column, // don't know how long a line is
+					TokenType:     getTokenType(n),
+					TokenModifier: 0,
+				})
+			*/
+
 		}
 
 		/*

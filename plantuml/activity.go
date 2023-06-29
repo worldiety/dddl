@@ -34,6 +34,7 @@ type Stmt struct {
 	Start         *StartStmt
 	While         *WhileStmt
 	Stop          *StopStmt
+	Kill          *KillStmt
 	State         *ActivityState
 	IfStmt        *IfStmt
 	Block         []*Stmt
@@ -98,6 +99,11 @@ func (n *Stmt) Render(wr io.Writer) error {
 		}
 	}
 
+	if n.Kill != nil {
+		if err := n.Kill.Render(wr); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -166,6 +172,16 @@ func (n *StopStmt) Render(wr io.Writer) error {
 			return err
 		}
 	}
+
+	return w.Err
+}
+
+type KillStmt struct {
+}
+
+func (n *KillStmt) Render(wr io.Writer) error {
+	w := strWriter{Writer: wr}
+	w.Printf("kill\n")
 
 	return w.Err
 }

@@ -28,7 +28,7 @@ func CheckUndefined(root parser.Node) []Hint {
 				parentId = n.Name
 			}
 
-			definedIdents[parentId.Name] = n
+			definedIdents[parentId.Value] = n
 
 			_ = parser.Walk(n, func(p parser.Node) error {
 				if usedId, ok := p.(*parser.Ident); ok {
@@ -47,11 +47,11 @@ func CheckUndefined(root parser.Node) []Hint {
 
 	var res []Hint
 	for _, holder := range allIdents {
-		if _, ok := definedIdents[holder.Ident.Name]; !ok && !holder.Ident.IsUniverse() {
+		if _, ok := definedIdents[holder.Ident.Value]; !ok && !holder.Ident.IsUniverse() {
 			res = append(res, Hint{
 				ParentIdent: holder.Parent,
 				Node:        holder.Ident,
-				Message:     "%s verwendet den undefinierten Begriff " + holder.Ident.Name,
+				Message:     "%s verwendet den undefinierten Begriff " + holder.Ident.Value,
 			})
 		}
 	}

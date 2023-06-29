@@ -2,43 +2,27 @@ package parser
 
 type Workflow struct {
 	node
-
-	Name         *Ident      `"Arbeitsablauf" @@ ("=" `
-	ToDo         *ToDo       `@@? `
-	Dependencies *Input      `("Abhängigkeiten" ":" @@)?`
-	Input        *Input      ` ("Eingabe" ":" @@`
-	Output       *Output     `"Ausgabe" ":" @@)?`
-	Block        *Stmts      `("Ablauf" "{" @@ "}")?`
-	Definition   *Definition `@@?)?`
+	KeywordWorkflow *KeywordWorkflow `@@`
+	Name            *Ident           `@@ ("=" `
+	ToDo            *ToDo            `@@? `
+	Dependencies    *Input           `("Abhängigkeiten" ":" @@)?`
+	Input           *Input           ` ("Eingabe" ":" @@`
+	Output          *Output          `"Ausgabe" ":" @@)?`
+	Block           *Stmts           `("Ablauf" "{" @@ "}")?`
+	Definition      *Definition      `@@?)?`
 }
 
 func (n *Workflow) Children() []Node {
-	var res []Node
-	res = append(res, n.Name)
-	if n.Dependencies != nil {
-		res = append(res, n.Dependencies)
-	}
-
-	if n.Input != nil {
-		res = append(res, n.Input)
-	}
-	if n.Output != nil {
-		res = append(res, n.Output)
-	}
-
-	if n.Block != nil {
-		res = append(res, n.Block)
-	}
-
-	if n.ToDo != nil {
-		res = append(res, n.ToDo)
-	}
-
-	if n.Definition != nil {
-		res = append(res, n.Definition)
-	}
-
-	return res
+	return sliceOf(
+		n.KeywordWorkflow,
+		n.Name,
+		n.ToDo,
+		n.Dependencies,
+		n.Input,
+		n.Output,
+		n.Block,
+		n.Definition,
+	)
 }
 
 type Stmts struct {
@@ -59,42 +43,42 @@ func (n *Stmts) Children() []Node {
 	return res
 }
 
-type ScribbleOrIdent struct {
+type ContextStmt struct {
 	node
-	Name     *Ident `(@@`
-	Scribble *Text  `|@@)`
+	KeywordContext *KeywordContext `@@`
+	Name           *Ident          `@@`
+	Block          *Stmts          `"{" @@ "}"`
 }
 
-func (n *ScribbleOrIdent) Text() string {
-	if n.Name != nil {
-		return n.Name.Name
-	}
-
-	return n.Scribble.Value
+func (n *ContextStmt) Children() []Node {
+	return sliceOf(n.KeywordContext, n.Name, n.Block)
 }
 
-func (n *ScribbleOrIdent) Children() []Node {
-	if n.Name != nil {
-		return []Node{n.Name}
-	}
-	return []Node{n.Scribble}
+type EventSentStmt struct {
+	node
+	KeywordEventSent *KeywordEventSent `@@`
+	Literal          *Literal          `@@`
+}
+
+func (n *EventSentStmt) Children() []Node {
+	return []Node{n.KeywordEventSent, n.Literal}
 }
 
 type EventStmt struct {
 	node
-	KeywordEvent    *KeywordEvent    `@@`
-	ScribbleOrIdent *ScribbleOrIdent `@@`
+	KeywordEvent *KeywordEvent `@@`
+	Literal      *Literal      `@@`
 }
 
 func (n *EventStmt) Children() []Node {
-	return []Node{n.KeywordEvent, n.ScribbleOrIdent}
+	return []Node{n.KeywordEvent, n.Literal}
 }
 
 type ActorStmt struct {
 	node
-	KeywordEvent    *KeywordActor    `@@`
-	ScribbleOrIdent *ScribbleOrIdent `@@`
-	Block           *Stmts           `"{" @@ "}"`
+	KeywordEvent    *KeywordActor   `@@`
+	ScribbleOrIdent *IdentOrLiteral `@@`
+	Block           *Stmts          `"{" @@ "}"`
 }
 
 func (n *ActorStmt) Children() []Node {
@@ -104,7 +88,7 @@ func (n *ActorStmt) Children() []Node {
 type ActivityStmt struct {
 	node
 	KeywordEvent    *KeywordActivity `@@`
-	ScribbleOrIdent *ScribbleOrIdent `@@`
+	ScribbleOrIdent *IdentOrLiteral  `@@`
 }
 
 func (n *ActivityStmt) Children() []Node {
@@ -114,74 +98,53 @@ func (n *ActivityStmt) Children() []Node {
 type Stmt struct {
 	node
 
-	IfStmt     *IfStmt       `@@`
-	Event      *EventStmt    `|@@`
-	Activity   *ActivityStmt `|@@`
-	Actor      *ActorStmt    `|@@`
-	EachStmt   *EachStmt     `|@@`
-	ToDo       *ToDo         `|@@`
-	ReturnStmt *ReturnStmt   `|@@`
-	WhileStmt  *WhileStmt    `|@@`
-	CallStmt   *CallStmt     `|@@`
-	Block      *Stmts        `|"{" @@ "}"`
+	IfStmt          *IfStmt          `@@`
+	Event           *EventStmt       `|@@`
+	EventSent       *EventSentStmt   `|@@`
+	Activity        *ActivityStmt    `|@@`
+	Actor           *ActorStmt       `|@@`
+	Context         *ContextStmt     `|@@`
+	EachStmt        *EachStmt        `|@@`
+	ToDo            *ToDo            `|@@`
+	ReturnStmt      *ReturnStmt      `|@@`
+	ReturnErrorStmt *ReturnErrorStmt `|@@`
+	WhileStmt       *WhileStmt       `|@@`
+	CallStmt        *CallStmt        `|@@`
+	Block           *Stmts           `|"{" @@ "}"`
 }
 
 func (n *Stmt) Children() []Node {
-	if n == nil {
-		return nil
-	}
-
-	var res []Node
-	if n.IfStmt != nil {
-		res = append(res, n.IfStmt)
-	}
-
-	if n.EachStmt != nil {
-		res = append(res, n.EachStmt)
-	}
-
-	if n.ToDo != nil {
-		res = append(res, n.ToDo)
-	}
-
-	if n.ReturnStmt != nil {
-		res = append(res, n.ReturnStmt)
-	}
-
-	if n.WhileStmt != nil {
-		res = append(res, n.WhileStmt)
-	}
-
-	if n.CallStmt != nil {
-		res = append(res, n.CallStmt)
-	}
-
-	if n.Block != nil {
-		res = append(res, n.Block)
-	}
-
-	if n.Event != nil {
-		res = append(res, n.Event)
-	}
-
-	if n.Actor != nil {
-		res = append(res, n.Actor)
-	}
-
-	if n.Activity != nil {
-		res = append(res, n.Activity)
-	}
-
-	return res
+	return sliceOf(
+		n.IfStmt,
+		n.Event,
+		n.EventSent,
+		n.Activity,
+		n.Actor,
+		n.Context,
+		n.EachStmt,
+		n.ToDo,
+		n.ReturnStmt,
+		n.ReturnStmt,
+		n.WhileStmt,
+		n.CallStmt,
+		n.Block,
+	)
 }
 
 type ReturnStmt struct {
 	node
-	Stmt *CallStmt `"gib" @@ "zurück"`
+	KeywordReturn *KeywordReturn `@@`
+	Stmt          *Literal       `@@?`
+}
+
+type ReturnErrorStmt struct {
+	node
+	KeywordReturnError *KeywordReturnError `@@`
+	Stmt               *Literal            `@@?`
 }
 
 func (n *ReturnStmt) Children() []Node {
-	return []Node{n.Stmt}
+	return sliceOf(n.KeywordReturn, n.Stmt)
 }
 
 type WhileStmt struct {
@@ -229,20 +192,25 @@ func (n *EachStmt) Children() []Node {
 type IfStmt struct {
 	node
 
-	Condition *CallStmt `"wenn" @@ "dann"`
-	Body      *Stmt     `@@`
-	Else      *Stmt     `("sonst" @@)?`
+	KeywordDecision *KeywordDecision `@@`
+	KeywordIf       *KeywordIf       `@@`
+	Condition       *Literal         `@@`
+	KeywordThen     *KeywordThen     `@@`
+	Body            *Stmt            `@@`
+	KeywordElse     *KeywordElse     `( @@`
+	Else            *Stmt            ` @@)?`
 }
 
 func (n *IfStmt) Children() []Node {
-	var res []Node
-
-	res = append(res, n.Condition)
-	if n.Else != nil {
-		res = append(res, n.Else)
-	}
-
-	return res
+	return sliceOf(
+		n.KeywordDecision,
+		n.KeywordIf,
+		n.Condition,
+		n.KeywordThen,
+		n.Body,
+		n.KeywordElse,
+		n.Else,
+	)
 }
 
 // Input defines a sum type of inputs, usually

@@ -24,14 +24,14 @@ func CheckAmbiguous(root parser.Node) []Hint {
 		}
 
 		if parent != nil {
-			if other, ok := allDefs[parent.Name]; ok {
+			if other, ok := allDefs[parent.Value]; ok {
 				res = append(res, Hint{
 					ParentIdent: parent,
 					Node:        other,
 					Message:     "Der Begriff %s wurde mehrfach definiert.",
 				})
 			} else {
-				allDefs[parent.Name] = node
+				allDefs[parent.Value] = node
 			}
 		}
 

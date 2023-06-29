@@ -60,7 +60,7 @@ func Workflow(doc *parser.Doc, flow *parser.Workflow) *plantuml.Diagram {
 	// pick first swimlane, if any
 	_ = parser.Walk(flow, func(n parser.Node) error {
 		if actor, ok := n.(*parser.ActorStmt); ok {
-			stmt := &plantuml.Swimlane{Text: actor.ScribbleOrIdent.Text()}
+			stmt := &plantuml.Swimlane{Text: actor.ScribbleOrIdent.Value()}
 			diag.Renderables = slices.Insert(diag.Renderables, 0, plantuml.Renderable(stmt))
 			return fmt.Errorf("done")
 		}
@@ -84,7 +84,11 @@ func fromStmt(stmt *parser.Stmt) *plantuml.Stmt {
 	}
 
 	if stmt.ReturnStmt != nil {
-		return &plantuml.Stmt{Stop: fromReturnStmt(stmt.ReturnStmt)}
+		return fromReturnStmt(stmt.ReturnStmt)
+	}
+
+	if stmt.ReturnErrorStmt != nil {
+		return fromReturnErrorStmt(stmt.ReturnErrorStmt)
 	}
 
 	if stmt.WhileStmt != nil {
@@ -93,6 +97,10 @@ func fromStmt(stmt *parser.Stmt) *plantuml.Stmt {
 
 	if stmt.Event != nil {
 		return &plantuml.Stmt{State: fromEventStmt(stmt.Event)}
+	}
+
+	if stmt.EventSent != nil {
+		return &plantuml.Stmt{State: fromEventSentStmt(stmt.EventSent)}
 	}
 
 	if stmt.Actor != nil {
@@ -113,39 +121,80 @@ func fromStmt(stmt *parser.Stmt) *plantuml.Stmt {
 	}
 
 	if stmt.Block != nil {
-		if len(stmt.Block.Statements) == 0 {
-			return &plantuml.Stmt{State: plantuml.NewActivityState("Es wurde noch kein Zustand\noder Arbeitsschritt definiert").SetColor("#HotPink")}
-		}
+		return &plantuml.Stmt{Block: fromStmts(stmt.Block)}
+	}
 
-		if len(stmt.Block.Statements) == 1 {
-			return fromStmt(stmt.Block.Statements[0])
-		}
-
-		partition := &plantuml.PartitionStmt{Body: &plantuml.Stmt{}}
-		for _, statement := range stmt.Block.Statements {
-			partition.Body.Block = append(partition.Body.Block, fromStmt(statement))
-		}
-
-		return &plantuml.Stmt{PartitionStmt: partition}
+	if stmt.Context != nil {
+		return &plantuml.Stmt{PartitionStmt: fromContextStmt(stmt.Context)}
 	}
 
 	slog.Error("puml support: unsupported state", slog.Any("stmt", stmt))
 	return &plantuml.Stmt{State: plantuml.NewActivityState("unsupported state")}
 }
 
-func fromReturnStmt(n *parser.ReturnStmt) *plantuml.StopStmt {
-	stop := &plantuml.StopStmt{}
-	if n.Stmt != nil {
-		note := &plantuml.ActivityNote{
-			Color: "#aeebb7",
-			Text:  "Ausgabe ist ",
-		}
-		note.Text += param2String(n.Stmt)
-
-		stop.Note = note
+func fromStmts(n *parser.Stmts) []*plantuml.Stmt {
+	var res []*plantuml.Stmt
+	for _, statement := range n.Statements {
+		res = append(res, fromStmt(statement))
 	}
 
-	return stop
+	return res
+}
+
+func fromContextStmt(n *parser.ContextStmt) *plantuml.PartitionStmt {
+	partition := &plantuml.PartitionStmt{Body: &plantuml.Stmt{}}
+	partition.Name = n.Name.Value
+	if n.Block != nil {
+		partition.Body = &plantuml.Stmt{Block: fromStmts(n.Block)}
+	}
+
+	return partition
+}
+
+func fromReturnStmt(n *parser.ReturnStmt) *plantuml.Stmt {
+	eventName := ""
+	if n.Stmt != nil {
+		eventName = n.Stmt.Value
+	}
+
+	ac := plantuml.NewActivityState(eventName)
+	ac.Color = "#ff992a"
+	if eventName == "" {
+		ac.Name = bpmSym(bpmn_icon_end_event_terminate) + "\n"
+		ac.Name += "//Endereignis//\n" + eventName
+	} else {
+		ac.Name = bpmSym(bpmn_icon_end_event_message) + "\n"
+		ac.Name += "//Nachrichten-Endereignis//\n" + eventName
+	}
+
+	return &plantuml.Stmt{Block: []*plantuml.Stmt{
+		{State: ac},
+		{Kill: &plantuml.KillStmt{}},
+	}}
+
+}
+
+func fromReturnErrorStmt(n *parser.ReturnErrorStmt) *plantuml.Stmt {
+	eventName := ""
+	if n.Stmt != nil {
+		eventName = n.Stmt.Value
+	}
+
+	ac := plantuml.NewActivityState(eventName)
+	ac.Color = "#ec4d4e"
+	if eventName == "" {
+		ac.Name = bpmSym(bpmn_icon_end_event_cancel) + "\n"
+		ac.Name += "//Abbruch//\n" + eventName
+	} else {
+		ac.Name = bpmSym(bpmn_icon_end_event_error) + "\n"
+		ac.Name += "//Behandelter Fehler//\n" + eventName
+	}
+
+	return &plantuml.Stmt{Block: []*plantuml.Stmt{
+		{State: ac},
+		{Kill: &plantuml.KillStmt{}},
+	}}
+
 }
 
 func bpmSym(symbol BpmnSymbol) string {
@@ -153,22 +202,31 @@ func bpmSym(symbol BpmnSymbol) string {
 }
 
 func fromEventStmt(n *parser.EventStmt) *plantuml.ActivityState {
-	eventName := n.ScribbleOrIdent.Text()
+	eventName := n.Literal.Value
 	ac := plantuml.NewActivityState(eventName)
 	ac.Color = "#ff992a"
-	ac.Name = bpmSym(bpmn_icon_start_event_none) + "\n"
-	ac.Name += "//Ereignis//\n" + eventName
+	ac.Name = bpmSym(bpmn_icon_receive) + "\n"
+	ac.Name += "//Ereignis eingetreten//\n" + eventName
+	return ac
+}
+
+func fromEventSentStmt(n *parser.EventSentStmt) *plantuml.ActivityState {
+	eventName := n.Literal.Value
+	ac := plantuml.NewActivityState(eventName)
+	ac.Color = "#ff992a"
+	ac.Name = bpmSym(bpmn_icon_end_event_message) + "\n"
+	ac.Name += "//Ereignis versendet//\n" + eventName
 	return ac
 }
 
 func fromActorStatement(n *parser.ActorStmt) *plantuml.Swimlane {
-	actor := n.ScribbleOrIdent.Text()
+	actor := n.ScribbleOrIdent.Value()
 	lane := &plantuml.Swimlane{Text: actor}
 	return lane
 }
 
 func fromActivityStmt(n *parser.ActivityStmt) *plantuml.ActivityState {
-	eventName := n.ScribbleOrIdent.Text()
+	eventName := n.ScribbleOrIdent.Value()
 	ac := plantuml.NewActivityState(eventName)
 	ac.Color = "#3399fe"
 	ac.Name = bpmSym(bpmn_icon_task) + "\n"
@@ -203,7 +261,7 @@ func fromCallStmt(n *parser.CallStmt) *plantuml.ActivityState {
 }
 
 func typeDeclToLinkStr(decl *parser.TypeDeclaration) string {
-	tmp := decl.Name.Name
+	tmp := decl.Name.Value
 	if len(decl.Params) > 0 {
 		tmp += "<"
 		for i, param := range decl.Params {
@@ -242,7 +300,7 @@ func param2String(param *parser.CallStmt) string {
 
 func fromIfStmt(ifStmt *parser.IfStmt) *plantuml.IfStmt {
 	stmt := &plantuml.IfStmt{
-		Condition:    fromCallStmt(ifStmt.Condition).Name + "?",
+		Condition:    bpmSym(bpmn_icon_gateway_xor) + "\n" + ifStmt.Condition.Value + "?",
 		PositiveText: "ja",
 		NegativeText: "nein",
 	}

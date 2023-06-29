@@ -23,7 +23,7 @@ func transform(pdoc *parser.Doc) *Doc {
 		ctx := &Context{}
 		doc.Contexts = append(doc.Contexts, ctx)
 
-		ctx.Name = pCtx.Name.Name
+		ctx.Name = pCtx.Name.Value
 		if pCtx.Definition != nil {
 			ctx.Definition = linkify(pdoc, markdown(pCtx.Definition.Text))
 		}
@@ -35,7 +35,7 @@ func transform(pdoc *parser.Doc) *Doc {
 		for _, pdata := range pCtx.DataTypes() {
 			data := &Data{}
 			ctx.Data = append(ctx.Data, data)
-			data.Name = pdata.Name.Name
+			data.Name = pdata.Name.Value
 			if pdata.Definition != nil {
 				data.Definition = linkify(pdoc, markdown(pdata.Definition.Text))
 			}
@@ -58,7 +58,7 @@ func transform(pdoc *parser.Doc) *Doc {
 		for _, pWorkflow := range pCtx.Workflows() {
 			wf := &Workflow{}
 			ctx.Workflows = append(ctx.Workflows, wf)
-			wf.Name = pWorkflow.Name.Name
+			wf.Name = pWorkflow.Name.Value
 			if pWorkflow.Definition != nil {
 				wf.Definition = markdown(pWorkflow.Definition.Text)
 			}

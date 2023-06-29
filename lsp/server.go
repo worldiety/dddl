@@ -80,13 +80,20 @@ func (s *Server) Initialize(params *protocol.InitializeParams) protocol.Initiali
 				Legend: protocol.SemanticTokensLegend{
 					TokenTypes: TokenTypes,
 				},
-				Full: true,
+				Full: &protocol.Or_SemanticTokensOptions_full{
+					Value: protocol.PFullESemanticTokensOptions{
+						Delta: false,
+					},
+				},
+				Range: &protocol.Or_SemanticTokensOptions_range{
+					Value: false,
+				},
 			},
-			CodeLensProvider: protocol.CodeLensOptions{
+			CodeLensProvider: &protocol.CodeLensOptions{
 				ResolveProvider:         true,
 				WorkDoneProgressOptions: protocol.WorkDoneProgressOptions{},
 			},
-			HoverProvider: true,
+			HoverProvider: &protocol.Or_ServerCapabilities_hoverProvider{Value: true},
 		},
 	}
 }
@@ -202,7 +209,11 @@ func (s *Server) FullSemanticTokens(params *protocol.SemanticTokensParams) proto
 	doc, err := parser.ParseText(string(file.Uri), file.Content)
 	if err != nil {
 		log.Println("cannot parse", err)
-		return protocol.SemanticTokens{}
+		return protocol.SemanticTokens{
+			// vsc starts to break in random ways and does never issue semantic tokens ever again
+			// dunno why
+			Data: []uint32{},
+		}
 	}
 
 	tokens := IntoTokens(doc)
@@ -226,18 +237,20 @@ func (s *Server) AsciiDoc(filename protocol.DocumentURI) string {
 	out.WriteString("= Implement me\n\n")
 	for _, context := range doc.Contexts {
 		out.WriteString("== ")
-		out.WriteString(context.Name.Name)
+		out.WriteString(context.Name.Value)
 		out.WriteString("\n")
 	}
 
 	return out.String()
 }
 
+const ErrPreviewParamsMissing = "lastPreviewParams missing" // checked by the client
+
 func (s *Server) sendPreviewHtml() {
 	s.async("previewHtml", func() {
 		if s.lastPreviewParams == nil {
-			slog.Warn("cannot send preview html, never requested a preview")
-			err := SendNotification("custom/newAsyncPreviewHtml", "missing WebView preview params from LSP client")
+			slog.Warn(ErrPreviewParamsMissing)
+			err := SendNotification("custom/newAsyncPreviewHtml", ErrPreviewParamsMissing)
 			if err != nil {
 				log.Printf("cannot send unbound previewhtml: %v", err)
 			}
@@ -250,6 +263,15 @@ func (s *Server) sendPreviewHtml() {
 			log.Printf("cannot send previewhtml: %v", err)
 		}
 	})
+
+	s.sendSemanticTokenRefresh()
+}
+
+func (s *Server) sendSemanticTokenRefresh() {
+	err := SendNotification("workspace/semanticTokens/refresh", struct{}{})
+	if err != nil {
+		log.Printf("cannot send sendSemanticTokenRefresh: %v", err)
+	}
 }
 
 // sendDiagnostics sends any parser errors.
@@ -324,7 +346,7 @@ func (s *Server) sendDiagnostics() {
 								},
 								Severity: protocol.SeverityWarning,
 								Message: hint.String(func(ident *parser.Ident) string {
-									return ident.Name
+									return ident.Value
 								}),
 							})
 						}
@@ -362,10 +384,11 @@ func (s *Server) parseSuperDoc() (*parser.Doc, error) {
 			} else {
 				superErr = fmt.Errorf("also occurred: %w and %w", superErr, err)
 			}
+			continue
 		}
 
 		for _, context := range doc.Contexts {
-			ctx := superDoc.ContextByName(context.Name.Name)
+			ctx := superDoc.ContextByName(context.Name.Value)
 			if ctx == nil {
 				superDoc.Contexts = append(superDoc.Contexts, context)
 			} else {
