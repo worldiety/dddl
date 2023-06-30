@@ -7,32 +7,45 @@ import (
 )
 
 const test = `
-Kontext Rechnungsgenerator
+Kontext Rechnungsgenerator {
 
-Arbeitsablauf Zeitloggen =
+	Arbeitsablauf Zeitloggen {
+	
+		"Super beschreibung"
+	TODO: "schrott"
+	
+			Akteur Mitarbeiter {
+				Ereignis "Aufgabe erledigt"
+				Aktivität "Auf Abschicken klicken"
+			}
+		
+			Kontext Rechnungsgenerator{
+				Akteur Rechnungssteller{
+						Ereignis "Monatslog abgeschlossen"
+						Aktivität "schließt Monat ab"
+		
+						Entscheidung wenn "Monat == 30 Tage" dann{
+							
+						}
+		
+						Kontext WasAnderes {
+							Fehler
+						}
+					}
+			}
+		   
+		
+	
+	}
 
-Ablauf{
-    Akteur Mitarbeiter {
-        Ereignis "Aufgabe erledigt"
-        Aktivität "Auf Abschicken klicken"
-    }
+}
 
-    Kontext Rechnungsgenerator{
-        Akteur Rechnungssteller{
-                Ereignis "Monatslog abgeschlossen"
-                Aktivität "schließt Monat ab"
+Kontext X
 
-                Entscheidung wenn "Monat == 30 Tage" dann{
-                    
-                }
+Kontext Y {}
 
-                Kontext WasAnderes {
-                    "asdf"
-                }
-            }
-    }
-   
-
+Kontext Z{
+	Daten Z
 }
 
 `

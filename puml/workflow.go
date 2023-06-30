@@ -16,7 +16,7 @@ func Workflow(doc *parser.Doc, flow *parser.Workflow) *plantuml.Diagram {
 
 	start := &plantuml.StartStmt{}
 	ac.Stmts = append(ac.Stmts, &plantuml.Stmt{Start: start})
-	if flow.Input != nil && len(flow.Input.Params) > 0 {
+	/*if flow.Input != nil && len(flow.Input.Params) > 0 {
 		note := &plantuml.ActivityNote{
 			Color: "#aeebea",
 			Text:  "Eingabe ist\n",
@@ -45,7 +45,7 @@ func Workflow(doc *parser.Doc, flow *parser.Workflow) *plantuml.Diagram {
 		}
 
 		ac.Stmts = append(ac.Stmts, &plantuml.Stmt{Note: note})
-	}
+	}*/
 
 	for _, statement := range flow.Block.Statements {
 		pstate := fromStmt(statement)
@@ -73,15 +73,16 @@ func Workflow(doc *parser.Doc, flow *parser.Workflow) *plantuml.Diagram {
 
 func fromStmt(stmt *parser.Stmt) *plantuml.Stmt {
 	if stmt.ToDo != nil {
-		return &plantuml.Stmt{Note: &plantuml.ActivityNote{Text: stmt.ToDo.Text.Text}}
+		return &plantuml.Stmt{Note: &plantuml.ActivityNote{Text: bpmSym(bpmn_icon_text_annotation) + "\n//TODO//\n" + stmt.ToDo.Text.Text}}
 	}
 	if stmt.IfStmt != nil {
 		return &plantuml.Stmt{IfStmt: fromIfStmt(stmt.IfStmt)}
 	}
 
-	if stmt.CallStmt != nil {
-		return &plantuml.Stmt{State: fromCallStmt(stmt.CallStmt)}
-	}
+	/*
+		if stmt.CallStmt != nil {
+			return &plantuml.Stmt{State: fromCallStmt(stmt.CallStmt)}
+		}*/
 
 	if stmt.ReturnStmt != nil {
 		return fromReturnStmt(stmt.ReturnStmt)
@@ -114,10 +115,6 @@ func fromStmt(stmt *parser.Stmt) *plantuml.Stmt {
 
 	if stmt.Activity != nil {
 		return &plantuml.Stmt{State: fromActivityStmt(stmt.Activity)}
-	}
-
-	if stmt.EachStmt != nil {
-		return &plantuml.Stmt{While: fromEachStmt(stmt.EachStmt)}
 	}
 
 	if stmt.Block != nil {
@@ -231,30 +228,29 @@ func fromActivityStmt(n *parser.ActivityStmt) *plantuml.ActivityState {
 	ac.Color = "#3399fe"
 	ac.Name = bpmSym(bpmn_icon_task) + "\n"
 	ac.Name += "//Arbeitsschritt//\n" + eventName
-	return ac
-}
 
-func fromCallStmt(n *parser.CallStmt) *plantuml.ActivityState {
-	stateName := n.Scribble
-	if n.Name != nil {
-		stateName = TypeDeclToStr(n.Name)
+	if n.ViewStmt != nil {
+		note := &plantuml.ActivityNote{
+			Color: "#5fc08b",
+			Text:  bpmSym(bpmn_icon_manual_task) + "\n" + "//Ansicht//\n" + n.ViewStmt.ScribbleOrIdent.Value(),
+		}
+		ac.Notes = append(ac.Notes, note)
 	}
 
-	ac := plantuml.NewActivityState(stateName)
-
-	if len(n.Params) > 0 {
+	if n.InputStmt != nil {
 		note := &plantuml.ActivityNote{
-			Color: "#aec8eb",
-			Text:  "verwendet\n",
+			Color: "#ff68b9",
+			Text:  bpmSym(bpmn_icon_data_input) + "\n" + "//Dateninput//\n" + n.InputStmt.ScribbleOrIdent.Value(),
 		}
-		for i, param := range n.Params {
-			note.Text += param2String(param) + "\n"
-			if i < len(n.Params)-1 {
-				note.Text += "und "
-			}
-		}
+		ac.Notes = append(ac.Notes, note)
+	}
 
-		ac.Note = note
+	if n.OutputStmt != nil {
+		note := &plantuml.ActivityNote{
+			Color: "#ff992a",
+			Text:  bpmSym(bpmn_icon_data_output) + "\n" + "//Datenoutput//\n" + n.OutputStmt.ScribbleOrIdent.Value(),
+		}
+		ac.Notes = append(ac.Notes, note)
 	}
 
 	return ac
@@ -273,26 +269,6 @@ func typeDeclToLinkStr(decl *parser.TypeDeclaration) string {
 		tmp += ">"
 	} else {
 		tmp = "[[#" + tmp + " " + tmp + "]]"
-	}
-
-	return tmp
-}
-
-func param2String(param *parser.CallStmt) string {
-	tmp := param.Scribble
-	if param.Name != nil {
-		tmp = typeDeclToLinkStr(param.Name)
-	}
-
-	if len(param.Params) > 0 {
-		tmp += "("
-		for i, stmt := range param.Params {
-			tmp += param2String(stmt)
-			if i < len(param.Params)-1 {
-				tmp += ", "
-			}
-		}
-		tmp += ")"
 	}
 
 	return tmp
@@ -318,25 +294,9 @@ func fromIfStmt(ifStmt *parser.IfStmt) *plantuml.IfStmt {
 
 func fromWhileStmt(n *parser.WhileStmt) *plantuml.WhileStmt {
 	stmt := &plantuml.WhileStmt{
-		Condition:    fromCallStmt(n.Condition).Name + "?",
+		Condition:    bpmSym(bpmn_icon_gateway_xor) + "\\n" + n.Condition.Value + "?", // this is different than IF !?
 		PositiveText: "ja",
 		NegativeText: "nein",
-	}
-
-	if n.Body != nil {
-		stmt.Body = fromStmt(n.Body)
-	}
-
-	return stmt
-}
-
-func fromEachStmt(n *parser.EachStmt) *plantuml.WhileStmt {
-	elem := TypeDeclToStr(n.Element)
-	it := TypeDeclToStr(n.Iterator)
-	stmt := &plantuml.WhileStmt{
-		Condition:    "aus " + it,
-		PositiveText: elem,
-		NegativeText: "alle Elemente verarbeitet",
 	}
 
 	if n.Body != nil {

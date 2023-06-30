@@ -1,121 +1,14 @@
 package parser
 
 import (
+	"fmt"
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
+	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 	"os"
 	"strings"
 )
-
-type Doc struct {
-	node
-	Contexts []*Context `@@*`
-}
-
-func (n *Doc) ContextByName(name string) *Context {
-	for _, context := range n.Contexts {
-		if context.Name.Value == name {
-			return context
-		}
-	}
-
-	return nil
-}
-
-func (n *Doc) DataByName(name string) *Data {
-	for _, context := range n.Contexts {
-		for _, element := range context.Elements {
-			if element.DataType != nil {
-				if element.DataType.Name.Value == name {
-					return element.DataType
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
-func (n *Doc) WorkflowByName(name string) *Workflow {
-	for _, context := range n.Contexts {
-		for _, element := range context.Elements {
-			if element.Workflow != nil {
-				if element.Workflow.Name.Value == name {
-					return element.Workflow
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
-func (n *Doc) Children() []Node {
-	var res []Node
-	for _, context := range n.Contexts {
-		res = append(res, context)
-	}
-
-	return res
-}
-
-type Context struct {
-	node
-	KeywordContext *KeywordContext   `@@`
-	Name           *Ident            `@@`
-	ToDo           *ToDo             `@@?`
-	Definition     *Definition       `@@?`
-	Elements       []*TypeDefinition `@@*`
-}
-
-func (n *Context) DataTypes() []*Data {
-	var res []*Data
-	for _, element := range n.Elements {
-		if element.DataType != nil {
-			res = append(res, element.DataType)
-		}
-	}
-
-	slices.SortFunc(res, func(a, b *Data) bool {
-		return a.Name.Value < b.Name.Value
-	})
-
-	return res
-}
-
-func (n *Context) Workflows() []*Workflow {
-	var res []*Workflow
-	for _, element := range n.Elements {
-		if element.Workflow != nil {
-			res = append(res, element.Workflow)
-		}
-	}
-
-	slices.SortFunc(res, func(a, b *Workflow) bool {
-		return a.Name.Value < b.Name.Value
-	})
-
-	return res
-}
-
-func (n *Context) Children() []Node {
-	var res []Node
-	res = append(res, n.KeywordContext, n.Name)
-	if n.ToDo != nil {
-		res = append(res, n.ToDo)
-	}
-
-	for _, element := range n.Elements {
-		res = append(res, element)
-	}
-
-	if n.Definition != nil {
-		res = append(res, n.Definition)
-	}
-
-	return res
-}
 
 // A TypeDefinition is either a DataType or a Workflow.
 // To simplify the parsing without lookahead, we just use
@@ -203,6 +96,57 @@ func Parse(fname string) (*Doc, error) {
 func ParseText(filename, text string) (*Doc, error) {
 	parser := NewParser()
 	return parser.ParseBytes(filename, []byte(text))
+}
+
+// ParseWorkspaceText loads from filename->text and tries to parse each one.
+// Continues and always returns a Workspace, even if error is not nil.
+// If error is not nil, it is always [DocParserError].
+func ParseWorkspaceText(filenamesWithText map[string]string) (*Workspace, error) {
+	var tmp *DocParserError
+	parserErr := func() *DocParserError {
+		if tmp == nil {
+			tmp = &DocParserError{Errors: map[string]error{}}
+		}
+
+		return tmp
+	}
+
+	workspace := &Workspace{Documents: map[string]*Doc{}}
+	filenames := maps.Keys(filenamesWithText)
+	slices.Sort(filenames)
+	for _, filename := range filenames {
+		doc, err := ParseText(filename, filenamesWithText[filename])
+		if err != nil {
+			parserErr().Errors[filename] = err
+		}
+
+		workspace.Documents[filename] = doc
+	}
+
+	if tmp != nil {
+		return workspace, tmp
+	}
+
+	return workspace, nil
+}
+
+type DocParserError struct {
+	Errors map[string]error
+}
+
+func (e *DocParserError) Error() string {
+	tmp := "DocParserError"
+	keys := maps.Keys(e.Errors)
+	slices.Sort(keys)
+	for _, key := range keys {
+		tmp += fmt.Sprintf(" * failed '%s': %s\n", key, e.Errors[key])
+	}
+
+	return tmp
+}
+
+func (e *DocParserError) Unwrap() []error {
+	return maps.Values(e.Errors)
 }
 
 func NewParser() *participle.Parser[Doc] {

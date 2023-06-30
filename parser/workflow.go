@@ -3,13 +3,11 @@ package parser
 type Workflow struct {
 	node
 	KeywordWorkflow *KeywordWorkflow `@@`
-	Name            *Ident           `@@ ("=" `
+	Name            *Ident           `@@ ( "{" `
 	ToDo            *ToDo            `@@? `
-	Dependencies    *Input           `("Abhängigkeiten" ":" @@)?`
-	Input           *Input           ` ("Eingabe" ":" @@`
-	Output          *Output          `"Ausgabe" ":" @@)?`
-	Block           *Stmts           `("Ablauf" "{" @@ "}")?`
-	Definition      *Definition      `@@?)?`
+	Definition      *Definition      `@@?`
+
+	Block *Stmts `@@?  "}" )?`
 }
 
 func (n *Workflow) Children() []Node {
@@ -17,9 +15,6 @@ func (n *Workflow) Children() []Node {
 		n.KeywordWorkflow,
 		n.Name,
 		n.ToDo,
-		n.Dependencies,
-		n.Input,
-		n.Output,
 		n.Block,
 		n.Definition,
 	)
@@ -61,7 +56,7 @@ type EventSentStmt struct {
 }
 
 func (n *EventSentStmt) Children() []Node {
-	return []Node{n.KeywordEventSent, n.Literal}
+	return sliceOf(n.KeywordEventSent, n.Literal)
 }
 
 type EventStmt struct {
@@ -71,7 +66,7 @@ type EventStmt struct {
 }
 
 func (n *EventStmt) Children() []Node {
-	return []Node{n.KeywordEvent, n.Literal}
+	return sliceOf(n.KeywordEvent, n.Literal)
 }
 
 type ActorStmt struct {
@@ -82,17 +77,50 @@ type ActorStmt struct {
 }
 
 func (n *ActorStmt) Children() []Node {
-	return []Node{n.KeywordEvent, n.ScribbleOrIdent, n.Block}
+	return sliceOf(n.KeywordEvent, n.ScribbleOrIdent, n.Block)
+}
+
+type ViewStmt struct {
+	node
+	KeywordView     *KeywordView    `@@`
+	ScribbleOrIdent *IdentOrLiteral `@@`
+}
+
+func (n *ViewStmt) Children() []Node {
+	return sliceOf(n.KeywordView, n.ScribbleOrIdent)
+}
+
+type OutputStmt struct {
+	node
+	KeywordOutput   *KeywordOutput  `@@`
+	ScribbleOrIdent *IdentOrLiteral `@@`
+}
+
+func (n *OutputStmt) Children() []Node {
+	return sliceOf(n.KeywordOutput, n.ScribbleOrIdent)
+}
+
+type InputStmt struct {
+	node
+	KeywordInput    *KeywordInput   `@@`
+	ScribbleOrIdent *IdentOrLiteral `@@`
+}
+
+func (n *InputStmt) Children() []Node {
+	return sliceOf(n.KeywordInput, n.ScribbleOrIdent)
 }
 
 type ActivityStmt struct {
 	node
 	KeywordEvent    *KeywordActivity `@@`
-	ScribbleOrIdent *IdentOrLiteral  `@@`
+	ScribbleOrIdent *IdentOrLiteral  `@@ ( "{"`
+	ViewStmt        *ViewStmt        `@@?`
+	InputStmt       *InputStmt       `@@?`
+	OutputStmt      *OutputStmt      `@@? "}")?`
 }
 
 func (n *ActivityStmt) Children() []Node {
-	return []Node{n.KeywordEvent, n.ScribbleOrIdent}
+	return sliceOf(n.KeywordEvent, n.ScribbleOrIdent, n.ViewStmt, n.InputStmt, n.OutputStmt)
 }
 
 type Stmt struct {
@@ -104,12 +132,10 @@ type Stmt struct {
 	Activity        *ActivityStmt    `|@@`
 	Actor           *ActorStmt       `|@@`
 	Context         *ContextStmt     `|@@`
-	EachStmt        *EachStmt        `|@@`
 	ToDo            *ToDo            `|@@`
 	ReturnStmt      *ReturnStmt      `|@@`
 	ReturnErrorStmt *ReturnErrorStmt `|@@`
 	WhileStmt       *WhileStmt       `|@@`
-	CallStmt        *CallStmt        `|@@`
 	Block           *Stmts           `|"{" @@ "}"`
 }
 
@@ -121,12 +147,10 @@ func (n *Stmt) Children() []Node {
 		n.Activity,
 		n.Actor,
 		n.Context,
-		n.EachStmt,
 		n.ToDo,
 		n.ReturnStmt,
-		n.ReturnStmt,
+		n.ReturnErrorStmt,
 		n.WhileStmt,
-		n.CallStmt,
 		n.Block,
 	)
 }
@@ -137,56 +161,29 @@ type ReturnStmt struct {
 	Stmt          *Literal       `@@?`
 }
 
+func (n *ReturnStmt) Children() []Node {
+	return sliceOf(n.KeywordReturn, n.Stmt)
+}
+
 type ReturnErrorStmt struct {
 	node
 	KeywordReturnError *KeywordReturnError `@@`
 	Stmt               *Literal            `@@?`
 }
 
-func (n *ReturnStmt) Children() []Node {
-	return sliceOf(n.KeywordReturn, n.Stmt)
+func (n *ReturnErrorStmt) Children() []Node {
+	return sliceOf(n.KeywordReturnError, n.Stmt)
 }
 
 type WhileStmt struct {
 	node
-	Condition *CallStmt `"solange"  @@ `
-	Body      *Stmt     `@@`
+	KeywordWhile *KeywordWhile `@@`
+	Condition    *Literal      ` @@ `
+	Body         *Stmt         `@@`
 }
 
 func (n *WhileStmt) Children() []Node {
-	return []Node{n.Condition, n.Body}
-}
-
-type CallStmt struct {
-	node
-	Scribble string           `(@Text`
-	Name     *TypeDeclaration `|@@)`
-	Params   []*CallStmt      `( "(" (@@ ("," @@)*)? ")" )?`
-}
-
-func (n *CallStmt) Children() []Node {
-	var res []Node
-	if n.Name != nil {
-		res = append(res, n.Name)
-	}
-
-	for _, param := range n.Params {
-		res = append(res, param)
-	}
-
-	return res
-}
-
-type EachStmt struct {
-	node
-
-	Element  *TypeDeclaration `"für" ("jede"|"jedes"|"jeden") (@@)`
-	Iterator *TypeDeclaration `"aus" @@`
-	Body     *Stmt            `@@`
-}
-
-func (n *EachStmt) Children() []Node {
-	return []Node{n.Element, n.Body}
+	return sliceOf(n.KeywordWhile, n.Condition, n.Body)
 }
 
 type IfStmt struct {

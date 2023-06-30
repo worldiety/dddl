@@ -21,6 +21,19 @@ func (n *node) EndPosition() lexer.Position {
 	return n.EndPos
 }
 
+// relocateEndPos uses the given lexer token slice to recalculate the actual
+// endposition which is often wrong. This is a bug in the participle parser, which
+// appends all whitespace until the next token appears.
+func (n *node) relocateEndPos(tokens []lexer.Token) lexer.Position {
+	if len(tokens) == 0 {
+		return n.EndPos
+	}
+
+	pos := n.Position()
+	pos.Column += len(tokens[len(tokens)-1].Value)
+	return pos
+}
+
 func (n *node) Children() []Node {
 	return nil
 }

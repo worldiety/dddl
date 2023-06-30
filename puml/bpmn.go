@@ -13,4 +13,10 @@ const (
 	bpmn_icon_end_event_error     BpmnSymbol = "e822"
 	bpmn_icon_end_event_cancel    BpmnSymbol = "e811"
 	bpmn_icon_receive             BpmnSymbol = "e829"
+	bpmn_icon_data_object         BpmnSymbol = "e84b"
+	bpmn_icon_data_output                    = "e867"
+	bpmn_icon_data_input                     = "e866"
+	bpmn_icon_text_annotation                = "e86b"
+	bpmn_icon_manual_task                    = "e840"
+	//bpmn-icon-subprocess-collapsed BpmnSymbol = "e81f"
 )

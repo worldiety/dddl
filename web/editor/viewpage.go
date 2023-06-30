@@ -16,7 +16,7 @@ func init() {
 	)
 }
 
-func RenderViewHtml(lint Linter, doc *parser.Doc, model EditorPreview) string {
+func RenderViewHtml(lint Linter, doc *parser.Workspace, model EditorPreview) string {
 	model = lintOnly(doc, lint, model)
 	w := httptest.NewRecorder()
 

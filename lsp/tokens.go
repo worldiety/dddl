@@ -92,6 +92,7 @@ func getTokenType(node parser.Node) int {
 		*parser.KeywordContext,
 		*parser.KeywordActor,
 		*parser.KeywordEvent,
+		*parser.KeywordEventSent,
 		*parser.KeywordData,
 		*parser.KeywordActivity,
 		*parser.KeywordIf,
@@ -100,11 +101,17 @@ func getTokenType(node parser.Node) int {
 		*parser.KeywordDecision,
 		*parser.KeywordReturn,
 		*parser.KeywordReturnError,
+		*parser.KeywordWhile,
+		*parser.KeywordView,
+		*parser.KeywordInput,
+		*parser.KeywordOutput,
 		*parser.KeywordWorkflow:
 		return TokenKeyword
 
 	case *parser.Literal, *parser.Definition:
 		return TokenString
+	case *parser.ToDoText:
+		return TokenComment
 	default:
 		return TokenComment
 	}
@@ -115,6 +122,7 @@ func isSemanticToken(n parser.Node) bool {
 	case *parser.KeywordTodo,
 		*parser.KeywordActor,
 		*parser.KeywordEvent,
+		*parser.KeywordEventSent,
 		*parser.KeywordData,
 		*parser.KeywordContext,
 		*parser.KeywordActivity,
@@ -124,9 +132,13 @@ func isSemanticToken(n parser.Node) bool {
 		*parser.KeywordDecision,
 		*parser.KeywordReturn,
 		*parser.KeywordReturnError,
+		*parser.KeywordWhile,
+		*parser.KeywordView,
+		*parser.KeywordInput,
+		*parser.KeywordOutput,
 		*parser.KeywordWorkflow:
 		return true
-	case *parser.Ident, *parser.Literal, *parser.Definition:
+	case *parser.Ident, *parser.Literal, *parser.Definition, *parser.ToDoText:
 		return true
 	}
 
@@ -146,9 +158,11 @@ func IntoTokens(doc *parser.Doc) VSCTokens {
 		start := n.Position()
 		end := n.EndPosition()
 		if start == end {
-			//log.Printf("token %T has invalid start/end: %+v->%+v\n", n, start, end)
+			log.Printf("token %T has invalid start/end: %+v->%+v\n", n, start, end)
 			return nil // the token has not a useful token info attached
 		}
+
+		log.Printf("%T->%d:%d bis %d:%d\n", n, n.Position().Line, n.Position().Column, n.EndPosition().Line, n.EndPosition().Column)
 
 		if start.Line == end.Line {
 			tokens = append(tokens, VSCToken{
@@ -218,6 +232,8 @@ func IntoTokens(doc *parser.Doc) VSCTokens {
 	if err != nil {
 		log.Println(err)
 	}
+
+	log.Println(tokens)
 
 	return tokens
 }

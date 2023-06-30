@@ -189,7 +189,7 @@ func (n *KillStmt) Render(wr io.Writer) error {
 type ActivityState struct {
 	Color string
 	Name  string
-	Note  *ActivityNote
+	Notes []*ActivityNote
 }
 
 func NewActivityState(name string) *ActivityState {
@@ -208,8 +208,8 @@ func (n *ActivityState) Render(wr io.Writer) error {
 	}
 	w.Printf(":%s;\n", n.Name)
 
-	if n.Note != nil {
-		if err := n.Note.Render(wr); err != nil {
+	for _, note := range n.Notes {
+		if err := note.Render(wr); err != nil {
 			return err
 		}
 	}

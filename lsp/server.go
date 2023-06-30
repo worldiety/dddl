@@ -1,6 +1,7 @@
 package lsp
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/alecthomas/participle/v2"
 	"github.com/worldiety/dddl/linter"
@@ -67,7 +68,8 @@ func (s *Server) reloadFiles() {
 
 // Handle a client's request to initialize and respond with our capabilities.
 func (s *Server) Initialize(params *protocol.InitializeParams) protocol.InitializeResult {
-	log.Printf("%+v", params)
+	buf, _ := json.Marshal(params)
+	log.Printf("%+v", string(buf))
 	s.rootPath = params.RootPath
 	s.reloadFiles()
 
@@ -229,13 +231,13 @@ func (s *Server) FullSemanticTokens(params *protocol.SemanticTokensParams) proto
 
 func (s *Server) AsciiDoc(filename protocol.DocumentURI) string {
 	var out strings.Builder
-	doc, err := s.parseSuperDoc()
+	doc, err := s.parseWorkspace()
 	if doc == nil {
 		return err.Error()
 	}
 
 	out.WriteString("= Implement me\n\n")
-	for _, context := range doc.Contexts {
+	for _, context := range doc.Contexts() {
 		out.WriteString("== ")
 		out.WriteString(context.Name.Value)
 		out.WriteString("\n")
@@ -268,10 +270,16 @@ func (s *Server) sendPreviewHtml() {
 }
 
 func (s *Server) sendSemanticTokenRefresh() {
-	err := SendNotification("workspace/semanticTokens/refresh", struct{}{})
+	err := SendNotification("workspace/semanticTokens/refresh", nil)
 	if err != nil {
 		log.Printf("cannot send sendSemanticTokenRefresh: %v", err)
 	}
+
+	err = SendNotification("workspace/codeLens/refresh", nil)
+	if err != nil {
+		log.Printf("cannot send sendSemanticTokenRefresh: %v", err)
+	}
+
 }
 
 // sendDiagnostics sends any parser errors.
@@ -317,9 +325,9 @@ func (s *Server) sendDiagnostics() {
 
 			if len(diagnostics) == 0 {
 				// we have no errors, so its worth to lint the entire thing
-				doc, err := s.parseSuperDoc()
+				doc, err := s.parseWorkspace()
 				if err != nil {
-					log.Println("unexpected superdoc parser error", err)
+					log.Println("unexpected workspace parser error", err)
 				}
 
 				if doc != nil {
@@ -373,37 +381,13 @@ type PreviewHtmlParams struct {
 	TailwindUri protocol.DocumentURI
 }
 
-func (s *Server) parseSuperDoc() (*parser.Doc, error) {
-	var superErr error
-	superDoc := &parser.Doc{}
+func (s *Server) parseWorkspace() (*parser.Workspace, error) {
+	tmp := map[string]string{}
 	for _, file := range s.files {
-		doc, err := parser.ParseText(string(file.Uri), file.Content)
-		if err != nil {
-			if superErr == nil {
-				superErr = err
-			} else {
-				superErr = fmt.Errorf("also occurred: %w and %w", superErr, err)
-			}
-			continue
-		}
-
-		for _, context := range doc.Contexts {
-			ctx := superDoc.ContextByName(context.Name.Value)
-			if ctx == nil {
-				superDoc.Contexts = append(superDoc.Contexts, context)
-			} else {
-				for _, element := range context.Elements {
-					ctx.Elements = append(ctx.Elements, element) // just append it
-				}
-
-				if ctx.Definition == nil {
-					ctx.Definition = context.Definition // maybe non-nil, TODO double definition is a lint-error
-				}
-			}
-		}
+		tmp[string(file.Uri)] = file.Content
 	}
 
-	return superDoc, superErr
+	return parser.ParseWorkspaceText(tmp)
 }
 
 func (s *Server) RenderPreviewHtml(params PreviewHtmlParams) string {
@@ -413,7 +397,7 @@ func (s *Server) RenderPreviewHtml(params PreviewHtmlParams) string {
 	var model editor.EditorPreview
 	model.VSCode.ScriptUris = append(model.VSCode.ScriptUris, string(s.lastPreviewParams.TailwindUri))
 
-	doc, err := s.parseSuperDoc()
+	doc, err := s.parseWorkspace()
 	if doc == nil {
 		return err.Error()
 	}
@@ -422,7 +406,7 @@ func (s *Server) RenderPreviewHtml(params PreviewHtmlParams) string {
 		model.Error = err.Error()
 	}
 
-	linter := editor.Linter(func(doc *parser.Doc) []linter.Hint {
+	linter := editor.Linter(func(doc *parser.Workspace) []linter.Hint {
 		return linter.Lint(doc)
 	})
 

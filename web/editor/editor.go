@@ -19,9 +19,9 @@ type Saver func(text string) error
 
 type Loader func() string
 
-type Parser func(text string) (*parser.Doc, error)
+type Parser func(text string) (*parser.Workspace, error)
 
-type Linter func(doc *parser.Doc) []linter.Hint
+type Linter func(doc *parser.Workspace) []linter.Hint
 
 func Handler(devMode bool, load Loader, save Saver, parse Parser, lint Linter) http.HandlerFunc {
 	return html.Handler(
@@ -71,7 +71,7 @@ func parseAndLint(parse Parser, lint Linter, model EditorPreview, text string) E
 	return model
 }
 
-func lintOnly(doc *parser.Doc, lint Linter, model EditorPreview) EditorPreview {
+func lintOnly(doc *parser.Workspace, lint Linter, model EditorPreview) EditorPreview {
 	model.Doc = transform(doc)
 	//fmt.Printf("%#v", model)
 

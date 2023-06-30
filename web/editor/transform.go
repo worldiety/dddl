@@ -17,67 +17,69 @@ import (
 	"html/template"
 )
 
-func transform(pdoc *parser.Doc) *Doc {
+func transform(pWS *parser.Workspace) *Doc {
 	doc := &Doc{}
-	for _, pCtx := range pdoc.Contexts {
-		ctx := &Context{}
-		doc.Contexts = append(doc.Contexts, ctx)
+	for _, pdoc := range pWS.Docs() {
 
-		ctx.Name = pCtx.Name.Value
-		if pCtx.Definition != nil {
-			ctx.Definition = linkify(pdoc, markdown(pCtx.Definition.Text))
-		}
+		for _, pCtx := range pdoc.Contexts() {
+			ctx := &Context{}
+			doc.Contexts = append(doc.Contexts, ctx)
 
-		if pCtx.ToDo != nil {
-			ctx.Todo = linkify(pdoc, markdown(pCtx.ToDo.Text.Text))
-		}
-
-		for _, pdata := range pCtx.DataTypes() {
-			data := &Data{}
-			ctx.Data = append(ctx.Data, data)
-			data.Name = pdata.Name.Value
-			if pdata.Definition != nil {
-				data.Definition = linkify(pdoc, markdown(pdata.Definition.Text))
+			ctx.Name = pCtx.Name.Value
+			if pCtx.Definition != nil {
+				ctx.Definition = linkify(pdoc, markdown(pCtx.Definition.Text))
 			}
 
-			if pdata.ToDo != nil {
-				data.Todo = linkify(pdoc, markdown(pdata.ToDo.Text.Text))
+			if pCtx.ToDo != nil {
+				ctx.Todo = linkify(pdoc, markdown(pCtx.ToDo.Text.Text))
 			}
 
-			if !pdata.Empty() {
-				svg, err := plantuml.RenderLocal("svg", puml.Data(pdoc, pdata))
-				if err != nil {
-					slog.Error("failed to convert data to puml", slog.Any("err", err))
+			for _, pdata := range pCtx.DataTypes() {
+				data := &Data{}
+				ctx.Data = append(ctx.Data, data)
+				data.Name = pdata.Name.Value
+				if pdata.Definition != nil {
+					data.Definition = linkify(pdoc, markdown(pdata.Definition.Text))
 				}
 
-				data.SVG = template.HTML(svg)
-			}
-
-		}
-
-		for _, pWorkflow := range pCtx.Workflows() {
-			wf := &Workflow{}
-			ctx.Workflows = append(ctx.Workflows, wf)
-			wf.Name = pWorkflow.Name.Value
-			if pWorkflow.Definition != nil {
-				wf.Definition = markdown(pWorkflow.Definition.Text)
-			}
-
-			if pWorkflow.ToDo != nil {
-				wf.Todo = markdown(pWorkflow.ToDo.Text.Text)
-			}
-
-			if pWorkflow.Block != nil && len(pWorkflow.Block.Statements) > 0 {
-				svg, err := plantuml.RenderLocal("svg", puml.Workflow(pdoc, pWorkflow))
-				if err != nil {
-					slog.Error("failed to convert workflow to puml", slog.Any("err", err))
+				if pdata.ToDo != nil {
+					data.Todo = linkify(pdoc, markdown(pdata.ToDo.Text.Text))
 				}
 
-				wf.SVG = template.HTML(svg)
+				if !pdata.Empty() {
+					svg, err := plantuml.RenderLocal("svg", puml.Data(pdoc, pdata))
+					if err != nil {
+						slog.Error("failed to convert data to puml", slog.Any("err", err))
+					}
+
+					data.SVG = template.HTML(svg)
+				}
+
+			}
+
+			for _, pWorkflow := range pCtx.Workflows() {
+				wf := &Workflow{}
+				ctx.Workflows = append(ctx.Workflows, wf)
+				wf.Name = pWorkflow.Name.Value
+				if pWorkflow.Definition != nil {
+					wf.Definition = markdown(pWorkflow.Definition.Text)
+				}
+
+				if pWorkflow.ToDo != nil {
+					wf.Todo = markdown(pWorkflow.ToDo.Text.Text)
+				}
+
+				if pWorkflow.Block != nil && len(pWorkflow.Block.Statements) > 0 {
+					svg, err := plantuml.RenderLocal("svg", puml.Workflow(pdoc, pWorkflow))
+					if err != nil {
+						slog.Error("failed to convert workflow to puml", slog.Any("err", err))
+					}
+
+					wf.SVG = template.HTML(svg)
+				}
 			}
 		}
 	}
-
 	return doc
 }
 

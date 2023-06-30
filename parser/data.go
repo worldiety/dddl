@@ -1,88 +1,5 @@
 package parser
 
-import (
-	"github.com/alecthomas/participle/v2/lexer"
-	"strings"
-)
-
-type ToDo struct {
-	node
-	KeywordTodo *KeywordTodo `@@ ":"`
-	Text        *ToDoText    `@@`
-}
-
-func (n *ToDo) Children() []Node {
-	return []Node{n.KeywordTodo, n.Text}
-}
-
-func offsetPosText(pos lexer.Position, text string) lexer.Position {
-	if len(text) == 0 {
-		return pos
-	}
-
-	lines := strings.Split(text, "\n")
-	var lastLineLen int
-	if len(lines) == 1 {
-		lastLineLen = pos.Column + len(lines[len(lines)-1])
-	} else {
-		lastLineLen = len(lines[len(lines)-1])
-	}
-
-	pos.Line += len(lines) - 1
-	pos.Column = lastLineLen
-
-	return pos
-}
-
-type ToDoText struct {
-	node
-	Text string `@Text`
-}
-
-func (n *ToDoText) Children() []Node {
-	return nil
-}
-
-func (n *ToDoText) Position() lexer.Position {
-	pos := n.node.Position()
-	pos.Column++ // fix "
-	return pos
-}
-
-func (n *ToDoText) EndPosition() lexer.Position {
-	pos := offsetPosText(n.Position(), n.Text)
-	return pos
-}
-
-func (n *Definition) Empty() bool {
-	if n == nil {
-		return true
-	}
-
-	tmp := strings.TrimSpace(n.Text)
-	if tmp == "" {
-		return true
-	}
-
-	if tmp == "???" {
-		return true
-	}
-
-	return false
-}
-
-func (n *Definition) NeedsRevise() bool {
-	if n.Empty() {
-		return false
-	}
-
-	return strings.Contains(n.Text, "???")
-}
-
-func (n *Definition) Children() []Node {
-	return nil
-}
-
 // A Data is either a choice or a compound data type.
 // Combining both is probably hard to understand.
 // Without massive lookahead, we cannot distinguish that, so we will
@@ -91,12 +8,11 @@ type Data struct {
 	node
 	KeywordData *KeywordData       `@@`
 	Name        *Ident             ` @@ ( "{"`
+	Definition  *Definition        `@@?`
 	ToDo        *ToDo              `@@? `
 	First       *TypeDeclaration   ` (@@ `
 	Fields      []*TypeDeclaration `("und" @@)*`
-	Choices     []*TypeDeclaration `("oder" @@)*)?  `
-
-	Definition *Definition `@@? "}")? `
+	Choices     []*TypeDeclaration `("oder" @@)*)?  "}")?`
 }
 
 func (d *Data) Empty() bool {
