@@ -118,6 +118,7 @@ func ParseWorkspaceText(filenamesWithText map[string]string) (*Workspace, error)
 		doc, err := ParseText(filename, filenamesWithText[filename])
 		if err != nil {
 			parserErr().Errors[filename] = err
+			continue
 		}
 
 		workspace.Documents[filename] = doc

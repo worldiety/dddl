@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.10
+
+Replaced (broken) semantic tokens with static textmate grammar tokens.
+Started rewriting of hover texts with more insights in their meaning and usage.
+
 ## 0.0.9
 
 More Bugfixes and changed a lot of grammar to have less ambiguous parsing behavior in edge cases. This causes Contexts, Data and Workflows to require { } brackets. Supporting more BPMN-Style notations.

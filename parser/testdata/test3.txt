@@ -1,128 +1,41 @@
-Kontext Rechnungsgenerator
-    TODO: "Prüfen"
+Kontext Rechnungsgenerator {
 
-    "Der Rechnungsgenerator ist ein worldiety Werkzeug zur
-    Vereinfachung unserer Rechnungsstellung gegenüber
-    unseren Kunden.
+	Arbeitsablauf Zeitloggen {
+	    TODO: "schrott"
 
-    Wir können kein einfaches Buchhaltungsprogramm einsetzen,
-    da unsere Vertragskonstellationen zu individuell und speziell sind. Dazu zählen z.B. Staffelpreise in Form einer Intervall-Funktion für cewe oder Festpreise mit ausgezeichneten Überstunden oder eine Abrechnung nach Aufwand mit Stundenzettel für AGP. Diese Informationen müssen zur Zeit (2023) händisch pro Projekt von jedem Projektmanager vorbereitet und an den Rechnungssteller (Hannah) geschickt werden.
-
-    Daneben haben wir individuelle Rechnungszyklen für verschiedene Verträge bei gleichen Leistungsempfängern. Dazu gehören z.B. Verträge für Hosting, Wartung, Service, Festpreis oder nach Aufwand mit Obergrenze.
-    "
-
-Kommando ""
-
-Ereignis "Mitarbeiter hat Überstunden angefragt" =
-    Von: Mitarbeiter
-    Kommando: "Mail geschrieben"
-    Ansicht: "Outlook"
-    UrsacheExtern: Webseite
-
-Ereignis "Überstunden für Mitarbeiter ermittelt"
+		"Super beschreibung"
 
 
-Daten Leistungsempfänger =
-  TODO: "grammar example"
+			Akteur Mitarbeiter {
+				Ereignis "Aufgabe erledigt"
+				Aufgabe "Auf Abschicken klicken"
+			}
 
-    Firmenkunde
-    oder Privatkunde
+			Kontext Rechnungsgenerator{
+				Akteur Rechnungssteller{
+						Ereignis "Monatslog abgeschlossen"
+						Aufgabe "schließt Monat ab"
+
+						Entscheidung wenn "Monat == 30 Tage" dann{
+
+						}
+
+						Kontext WasAnderes {
+							Fehler
+						}
+					}
+			}
 
 
 
-    "Hiermit ist der offizielle Leistungsempfänger gemäß BGB gemeint.
-    Auf den Begriff 'Kunde' verzichten wir aufgrund seiner Mehrdeutigkeit an dieser Stelle.
-    Der Leistungsempfänger muss entweder eine Firma oder eine Privatperson sein, wobei letzteres schon sehr selten ist, aber z.B. im Bereich des 3D-Drucks öfters vorkam."
+	}
 
-Daten Kunden =
-    Liste[Firmenkunde]
-    oder Liste[Privatkunde]
+}
 
-    "Ich bin ein Parser-Test."
+Kontext X
 
-Daten Firmenkunde =
-    Kundennummer
-    und Firmennamen
-    und Anschrift
-    und Ansprechpartner
+Kontext Y {}
 
-    "Das ist beispielsweise die cewe Stiftung & GmbH Co.KG."
-
-Daten Privatkunde =
-    Kundennummer
-    und Vorname
-    und Nachnamen
-    und Anschrift
-
-    "Das ist beispielsweise Mathias Kreutz (Turnup App)"
-
-Daten Rechnung
-
-Daten Rechnungen = Liste[Rechnung]
-
-Daten BankVerbindung = "???"
-
-Daten KundenRechnungen =
-    Zuordnung[Kundennummer, Liste[Rechnung]]
-
-Daten UmlageFehler = TicketNichtGefunden oder ZeitLogUngültig
-
-" blabla"
-
-Arbeitsablauf UmlageBerechnen =
-    TODO: "revise me"
-
-    Abhängigkeiten:
-        TicketBesorgen
-    Eingabe:
-        Liste[Zeitbuchung]
-        und Liste[Ticket]
-    Ausgabe:
-        Liste[AusweisbareZeitbuchung]
-        oder UmlageFehler
-    Ablauf {
-        "bla"
-        "bla"
-        "blbu" TODO: "wir könnten das immer an den vorgänger ankleben"
-
-            solange "Tickets da" {
-                löscheTickets(ticket, ticket)
-            }
-
-             für jedes Ticket aus Liste[Ticket]{
-                print(Ticket)
-             }
-
-            "magic"(ticket)
-             "Unterscheidung erfolgt anhand von Ticket.IstUmlage"
-            {
-                lasche("select"(schuh))
-            }
-
-
-
-            wenn "hallo"(ticket) dann{
-
-            }sonst{
-                gib magic(ticket) zurück
-            }
-           }
-
-    "Bei der Umlagenberechnung "
-
-
-Kontext CRM
-
-Kontext Zeiterfassung
-
-Kontext Kundenverträge
-
-Kontext Arbeitsverträge
-
-Kontext AndereVerträge
-
-Kontext Kompetenzmatrix
-
-Kontext Mitarbeiterportal
-
-Kontext Urlaubsverwaltung
+Kontext Z{
+	Daten Z
+}

@@ -50,7 +50,7 @@ export async function activate(context: vscode.ExtensionContext) {
             client.sendRequest("custom/exportAsciiDoc", doc).then((resp) => {
                 vscode.workspace.openTextDocument({
                     content: String(resp),
-                    language: "asciidoc"
+                    language: "asciidoc"    
                 }).then((document) => {
                     vscode.window.showTextDocument(document);
                 });

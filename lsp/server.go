@@ -104,68 +104,6 @@ func (s *Server) Initialize(params *protocol.InitializeParams) protocol.Initiali
 func (s *Server) Initialized() {
 }
 
-// Handle a hover event.
-func (s *Server) Hover(params *protocol.HoverParams) protocol.Hover {
-	file := s.files[params.TextDocument.URI]
-	doc, err := parser.ParseText(string(file.Uri), file.Content)
-	if err != nil {
-		log.Println("cannot parse", err)
-		return protocol.Hover{
-			Contents: protocol.MarkupContent{
-				Kind:  "markdown",
-				Value: "## Syntaxfehler\nPrüfe deinen Text und die Fehlermeldung: " + err.Error(),
-			},
-		}
-	}
-
-	tokens := IntoTokens(doc)
-	token := tokens.FindBy(params.Position)
-	if token == nil {
-		log.Println("token not found")
-		return protocol.Hover{
-			Contents: protocol.MarkupContent{
-				Kind:  "markdown",
-				Value: "",
-			},
-		}
-	}
-
-	return protocol.Hover{
-		Contents: protocol.MarkupContent{
-			Kind:  "markdown",
-			Value: s.hoverText(token),
-		},
-		Range: protocol.Range{
-			Start: protocol.Position{
-				Line:      uint32(token.Node.Position().Line - 1),
-				Character: uint32(token.Node.Position().Column - 1),
-			},
-			End: protocol.Position{
-				Line:      uint32(token.Node.EndPosition().Line - 1),
-				Character: uint32(token.Node.EndPosition().Column - 1),
-			},
-		},
-	}
-}
-
-func (s *Server) hoverText(token *VSCToken) string {
-	switch token.Node.(type) {
-	case *parser.Context:
-		return "Schlüsselwort, dass einen _Bounded Context_ einführt"
-	case *parser.ToDoText:
-		return "Textliteral, dass eine noch zu erledigende Aufgabe beschreibt."
-	case *parser.KeywordData:
-		return "Schlüsselwort, dass eine bestimmte Art von Daten einführt."
-	case *parser.Ident:
-		return "Dies ist ein Bezeichner, der nur genau einmal eindeutig eingeführt darf."
-	case *parser.Definition:
-		return "Diese Definition gehört zu einem Bezeichner und beschreibt den Sachverhalt ausführlich."
-	default:
-		return fmt.Sprintf("%T", token.Node)
-	}
-
-}
-
 // A document was saved.
 func (s *Server) DidSaveTextDocument(params *protocol.DidSaveTextDocumentParams) {
 	if params.Text != nil {
@@ -207,6 +145,12 @@ func (s *Server) DidChangeTextDocument(params *protocol.DidChangeTextDocumentPar
 }
 
 func (s *Server) FullSemanticTokens(params *protocol.SemanticTokensParams) protocol.SemanticTokens {
+	vscodeSemanticTokensStillBroken := true
+	if vscodeSemanticTokensStillBroken {
+		return protocol.SemanticTokens{
+			Data: []uint32{},
+		}
+	}
 	file := s.files[params.TextDocument.URI]
 	doc, err := parser.ParseText(string(file.Uri), file.Content)
 	if err != nil {

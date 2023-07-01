@@ -7,7 +7,7 @@ import (
 type KeywordView struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `("view" | "Ansicht")`
+	Keyword string `@("view" | "Ansicht")`
 }
 
 func (n *KeywordView) EndPosition() lexer.Position {
@@ -17,7 +17,7 @@ func (n *KeywordView) EndPosition() lexer.Position {
 type KeywordOutput struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `("output" | "Ausgabe")`
+	Keyword string `@("output" | "Ausgabe")`
 }
 
 func (n *KeywordOutput) EndPosition() lexer.Position {
@@ -27,7 +27,7 @@ func (n *KeywordOutput) EndPosition() lexer.Position {
 type KeywordInput struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `("input" | "Eingabe")`
+	Keyword string `@("input" | "Eingabe")`
 }
 
 func (n *KeywordInput) EndPosition() lexer.Position {
@@ -37,7 +37,7 @@ func (n *KeywordInput) EndPosition() lexer.Position {
 type KeywordWhile struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `("while" | "solange")`
+	Keyword string `@("while" | "solange")`
 }
 
 func (n *KeywordWhile) EndPosition() lexer.Position {
@@ -47,7 +47,7 @@ func (n *KeywordWhile) EndPosition() lexer.Position {
 type KeywordEvent struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `("event" | "Ereignis")`
+	Keyword string `@("event" | "Ereignis")`
 }
 
 func (n *KeywordEvent) EndPosition() lexer.Position {
@@ -57,7 +57,7 @@ func (n *KeywordEvent) EndPosition() lexer.Position {
 type KeywordEventSent struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `("sent" | "Versendet")`
+	Keyword string `@("sent" | "Versendet")`
 }
 
 func (n *KeywordEventSent) EndPosition() lexer.Position {
@@ -67,7 +67,7 @@ func (n *KeywordEventSent) EndPosition() lexer.Position {
 type KeywordActivity struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `("step" | "Aufgabe")`
+	Keyword string `@("step" | "Aufgabe")`
 }
 
 func (n *KeywordActivity) EndPosition() lexer.Position {
@@ -77,7 +77,7 @@ func (n *KeywordActivity) EndPosition() lexer.Position {
 type KeywordWorkflow struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `("workflow" | "Arbeitsablauf")`
+	Keyword string `@("workflow" | "Arbeitsablauf")`
 }
 
 func (n *KeywordWorkflow) EndPosition() lexer.Position {
@@ -87,7 +87,7 @@ func (n *KeywordWorkflow) EndPosition() lexer.Position {
 type KeywordDecision struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `("decision" | "Entscheidung")`
+	Keyword string `@("decision" | "Entscheidung")`
 }
 
 func (n *KeywordDecision) EndPosition() lexer.Position {
@@ -97,7 +97,7 @@ func (n *KeywordDecision) EndPosition() lexer.Position {
 type KeywordIf struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `("if" | "wenn")`
+	Keyword string `@("if" | "wenn")`
 }
 
 func (n *KeywordIf) EndPosition() lexer.Position {
@@ -107,7 +107,7 @@ func (n *KeywordIf) EndPosition() lexer.Position {
 type KeywordThen struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `("then" | "dann")`
+	Keyword string `@("then" | "dann")`
 }
 
 func (n *KeywordThen) EndPosition() lexer.Position {
@@ -117,7 +117,7 @@ func (n *KeywordThen) EndPosition() lexer.Position {
 type KeywordElse struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `("else" | "sonst")`
+	Keyword string `@("else" | "sonst")`
 }
 
 func (n *KeywordElse) EndPosition() lexer.Position {
@@ -127,7 +127,7 @@ func (n *KeywordElse) EndPosition() lexer.Position {
 type KeywordActor struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `("actor" | "Akteur")`
+	Keyword string `@("actor" | "Akteur")`
 }
 
 func (n *KeywordActor) EndPosition() lexer.Position {
@@ -147,7 +147,7 @@ func (n *KeywordData) EndPosition() lexer.Position {
 type KeywordReturn struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `("return" | "Endereignis")`
+	Keyword string `@("return" | "Endereignis")`
 }
 
 func (n *KeywordReturn) EndPosition() lexer.Position {
@@ -157,7 +157,7 @@ func (n *KeywordReturn) EndPosition() lexer.Position {
 type KeywordReturnError struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `("error" | "Fehler")`
+	Keyword string `@("error" | "Fehler")`
 }
 
 func (n *KeywordReturnError) EndPosition() lexer.Position {
@@ -167,7 +167,7 @@ func (n *KeywordReturnError) EndPosition() lexer.Position {
 type KeywordContext struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `("context" | "Kontext")`
+	Keyword string `@("context" | "Kontext")`
 }
 
 func (n *KeywordContext) EndPosition() lexer.Position {
@@ -177,7 +177,7 @@ func (n *KeywordContext) EndPosition() lexer.Position {
 type KeywordTodo struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `"TODO"`
+	Keyword string `@"TODO"`
 }
 
 func (n *KeywordTodo) EndPosition() lexer.Position {

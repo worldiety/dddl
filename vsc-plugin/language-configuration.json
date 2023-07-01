@@ -14,5 +14,15 @@
         ["(", ")"],
         ["[", "]"],
         ["\"", "\""]
-    ]
+    ],
+    "indentationRules": {
+        "increaseIndentPattern": "^.*(\\bcase\\b.*:|\\bdefault\\b:|(\\b(Daten|solange|Arbeitsablauf|switch|select|for|struct)\\b.*)?{[^}\"'`]*|\\([^)\"'`]*)$",
+        "decreaseIndentPattern": "^\\s*(\\bcase\\b.*:|\\bdefault\\b:|}[)}]*[),]?|\\)[,]?)$"
+    },
+    "folding": {
+        "markers": {
+            "start": "^\\s*//\\s*#?region\\b",
+            "end": "^\\s*//\\s*#?endregion\\b"
+        }
+    }
 }
