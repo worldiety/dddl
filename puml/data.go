@@ -5,29 +5,30 @@ import (
 	"github.com/worldiety/dddl/plantuml"
 )
 
-func Data(doc *parser.Doc, data *parser.Data) *plantuml.Diagram {
+func Data(data *parser.Data) *plantuml.Diagram {
 	diag := plantuml.NewDiagram()
+	ws := parser.WorkspaceOf(data)
 
 	if len(data.ChoiceTypes()) > 0 {
 		diag.Add(plantuml.NewInterface(data.Name.Value).NoteRight(plantuml.NewNote(Data2Str(data))))
 		for _, choice := range data.ChoiceTypes() {
 			choiceName := TypeDeclToStr(choice)
-			choiceData := doc.DataByName(choiceName)
+			choiceData := ws.ResolveData(choice.Name)
 			if choiceData == nil {
 				diag.Add(plantuml.NewClass(choiceName).Extends(data.Name.Value))
 			} else {
-				diag.Add(Class(doc, choiceData).Extends(data.Name.Value))
+				diag.Add(Class(choiceData).Extends(data.Name.Value))
 			}
 		}
 
 	} else {
-		diag.Add(Class(doc, data))
+		diag.Add(Class(data))
 	}
 
 	return diag
 }
 
-func Class(doc *parser.Doc, data *parser.Data) *plantuml.Class {
+func Class(data *parser.Data) *plantuml.Class {
 	c := plantuml.NewClass(data.Name.Value)
 	for _, declaration := range data.FieldTypes() {
 		c.AddAttrs(plantuml.Attr{
@@ -39,7 +40,7 @@ func Class(doc *parser.Doc, data *parser.Data) *plantuml.Class {
 	return c
 }
 
-func TypeDeclToStr(decl *parser.TypeDeclaration) string {
+func TypeDeclToStr(decl *parser.TypeDef) string {
 	tmp := decl.Name.Value
 	if len(decl.Params) > 0 {
 		tmp += "<"

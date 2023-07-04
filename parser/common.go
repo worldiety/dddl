@@ -5,6 +5,23 @@ import (
 	"strings"
 )
 
+type Declaration interface {
+	DeclaredName() *Ident
+}
+
+type Qualifier struct {
+	Context *Context // can be nil for "shared kernel"
+	Name    *Ident
+}
+
+func (q Qualifier) String() string {
+	if q.Context == nil {
+		return q.Name.String()
+	}
+
+	return q.Context.Name.String() + "." + q.Name.String()
+}
+
 // Literal refers to the rules of quoted Text by the Lexer.
 type Literal struct {
 	node
@@ -23,6 +40,14 @@ type Ident struct {
 	node
 	Tokens []lexer.Token
 	Value  string `@Name`
+}
+
+func (n *Ident) String() string {
+	if n == nil {
+		return "nil"
+	}
+
+	return n.Value
 }
 
 func (n *Ident) EndPosition() lexer.Position {
@@ -46,6 +71,14 @@ type Definition struct {
 	node
 	Tokens []lexer.Token
 	Text   string `@Text`
+}
+
+func (n *Definition) Value() string {
+	if n == nil {
+		return ""
+	}
+
+	return n.Text
 }
 
 func (n *Definition) EndPosition() lexer.Position {
@@ -85,6 +118,14 @@ type IdentOrLiteral struct {
 	Literal *Literal `|@@)`
 }
 
+func (n *IdentOrLiteral) EndPosition() lexer.Position {
+	if n.Name != nil {
+		return n.Name.EndPosition()
+	}
+
+	return n.Literal.EndPosition()
+}
+
 // Value returns either the Names' value or the Literals' value.
 func (n *IdentOrLiteral) Value() string {
 	if n.Name != nil {
@@ -102,6 +143,14 @@ type ToDo struct {
 	node
 	KeywordTodo *KeywordTodo `@@ ":"`
 	Text        *ToDoText    `@@`
+}
+
+func (n *ToDo) Value() string {
+	if n == nil || n.Text == nil {
+		return ""
+	}
+
+	return n.Text.Text
 }
 
 func (n *ToDo) Children() []Node {

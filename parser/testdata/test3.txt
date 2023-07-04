@@ -15,7 +15,6 @@ Kontext Rechnungsgenerator {
 				Akteur Rechnungssteller{
 						Ereignis "Monatslog abgeschlossen"
 						Aufgabe "schließt Monat ab"
-
 						Entscheidung wenn "Monat == 30 Tage" dann{
 
 						}

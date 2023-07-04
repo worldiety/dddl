@@ -12,6 +12,7 @@ type EditorPreview struct {
 	Title      string
 	Doc        *Doc
 	Hints      []template.HTML
+	NamedTasks []NamedTasks
 	EditorText string
 	Error      string
 	LastSaved  string
@@ -22,8 +23,14 @@ func (m EditorPreview) DevMode() bool {
 	return m.devMode
 }
 
+type NamedTasks struct {
+	Name  string
+	Tasks []template.HTML
+}
+
 type Doc struct {
-	Contexts []*Context
+	SharedKernel *Context
+	Contexts     []*Context
 }
 
 type Context struct {

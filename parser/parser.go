@@ -10,18 +10,18 @@ import (
 	"strings"
 )
 
-// A TypeDefinition is either a DataType or a Workflow.
+// A TypeDecl is either a DataType or a Workflow.
 // To simplify the parsing without lookahead, we just use
 // this kind of union.
-// See also TypeDeclaration.
-type TypeDefinition struct {
+// See also TypeDef.
+type TypeDecl struct {
 	node
 
 	DataType *Data     `@@`
 	Workflow *Workflow `|@@`
 }
 
-func (d *TypeDefinition) Children() []Node {
+func (d *TypeDecl) Children() []Node {
 	if d.DataType != nil {
 		return []Node{d.DataType}
 	}
@@ -33,7 +33,7 @@ func (d *TypeDefinition) Children() []Node {
 	return nil
 }
 
-func (d *TypeDefinition) Name() *Ident {
+func (d *TypeDecl) Name() *Ident {
 	if d.DataType != nil {
 		return d.DataType.Name
 	}
@@ -41,16 +41,16 @@ func (d *TypeDefinition) Name() *Ident {
 	return d.Workflow.Name
 }
 
-// A TypeDeclaration is either a Name or a parameterized Name
+// A TypeDef is either a Name or a parameterized Name
 // - a generic.
-type TypeDeclaration struct {
+type TypeDef struct {
 	node
 
-	Name   *Ident             `@@`
-	Params []*TypeDeclaration `("[" @@ ("," @@)* "]" )?`
+	Name   *Ident     `@@`
+	Params []*TypeDef `("[" @@ ("," @@)* "]" )?`
 }
 
-func (n *TypeDeclaration) Children() []Node {
+func (n *TypeDef) Children() []Node {
 	if n == nil {
 		return nil
 	}
@@ -90,12 +90,18 @@ func Parse(fname string) (*Doc, error) {
 	}
 
 	//fmt.Println(parser.String())
+	attachParent(nil, v)
 	return v, nil
 }
 
 func ParseText(filename, text string) (*Doc, error) {
 	parser := NewParser()
-	return parser.ParseBytes(filename, []byte(text))
+	doc, err := parser.ParseBytes(filename, []byte(text))
+	if doc != nil {
+		attachParent(nil, doc)
+	}
+
+	return doc, err
 }
 
 // ParseWorkspaceText loads from filename->text and tries to parse each one.
@@ -123,6 +129,8 @@ func ParseWorkspaceText(filenamesWithText map[string]string) (*Workspace, error)
 
 		workspace.Documents[filename] = doc
 	}
+
+	attachParent(nil, workspace)
 
 	if tmp != nil {
 		return workspace, tmp
@@ -172,4 +180,15 @@ func NewParser() *participle.Parser[Doc] {
 	}
 
 	return parser
+}
+
+func attachParent(parent, n Node) {
+	if n == nil {
+		return
+	}
+
+	n.setParent(parent)
+	for _, c := range n.Children() {
+		attachParent(n, c)
+	}
 }

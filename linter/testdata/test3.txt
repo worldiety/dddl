@@ -1,0 +1,9 @@
+Daten Kunde {
+    Privatkunde oder Firmenkunde
+}
+
+Kontext Rechnungsstellung {
+    Daten Kunde {
+        Guter oder Schlechter
+    }
+}

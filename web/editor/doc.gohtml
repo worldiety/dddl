@@ -1,14 +1,28 @@
 {{define "Doc"}}
     {{template "TOC" .}}
-    {{range .Doc.Contexts}}
-        {{template "Kontext" .}}
-        {{range .Data}}
+
+    {{if .Doc.SharedKernel}}
+        {{range .Doc.SharedKernel.Workflows}}
+            {{template "Workflow" .}}
+        {{end}}
+
+        {{range .Doc.SharedKernel.Data}}
             {{template "Daten" .}}
         {{end}}
+    {{end}}
+
+    {{range .Doc.Contexts}}
+        {{template "Kontext" .}}
 
         {{range .Workflows}}
             {{template "Workflow" .}}
         {{end}}
+
+        {{range .Data}}
+            {{template "Daten" .}}
+        {{end}}
+
+
     {{end}}
 
     {{if .Hints}}
@@ -22,6 +36,23 @@
         {{template "Todo" .Todo}}
     {{end}}
     {{.Definition}}
+{{end}}
+
+{{define "Workflow"}}
+    <div class="p-1">
+
+        <h3 id="{{.Name}}" class="font-normal text-lg mb-2">Arbeitsablauf {{.Name}}</h3>
+
+        {{if .Todo}}
+            {{template "Todo" .Todo}}
+        {{end}}
+
+        {{.Definition}}
+
+        {{if .SVG}}
+            {{.SVG}}
+        {{end}}
+    </div>
 {{end}}
 
 {{define "Daten"}}
@@ -41,22 +72,7 @@
     </div>
 {{end}}
 
-{{define "Workflow"}}
-    <div class="p-1">
 
-        <h3 id="{{.Name}}" class="font-normal text-lg mb-2">Arbeitsablauf {{.Name}}</h3>
-
-        {{if .Todo}}
-            {{template "Todo" .Todo}}
-        {{end}}
-
-        {{.Definition}}
-
-        {{if .SVG}}
-            {{.SVG}}
-        {{end}}
-    </div>
-{{end}}
 
 
 {{define "Todo"}}

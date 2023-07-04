@@ -276,33 +276,8 @@ func (s *Server) sendDiagnostics() {
 
 				if doc != nil {
 					hints := linter.Lint(doc)
-					for _, hint := range hints {
-						hintFname := filepath.Base(hint.ParentIdent.Pos.Filename)
-						baseFname := filepath.Base(string(file.Uri)) // TODO assumption not correct for files in distinct folders
-
-						if baseFname == hintFname {
-							pos := hint.ParentIdent.Position()
-							end := hint.ParentIdent.EndPosition()
-							diagnostics = append(diagnostics, protocol.Diagnostic{
-								Range: protocol.Range{
-									Start: protocol.Position{
-										// Subtract 1 since dyml has 1 based lines and columns, but LSP wants 0 based
-										Line:      uint32(pos.Line) - 1,
-										Character: uint32(pos.Column) - 1,
-									},
-									// we don't know the length, so just always pick the next 3 chars
-									End: protocol.Position{
-										Line:      uint32(end.Line) - 1,
-										Character: uint32(end.Column) - 1,
-									},
-								},
-								Severity: protocol.SeverityWarning,
-								Message: hint.String(func(ident *parser.Ident) string {
-									return ident.Value
-								}),
-							})
-						}
-					}
+					diags := renderLintTexts(file.Uri, hints)
+					diagnostics = append(diagnostics, diags...)
 				}
 			}
 
@@ -317,7 +292,6 @@ func (s *Server) sendDiagnostics() {
 
 		}
 	})
-
 }
 
 type PreviewHtmlParams struct {
@@ -341,8 +315,8 @@ func (s *Server) RenderPreviewHtml(params PreviewHtmlParams) string {
 	var model editor.EditorPreview
 	model.VSCode.ScriptUris = append(model.VSCode.ScriptUris, string(s.lastPreviewParams.TailwindUri))
 
-	doc, err := s.parseWorkspace()
-	if doc == nil {
+	ws, err := s.parseWorkspace()
+	if ws == nil {
 		return err.Error()
 	}
 
@@ -350,9 +324,9 @@ func (s *Server) RenderPreviewHtml(params PreviewHtmlParams) string {
 		model.Error = err.Error()
 	}
 
-	linter := editor.Linter(func(doc *parser.Workspace) []linter.Hint {
-		return linter.Lint(doc)
+	linter := editor.Linter(func(ws *parser.Workspace) []linter.Hint {
+		return linter.Lint(ws)
 	})
 
-	return editor.RenderViewHtml(linter, doc, model)
+	return editor.RenderViewHtml(linter, ws, model)
 }

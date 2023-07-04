@@ -1,6 +1,7 @@
 package lsp
 
 import (
+	_ "embed"
 	"fmt"
 	"github.com/worldiety/dddl/lsp/protocol"
 	"github.com/worldiety/dddl/parser"
@@ -52,70 +53,149 @@ func (s *Server) Hover(params *protocol.HoverParams) protocol.Hover {
 	}
 }
 
+//go:embed tips/context.md
+var tipContext string
+
+//go:embed tips/declaredident.md
+var tipDeclarationIdent string
+
+//go:embed tips/definedident.md
+var tipDefinedIdent string
+
+//go:embed tips/universeident.md
+var tipUniverseIdent string
+
+//go:embed tips/definition.md
+var tipDefinition string
+
+//go:embed tips/todotext.md
+var tipTodoText string
+
+//go:embed tips/kw_data.md
+var tipKWData string
+
+//go:embed tips/kw_actor.md
+var tipKWActor string
+
+//go:embed tips/kw_task.md
+var tipKWTask string
+
+//go:embed tips/kw_workflow.md
+var tipKWWorkflow string
+
+//go:embed tips/kw_view.md
+var tipKWView string
+
+//go:embed tips/kw_input.md
+var tipKWInput string
+
+//go:embed tips/kw_output.md
+var tipKWOutput string
+
+//go:embed tips/kw_return.md
+var tipKWReturn string
+
+//go:embed tips/wf_actor.md
+var tipWFActor string
+
+//go:embed tips/wf_task.md
+var tipWFTask string
+
+//go:embed tips/wf_view.md
+var tipWFView string
+
+//go:embed tips/wf_input.md
+var tipWFInput string
+
+//go:embed tips/wf_output.md
+var tipWFOutput string
+
+//go:embed tips/wf_if.md
+var tipWFIf string
+
+//go:embed tips/wf_while.md
+var tipWFWhile string
+
+//go:embed tips/wf_returnerr.md
+var tipWFReturnErr string
+
+//go:embed tips/wf_eventsent.md
+var tipWFEventSent string
+
 func (s *Server) hoverText(token *VSCToken) string {
 	switch n := token.Node.(type) {
 	case *parser.KeywordContext:
-		return fmt.Sprintf("### Was ist _%s_?\nAn dieser Stelle ist _%s_ ein Schlüsselwort, dass einen _Bounded Context_ deklariert. "+
-			"Hierbei handelt es sich um eine Subdomäne der gesamten Domäne (Fachlichkeit), die nur eine schwache Kopplung an andere Subdomänen aufweist. "+
-			"Indizien für die Grenzen eines _Bounded Context_ sind gleiche Begriffe mit anderen Definitionen sowie die Zuständigkeit anderer "+
-			"Domänenexperten.\n\n"+
-			"Ein _Bounded Context_ kann in mehreren Dateien und mehrfach innerhalb einer Datei vorkommen. Allerdings darf nur einer davon ein TODO und eine Definition enthalten.", n.Keyword, n.Keyword)
+		return fmt.Sprintf(tipContext, n.Keyword)
 	case *parser.Ident:
-		return fmt.Sprintf("### Was ist _%s_?\n"+
-			"An dieser Stelle ist _%s_ ein Bezeichner. Bezeichner treten entweder als Deklaration oder Definition auf. "+
-			"Eine Deklaration muss eindeutig sein und darf innerhalb eines _Bounded Contexts_ nur einmal erfolgen. "+
-			"Eine Definition bezeichnet eine instantiierte Verwendung. "+
-			"Befindet sich beispielsweise der Bezeichner auf der rechten Seite einer anderen Datentyp-Deklaration, ist es die Verwendung als Definition. "+
-			"Wird der Begriff innerhalb eines Arbeitsablaufs verwendet, handelt es sich ebenfalls immer um eine Referenz auf die Deklaration. "+
-			"\n\n"+
-			"Die folgenden Bezeichner wurden als Basisdatentypen vordefiniert:\n"+
-			"* _Text_ definiert eine UTF-8 Zeichenkette.\n"+
-			"* _Zahl_ definiert entweder eine Ganz- oder Gleitkommazahl.\n"+
-			"* _Ganzzahl_ definiert eine Zahl wie 5, 13 oder 42.\n"+
-			"* _Gleitkommazahl_ definiert eine Zahl wie 2.31.\n"+
-			"* _Menge_ definiert ein ungeordnetes Set, bei dem jeder Wert eindeutig ist. Eine Menge muss mit einem Typparameter versehen werden, also z.B. Menge[Zahl].\n"+
-			"* _Liste_ definiert eine geordnete List bzw. ein Array oder Slice. Eine Liste kann die selben oder die gleichen Werte mehrfach enthalten und muss mit einem Typparameter versehen werden, also z.B. Liste[Text].\n"+
-			"* _Zuordnung_ definiert eine ungeordnete Map, bei dem jedem Schlüssel eindeutig ein Wert zugeordnet ist. Eine Zuoordnung muss mit zwei Typparametern versehen werden, also z.B. Zuordnung[Zahl,Text].\n"+
-			"\n\n"+
-			"_Tipp:_ Verwende niemals Gleitkommazahlen, wenn es um Geld oder Geldäquivalente geht, also z.B. auch wenn Zeiteinheiten oder Produktionswerte in monetäre Werte umgerechnet werden. "+
-			"Grund ist, dass sich bei Gleitkommazahlen (je nach Anwendungsfall) nicht tolerierbare Rundungs- und Darstellungsfehler ergeben. "+
-			"Versuche die kleinste nicht mehr teilbare Einheit zu finden, bei Währungen ist dies z.B. der Eurocent-Wert oder bei Zeitwerten z.B. Minuten oder Sekunden (je nachdem was die Fachlichkeit erfordert). \n"+
-			"\n"+
-			"_Tipp:_ Es gibt absichtlich keinen Wahrheitswert (bool). Modelliere stattdessen mit Hilfe eines Choice-Types (algebraischer oder-Typ bzw. tagged union). "+
-			"Softwareentwickler können dies auch typsicher mittels polymorpher Mechaniken wie Vererbung oder die Verwendung von Interface-Marker-Methoden umsetzen.", n.Value, n.Value)
+		declaration := false
+		switch n.Parent().(type) {
+		case *parser.Data, *parser.Workflow, *parser.Context:
+			declaration = true
+		}
+		if declaration {
+			return fmt.Sprintf(tipDeclarationIdent, n.Value)
+		}
+
+		if n.IsUniverse() {
+			return fmt.Sprintf(tipUniverseIdent, n.Value)
+		}
+
+		return fmt.Sprintf(tipDefinedIdent, n.Value)
 
 	case *parser.Definition:
 		s := shortStringLit(n.Text)
-		return fmt.Sprintf("### Was ist _%s_?\n"+
-			"Dieser Text ist ein String-Literal und definiert einen Kontext, einen Datentyp oder einen Arbeitsablauf eindeutig. "+
-			"Diese Definition ist ein sehr wichtiger Bestandteil der gemeinsamen Sprache (Ubiquituous Language) von allen beteiligten Stakeholdern. "+
-			"Stakeholder sind beispielsweise die Domänenexperten, Endkunden, Geschäftsführer, Entwickler, Tester oder Projektleiter, also alle die ein Interesse an dem Projekt haben. "+
-			"Dieser Text stellt die Referenzdokumentation für das ganze Projekt dar und muss von allen Beteiligten akzeptiert und verstanden worden sein. \n\n"+
-			"_Tipp:_ Die Verwendung von Markdown ist möglich und zur Strukturierung von längeren Texten empfohlen. \n\n"+
-			"_Tipp:_ Wird ??? irgendwo im Text verwendet, wird der Text auch den offenen Aufgaben hinzugefügt.", s)
+		return fmt.Sprintf(tipDefinition, s)
 
 	case *parser.ToDoText:
 		s := shortStringLit(n.Text)
-		return fmt.Sprintf("### Was ist _%s_?\n"+
-			"Dieser Text ist ein String-Literal und annotiert ungeklärte Fragen zu einem Kontext, einem Datentyp, zu einem Arbeitsablauf oder auch zu einem Element innerhalb eines Arbeitsablaufes. "+
-			"Bei der Exploration der Domäne treten häufig noch ungeklärte Fragen zu Details auf, die explizit ausformuliert werden sollten. "+
-			"\n\n"+
-			"_Tipp:_ Die Verwendung von Markdown ist möglich und zur Strukturierung von längeren Texten empfohlen. ", s)
+		return fmt.Sprintf(tipTodoText, s)
 	case *parser.KeywordData:
-		return fmt.Sprintf("### Was ist _%s_?\n"+
-			"An dieser Stelle ist _%s_ ein Schlüsselwort, dass einen (algebraischen) Datentyp einführt bzw. eindeutig deklariert. "+
-			"Bei der Exploration der Domäne ist es insbesondere bei frühen Workshops sinnvoll zunächst nur Namen und Konzepte (d.h. kurze Definitionen) für Datenelemente zu notieren. "+
-			"Erst in darauf folgenden Workshops bzw. gezielten Einzelinterviews mit den zuständigen Domänenexperten sollten die genauen Spezifika ermittelt werden. "+
-			"\n\n"+
-			"Es werden entweder Produktypen (d.h. Tupel, Structs, Records, Classes o.ä.) oder Ko-Produkttypen (choice-type, tagged unions, disjoint unions, variant types o.ä.) unterstützt. \n"+
-			"Notationsbeispiele:\n\n"+
-			"* Auswahl-Typ: `Daten Kunde { Firmenkunde oder Privatkunde }`\n"+
-			"* Produkt-Typ: `Daten Firmenkunde { Name und Rechtsform und Registergericht und Adresse }`\n"+
-			"\n\n"+
-			"_Achtung:_ Die genaue Definition erfolgt bei der Implementierung immer. "+
-			"Entweder interpretiert und ergänzt der Entwickler die fehlenden Sachverhalte stillschweigend und ohne Prüfmöglichkeit oder diese Informationen werden vorher festgelegt. "+
-			"Die Informationen werden spätestens beim Grooming und dem Anhängen von _Tasks_ oder _technischen Stories_ an die erstellten _User Stories_ definiert.",
-			n.Keyword, n.Keyword)
+		return fmt.Sprintf(tipKWData, n.Keyword)
+	case *parser.KeywordWorkflow:
+		return fmt.Sprintf(tipKWWorkflow, n.Keyword)
+	case *parser.KeywordActor:
+		return fmt.Sprintf(tipKWActor, n.Keyword)
+	case *parser.KeywordActivity:
+		return fmt.Sprintf(tipKWTask, n.Keyword)
+	case *parser.KeywordView:
+		return fmt.Sprintf(tipKWView, n.Keyword)
+	case *parser.KeywordInput:
+		return fmt.Sprintf(tipKWInput, n.Keyword)
+	case *parser.KeywordOutput:
+		return fmt.Sprintf(tipKWOutput, n.Keyword)
+	case *parser.KeywordReturn:
+		return fmt.Sprintf(tipKWReturn, n.Keyword)
+	case *parser.Literal:
+		if identOrLit, ok := n.Parent().(*parser.IdentOrLiteral); ok {
+			switch identOrLit.Parent().(type) {
+			case *parser.ActorStmt:
+				return fmt.Sprintf(tipWFActor, n.Value)
+			case *parser.ActivityStmt:
+				return fmt.Sprintf(tipWFTask, n.Value)
+			case *parser.ViewStmt:
+				return fmt.Sprintf(tipWFView, n.Value)
+			case *parser.InputStmt:
+				return fmt.Sprintf(tipWFInput, n.Value)
+			case *parser.OutputStmt:
+				return fmt.Sprintf(tipWFOutput, n.Value)
+			case *parser.ReturnErrorStmt:
+				return fmt.Sprintf(tipWFReturnErr, n.Value)
+			case *parser.EventSentStmt:
+				return fmt.Sprintf(tipWFEventSent, n.Value)
+			default:
+
+				return fmt.Sprintf("undokumentierte Literalverwendung: %T", token.Node)
+			}
+		}
+
+		switch n.Parent().(type) {
+		case *parser.IfStmt:
+			return fmt.Sprintf(tipWFIf, n.Value)
+		case *parser.WhileStmt:
+			return fmt.Sprintf(tipWFWhile, n.Value)
+		}
+
+		return fmt.Sprintf("undokumentierte Identverwendung: %T", token.Node)
 
 	default:
 		return fmt.Sprintf("%T", token.Node)

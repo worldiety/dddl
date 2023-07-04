@@ -19,6 +19,27 @@ import (
 
 func transform(pWS *parser.Workspace) *Doc {
 	doc := &Doc{}
+
+	for _, pdoc := range pWS.Docs() {
+		for _, definition := range pdoc.Definitions {
+			if definition.TypeDefinition != nil {
+				if doc.SharedKernel == nil {
+					doc.SharedKernel = &Context{}
+				}
+
+				if pdata := definition.TypeDefinition.DataType; pdata != nil {
+					data := convertData(pdata)
+					doc.SharedKernel.Data = append(doc.SharedKernel.Data, data)
+				}
+
+				if pWorkflow := definition.TypeDefinition.Workflow; pWorkflow != nil {
+					wf := convertWorkflow(pWorkflow)
+					doc.SharedKernel.Workflows = append(doc.SharedKernel.Workflows, wf)
+				}
+			}
+		}
+	}
+
 	for _, pdoc := range pWS.Docs() {
 
 		for _, pCtx := range pdoc.Contexts() {
@@ -27,63 +48,77 @@ func transform(pWS *parser.Workspace) *Doc {
 
 			ctx.Name = pCtx.Name.Value
 			if pCtx.Definition != nil {
-				ctx.Definition = linkify(pdoc, markdown(pCtx.Definition.Text))
+				ctx.Definition = linkify(markdown(pCtx.Definition.Text))
 			}
 
 			if pCtx.ToDo != nil {
-				ctx.Todo = linkify(pdoc, markdown(pCtx.ToDo.Text.Text))
+				ctx.Todo = linkify(markdown(pCtx.ToDo.Text.Text))
 			}
 
 			for _, pdata := range pCtx.DataTypes() {
-				data := &Data{}
+				data := convertData(pdata)
 				ctx.Data = append(ctx.Data, data)
-				data.Name = pdata.Name.Value
-				if pdata.Definition != nil {
-					data.Definition = linkify(pdoc, markdown(pdata.Definition.Text))
-				}
-
-				if pdata.ToDo != nil {
-					data.Todo = linkify(pdoc, markdown(pdata.ToDo.Text.Text))
-				}
-
-				if !pdata.Empty() {
-					svg, err := plantuml.RenderLocal("svg", puml.Data(pdoc, pdata))
-					if err != nil {
-						slog.Error("failed to convert data to puml", slog.Any("err", err))
-					}
-
-					data.SVG = template.HTML(svg)
-				}
 
 			}
 
 			for _, pWorkflow := range pCtx.Workflows() {
-				wf := &Workflow{}
+				wf := convertWorkflow(pWorkflow)
 				ctx.Workflows = append(ctx.Workflows, wf)
-				wf.Name = pWorkflow.Name.Value
-				if pWorkflow.Definition != nil {
-					wf.Definition = markdown(pWorkflow.Definition.Text)
-				}
-
-				if pWorkflow.ToDo != nil {
-					wf.Todo = markdown(pWorkflow.ToDo.Text.Text)
-				}
-
-				if pWorkflow.Block != nil && len(pWorkflow.Block.Statements) > 0 {
-					svg, err := plantuml.RenderLocal("svg", puml.Workflow(pdoc, pWorkflow))
-					if err != nil {
-						slog.Error("failed to convert workflow to puml", slog.Any("err", err))
-					}
-
-					wf.SVG = template.HTML(svg)
-				}
 			}
 		}
 	}
 	return doc
 }
 
-func linkify(doc *parser.Doc, text template.HTML) template.HTML {
+func convertData(pdata *parser.Data) *Data {
+	data := &Data{}
+
+	data.Name = pdata.Name.Value
+	if pdata.Definition != nil {
+		data.Definition = linkify(markdown(pdata.Definition.Text))
+	}
+
+	if pdata.ToDo != nil {
+		data.Todo = linkify(markdown(pdata.ToDo.Text.Text))
+	}
+
+	if !pdata.Empty() {
+		svg, err := plantuml.RenderLocal("svg", puml.Data(pdata))
+		if err != nil {
+			slog.Error("failed to convert data to puml", slog.Any("err", err))
+		}
+
+		data.SVG = template.HTML(svg)
+	}
+
+	return data
+}
+
+func convertWorkflow(pWorkflow *parser.Workflow) *Workflow {
+	wf := &Workflow{}
+
+	wf.Name = pWorkflow.Name.Value
+	if pWorkflow.Definition != nil {
+		wf.Definition = markdown(pWorkflow.Definition.Text)
+	}
+
+	if pWorkflow.ToDo != nil {
+		wf.Todo = markdown(pWorkflow.ToDo.Text.Text)
+	}
+
+	if pWorkflow.Block != nil && len(pWorkflow.Block.Statements) > 0 {
+		svg, err := plantuml.RenderLocal("svg", puml.Workflow(pWorkflow))
+		if err != nil {
+			slog.Error("failed to convert workflow to puml", slog.Any("err", err))
+		}
+
+		wf.SVG = template.HTML(svg)
+	}
+
+	return wf
+}
+
+func linkify(text template.HTML) template.HTML {
 
 	/*for _, context := range doc.Contexts {
 		for _, data := range context.DataTypes() {

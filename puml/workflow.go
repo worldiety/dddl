@@ -8,7 +8,7 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-func Workflow(doc *parser.Doc, flow *parser.Workflow) *plantuml.Diagram {
+func Workflow(flow *parser.Workflow) *plantuml.Diagram {
 	diag := plantuml.NewDiagram()
 	diag.DefaultTextAlignment = plantuml.DTACenter
 	ac := plantuml.NewActivity()
@@ -151,7 +151,7 @@ func fromContextStmt(n *parser.ContextStmt) *plantuml.PartitionStmt {
 func fromReturnStmt(n *parser.ReturnStmt) *plantuml.Stmt {
 	eventName := ""
 	if n.Stmt != nil {
-		eventName = n.Stmt.Value
+		eventName = n.Stmt.Value()
 	}
 
 	ac := plantuml.NewActivityState(eventName)
@@ -174,7 +174,7 @@ func fromReturnStmt(n *parser.ReturnStmt) *plantuml.Stmt {
 func fromReturnErrorStmt(n *parser.ReturnErrorStmt) *plantuml.Stmt {
 	eventName := ""
 	if n.Stmt != nil {
-		eventName = n.Stmt.Value
+		eventName = n.Stmt.Value()
 	}
 
 	ac := plantuml.NewActivityState(eventName)
@@ -208,7 +208,7 @@ func fromEventStmt(n *parser.EventStmt) *plantuml.ActivityState {
 }
 
 func fromEventSentStmt(n *parser.EventSentStmt) *plantuml.ActivityState {
-	eventName := n.Literal.Value
+	eventName := n.Literal.Value()
 	ac := plantuml.NewActivityState(eventName)
 	ac.Color = "#ff992a"
 	ac.Name = bpmSym(bpmn_icon_end_event_message) + "\n"
@@ -256,7 +256,7 @@ func fromActivityStmt(n *parser.ActivityStmt) *plantuml.ActivityState {
 	return ac
 }
 
-func typeDeclToLinkStr(decl *parser.TypeDeclaration) string {
+func typeDeclToLinkStr(decl *parser.TypeDef) string {
 	tmp := decl.Name.Value
 	if len(decl.Params) > 0 {
 		tmp += "<"

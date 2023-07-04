@@ -1,42 +1,56 @@
 package linter
 
-import "github.com/worldiety/dddl/parser"
+import (
+	"fmt"
+	"github.com/worldiety/dddl/parser"
+	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
+)
+
+type AmbiguousDeclaration struct {
+	hint
+	Declarations []parser.Declaration
+}
 
 // CheckAmbiguous validates that defined terms (e.g. Context, Workflow and Data)
 // are all unique.
 func CheckAmbiguous(root parser.Node) []Hint {
-	allDefs := map[string]parser.Node{}
-	var res []Hint
-	_ = parser.Walk(root, func(n parser.Node) error {
-		var parent *parser.Ident
-		var node parser.Node
+	ws := parser.WorkspaceOf(root)
+	if ws == nil {
+		return nil
+	}
 
-		switch n := n.(type) {
-		case *parser.Data:
-			parent = n.Name
-			node = n
-		case *parser.Workflow:
-			parent = n.Name
-			node = n
-		case *parser.Context:
-			parent = n.Name
-			node = n
-		}
+	allDefs := map[string][]parser.Declaration{}
+	err := parser.Walk(root, func(n parser.Node) error {
+		if decl, ok := n.(parser.Declaration); ok {
+			if _, isCtx := decl.(*parser.Context); isCtx {
+				return nil
+			}
 
-		if parent != nil {
-			if other, ok := allDefs[parent.Value]; ok {
-				res = append(res, Hint{
-					ParentIdent: parent,
-					Node:        other,
-					Message:     "Der Begriff %s wurde mehrfach definiert.",
-				})
-			} else {
-				allDefs[parent.Value] = node
+			q, ok := ws.Resolve(decl.DeclaredName())
+			if ok {
+				list := allDefs[q.String()]
+				list = append(list, decl)
+				allDefs[q.String()] = list
 			}
 		}
 
 		return nil
 	})
+
+	if err != nil {
+		panic(fmt.Errorf("cannot happen: %w", err))
+	}
+
+	var res []Hint
+	keys := maps.Keys(allDefs)
+	slices.Sort(keys)
+	for _, key := range keys {
+		list := allDefs[key]
+		if len(list) > 1 {
+			res = append(res, &AmbiguousDeclaration{Declarations: list})
+		}
+	}
 
 	return res
 }

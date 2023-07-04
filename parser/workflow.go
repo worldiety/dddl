@@ -10,6 +10,28 @@ type Workflow struct {
 	Block *Stmts `@@?  "}" )?`
 }
 
+func WorkflowOf(root Node) *Workflow {
+	for root != nil {
+		if wf, ok := root.(*Workflow); ok {
+			return wf
+		}
+		root = root.Parent()
+	}
+
+	return nil
+}
+
+func (n *Workflow) DeclaredName() *Ident {
+	return n.Name
+}
+
+func (n *Workflow) Qualifier() Qualifier {
+	return Qualifier{
+		Context: n.Parent().(*Context),
+		Name:    n.Name,
+	}
+}
+
 func (n *Workflow) Children() []Node {
 	return sliceOf(
 		n.KeywordWorkflow,
@@ -52,7 +74,7 @@ func (n *ContextStmt) Children() []Node {
 type EventSentStmt struct {
 	node
 	KeywordEventSent *KeywordEventSent `@@`
-	Literal          *Literal          `@@`
+	Literal          *IdentOrLiteral   `@@`
 }
 
 func (n *EventSentStmt) Children() []Node {
@@ -157,8 +179,8 @@ func (n *Stmt) Children() []Node {
 
 type ReturnStmt struct {
 	node
-	KeywordReturn *KeywordReturn `@@`
-	Stmt          *Literal       `@@?`
+	KeywordReturn *KeywordReturn  `@@`
+	Stmt          *IdentOrLiteral `@@?`
 }
 
 func (n *ReturnStmt) Children() []Node {
@@ -168,7 +190,7 @@ func (n *ReturnStmt) Children() []Node {
 type ReturnErrorStmt struct {
 	node
 	KeywordReturnError *KeywordReturnError `@@`
-	Stmt               *Literal            `@@?`
+	Stmt               *IdentOrLiteral     `@@?`
 }
 
 func (n *ReturnErrorStmt) Children() []Node {
@@ -214,7 +236,7 @@ func (n *IfStmt) Children() []Node {
 // data types.
 type Input struct {
 	node
-	Params []*TypeDeclaration `@@ ("und" @@)*`
+	Params []*TypeDef `@@ ("und" @@)*`
 }
 
 func (n *Input) Children() []Node {
@@ -233,7 +255,7 @@ func (n *Input) Children() []Node {
 // Output defines a choice list of types.
 type Output struct {
 	node
-	Params []*TypeDeclaration `@@ ("oder" @@)*`
+	Params []*TypeDef `@@ ("oder" @@)*`
 }
 
 func (n *Output) Children() []Node {

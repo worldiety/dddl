@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.11
+Refactored Linting-Engine to Workspace modell and Resolver-Engine and added support for @-Notations and fixed a lot of linter render and linking bugs. Added a lot of tooltips.
+
 ## 0.0.10
 
 Replaced (broken) semantic tokens with static textmate grammar tokens.

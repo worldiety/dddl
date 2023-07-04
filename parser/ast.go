@@ -6,11 +6,21 @@ type Node interface {
 	Position() lexer.Position
 	EndPosition() lexer.Position
 	Children() []Node // this simplifies the code style but has a lot of extra allocations
+	Parent() Node
+	setParent(p Node)
 }
 
 type node struct {
 	Pos    lexer.Position
 	EndPos lexer.Position
+	parent Node
+}
+
+func (n *node) Parent() Node {
+	return n.parent
+}
+func (n *node) setParent(p Node) {
+	n.parent = p
 }
 
 func (n *node) Position() lexer.Position {
@@ -51,6 +61,18 @@ func Walk(n Node, visitor func(n Node) error) error {
 		if err := Walk(c, visitor); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func WorkspaceOf(root Node) *Workspace {
+	for root != nil {
+		if ws, ok := root.(*Workspace); ok {
+			return ws
+		}
+
+		root = root.Parent()
 	}
 
 	return nil

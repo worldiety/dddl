@@ -1,59 +1,90 @@
 package linter
 
 import (
+	"fmt"
 	"github.com/worldiety/dddl/parser"
+	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 )
+
+type UndeclaredUsageInData struct {
+	hint
+	Parent            *parser.Data
+	Name              *parser.Ident
+	ExpectedQualifier parser.Qualifier
+}
+
+type UndeclaredUsageInWorkflow struct {
+	hint
+	Parent            *parser.Workflow
+	Name              *parser.Ident
+	ExpectedQualifier parser.Qualifier
+}
 
 // CheckUndefined searches for all Identifiers and checks
 // if there are workflows or data types for them.
 func CheckUndefined(root parser.Node) []Hint {
-
-	type Holder struct {
-		Parent *parser.Ident
-		Ident  *parser.Ident
+	ws := parser.WorkspaceOf(root)
+	if ws == nil {
+		return nil
 	}
 
-	var allIdents []Holder
-	definedIdents := map[string]parser.Node{}
+	dedupTableData := map[string]*UndeclaredUsageInData{}
+	dedupTableWorkflow := map[string]*UndeclaredUsageInWorkflow{}
 
-	_ = parser.Walk(root, func(n parser.Node) error {
-		switch n := n.(type) {
-		case *parser.Data, *parser.Workflow:
-			var parentId *parser.Ident
-			if n, ok := n.(*parser.Data); ok {
-				parentId = n.Name
-			}
-
-			if n, ok := n.(*parser.Workflow); ok {
-				parentId = n.Name
-			}
-
-			definedIdents[parentId.Value] = n
-
-			_ = parser.Walk(n, func(p parser.Node) error {
-				if usedId, ok := p.(*parser.Ident); ok {
-					allIdents = append(allIdents, Holder{
-						Parent: parentId,
-						Ident:  usedId,
-					})
-				}
-
+	err := parser.Walk(root, func(n parser.Node) error {
+		if name, ok := n.(*parser.Ident); ok {
+			if name.IsUniverse() {
 				return nil
-			})
+			}
+
+			if parent := parser.DataOf(name); parent != nil {
+				expected, declared := ws.Resolve(name)
+				if !declared {
+					hint := dedupTableData[expected.String()]
+					if hint == nil {
+						dedupTableData[expected.String()] = &UndeclaredUsageInData{
+							Parent:            parent,
+							Name:              name,
+							ExpectedQualifier: expected,
+						}
+					}
+				}
+			}
+
+			if parent := parser.WorkflowOf(name); parent != nil {
+				expected, declared := ws.Resolve(name)
+				if !declared {
+					hint := dedupTableWorkflow[expected.String()]
+					if hint == nil {
+						dedupTableWorkflow[expected.String()] = &UndeclaredUsageInWorkflow{
+							Parent:            parent,
+							Name:              name,
+							ExpectedQualifier: expected,
+						}
+					}
+				}
+			}
 		}
 
 		return nil
 	})
 
+	if err != nil {
+		panic(fmt.Errorf("cannot happen: %w", err))
+	}
+
 	var res []Hint
-	for _, holder := range allIdents {
-		if _, ok := definedIdents[holder.Ident.Value]; !ok && !holder.Ident.IsUniverse() {
-			res = append(res, Hint{
-				ParentIdent: holder.Parent,
-				Node:        holder.Ident,
-				Message:     "%s verwendet den undefinierten Begriff " + holder.Ident.Value,
-			})
-		}
+	keys := maps.Keys(dedupTableWorkflow)
+	slices.Sort(keys)
+	for _, key := range keys {
+		res = append(res, dedupTableWorkflow[key])
+	}
+
+	keys = maps.Keys(dedupTableData)
+	slices.Sort(keys)
+	for _, key := range keys {
+		res = append(res, dedupTableData[key])
 	}
 
 	return res

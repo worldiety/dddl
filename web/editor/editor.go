@@ -2,12 +2,10 @@ package editor
 
 import (
 	"embed"
-	"fmt"
 	"github.com/worldiety/dddl/html"
 	"github.com/worldiety/dddl/linter"
 	"github.com/worldiety/dddl/parser"
 	"golang.org/x/exp/slog"
-	"html/template"
 	"net/http"
 	"time"
 )
@@ -65,22 +63,8 @@ func parseAndLint(parse Parser, lint Linter, model EditorPreview, text string) E
 		slog.Error("could not save", slog.Any("err", err))
 		return model
 	}
-
-	model = lintOnly(doc, lint, model)
-
-	return model
-}
-
-func lintOnly(doc *parser.Workspace, lint Linter, model EditorPreview) EditorPreview {
 	model.Doc = transform(doc)
-	//fmt.Printf("%#v", model)
-
-	for _, hint := range lint(doc) {
-		str := hint.String(func(ident *parser.Ident) string {
-			return fmt.Sprintf(`<a class="text-green-600" href="#%s">%s</a>`, ident.Value, ident.Value)
-		})
-		model.Hints = append(model.Hints, template.HTML(str))
-	}
+	model = lintOnly(doc, lint, model)
 
 	return model
 }

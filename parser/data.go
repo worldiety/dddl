@@ -6,13 +6,35 @@ package parser
 // check that using a linter later.
 type Data struct {
 	node
-	KeywordData *KeywordData       `@@`
-	Name        *Ident             ` @@ ( "{"`
-	Definition  *Definition        `@@?`
-	ToDo        *ToDo              `@@? `
-	First       *TypeDeclaration   ` (@@ `
-	Fields      []*TypeDeclaration `("und" @@)*`
-	Choices     []*TypeDeclaration `("oder" @@)*)?  "}")?`
+	KeywordData *KeywordData `@@`
+	Name        *Ident       ` @@ ( "{"`
+	ToDo        *ToDo        `@@? `
+	Definition  *Definition  `@@?`
+	First       *TypeDef     ` (@@ `
+	Fields      []*TypeDef   `("und" @@)*`
+	Choices     []*TypeDef   `("oder" @@)*)?  "}")?`
+}
+
+func DataOf(root Node) *Data {
+	for root != nil {
+		if d, ok := root.(*Data); ok {
+			return d
+		}
+		root = root.Parent()
+	}
+
+	return nil
+}
+
+func (d *Data) DeclaredName() *Ident {
+	return d.Name
+}
+
+func (d *Data) Qualifier() Qualifier {
+	return Qualifier{
+		Context: d.Parent().(*Context),
+		Name:    d.Name,
+	}
 }
 
 func (d *Data) Empty() bool {
@@ -45,12 +67,12 @@ func (d *Data) Children() []Node {
 // ChoiceTypes is nil, if any field is defined.
 // If neither choices nor fields are defined, this also returns nil.
 // This avoids visiting nodes twice.
-func (d *Data) ChoiceTypes() []*TypeDeclaration {
+func (d *Data) ChoiceTypes() []*TypeDef {
 	if len(d.Fields) > 0 || len(d.Choices) == 0 {
 		return nil
 	}
 
-	var choices []*TypeDeclaration
+	var choices []*TypeDef
 	choices = append(choices, d.First)
 	choices = append(choices, d.Choices...)
 	return choices
@@ -58,12 +80,12 @@ func (d *Data) ChoiceTypes() []*TypeDeclaration {
 
 // FieldTypes is nil if any choice type is defined, otherwise contains
 // at least the First declaration.
-func (d *Data) FieldTypes() []*TypeDeclaration {
+func (d *Data) FieldTypes() []*TypeDef {
 	if len(d.Choices) > 0 {
 		return nil
 	}
 
-	var fields []*TypeDeclaration
+	var fields []*TypeDef
 	if d.First != nil {
 		fields = append(fields, d.First)
 	}

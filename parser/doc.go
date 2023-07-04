@@ -2,8 +2,8 @@ package parser
 
 type ContextOrTypeDefinition struct {
 	node
-	Context        *Context        `@@`
-	TypeDefinition *TypeDefinition `|@@`
+	Context        *Context  `@@`
+	TypeDefinition *TypeDecl `|@@`
 }
 
 func (n *ContextOrTypeDefinition) Children() []Node {
@@ -13,6 +13,25 @@ func (n *ContextOrTypeDefinition) Children() []Node {
 type Doc struct {
 	node
 	Definitions []*ContextOrTypeDefinition `@@*`
+}
+
+func (n *Doc) AnonymousDeclarationsByName(name string) []Node {
+	var res []Node
+	for _, element := range n.Definitions {
+		if element.TypeDefinition == nil {
+			continue
+		}
+
+		if element.TypeDefinition.DataType != nil && element.TypeDefinition.DataType.Name.Value == name {
+			res = append(res, element.TypeDefinition.DataType)
+		}
+
+		if element.TypeDefinition.Workflow != nil && element.TypeDefinition.Workflow.Name.Value == name {
+			res = append(res, element.TypeDefinition.Workflow)
+		}
+	}
+
+	return res
 }
 
 func (n *Doc) ContextByName(name string) *Context {
