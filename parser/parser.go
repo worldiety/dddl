@@ -66,14 +66,42 @@ func (n *TypeDef) Children() []Node {
 
 // TextOf extracts and normalizes string literals.
 func TextOf(s string) string {
-	s = strings.Trim(s, " \n\t")
-
+	lines := strings.Split(s, "\n")
 	var tmp []string
-	for _, line := range strings.Split(s, "\n") {
-		tmp = append(tmp, strings.TrimSpace(line))
+	indent := -1
+	for _, line := range lines {
+		trimLine := strings.TrimSpace(line)
+		if trimLine == "" && len(tmp) == 0 {
+			continue
+		}
+
+		if trimLine == "" {
+			tmp = append(tmp, "")
+			continue
+		}
+
+		if indent == -1 {
+			after := strings.TrimLeft(line, " ")
+			indent = len(line) - len(after)
+		}
+
+		tmp = append(tmp, negativeIndent(indent, line))
 	}
 
 	return strings.Join(tmp, "\n")
+}
+
+func negativeIndent(indent int, s string) string {
+	var sb strings.Builder
+	for i, r := range s {
+		if i < indent && r == ' ' {
+			continue
+		}
+
+		sb.WriteRune(r)
+	}
+
+	return sb.String()
 }
 
 func Parse(fname string) (*Doc, error) {

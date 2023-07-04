@@ -38,3 +38,12 @@ func TestParse2(t *testing.T) {
 	}
 	fmt.Println(string(buf))
 }
+
+func TestTextOf(t *testing.T) {
+	s := TextOf(`Hallo
+        * first
+        * second
+           * third
+		`)
+	fmt.Println(s)
+}

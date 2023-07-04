@@ -50,12 +50,9 @@ func main() {
 
 	parse := editor.Parser(func(text string) (*parser.Workspace, error) {
 		fname := "???"
-		doc, err := parser.ParseText(fname, text)
-		if err != nil {
-			return nil, fmt.Errorf("cannot parse model: %w", err)
-		}
-
-		return &parser.Workspace{Documents: map[string]*parser.Doc{fname: doc}}, nil
+		return parser.ParseWorkspaceText(map[string]string{
+			fname: text,
+		})
 	})
 
 	linter := editor.Linter(func(doc *parser.Workspace) []linter.Hint {

@@ -43,6 +43,7 @@ type Context struct {
 
 type Data struct {
 	Name       string
+	Qualifier  string
 	Definition template.HTML
 	Todo       template.HTML
 	Fields     []string
@@ -51,6 +52,7 @@ type Data struct {
 
 type Workflow struct {
 	Name       string
+	Qualifier  string
 	Definition template.HTML
 	Todo       template.HTML
 	Choices    []string

@@ -42,6 +42,17 @@ type Ident struct {
 	Value  string `@Name`
 }
 
+func NewIdentWithParent(parent Node, value string) *Ident {
+	return &Ident{
+		node: node{
+			Pos:    parent.Position(),
+			EndPos: parent.EndPosition(),
+			parent: parent,
+		},
+		Value: value,
+	}
+}
+
 func (n *Ident) String() string {
 	if n == nil {
 		return "nil"
@@ -141,7 +152,7 @@ func (n *IdentOrLiteral) Children() []Node {
 
 type ToDo struct {
 	node
-	KeywordTodo *KeywordTodo `@@ ":"`
+	KeywordTodo *KeywordTodo `@@`
 	Text        *ToDoText    `@@`
 }
 

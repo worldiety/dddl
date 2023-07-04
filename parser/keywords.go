@@ -37,7 +37,7 @@ func (n *KeywordInput) EndPosition() lexer.Position {
 type KeywordWhile struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `@("while" | "solange")`
+	Keyword string `@("while" | ("Wiederholung" "solange"))`
 }
 
 func (n *KeywordWhile) EndPosition() lexer.Position {
@@ -57,7 +57,7 @@ func (n *KeywordEvent) EndPosition() lexer.Position {
 type KeywordEventSent struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `@("sent" | "Versendet")`
+	Keyword string `@("sent" | "Zwischenereignis")`
 }
 
 func (n *KeywordEventSent) EndPosition() lexer.Position {

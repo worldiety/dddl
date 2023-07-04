@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.12
+Removed : from TODO declarations, to be consistent.
+Improved and added more hover documentations, introduced "Wiederholung" prefix keyword for consistency and allowing Subprocess identifiers.
+Added Auto-Link support over type declaration resolver.
+
 ## 0.0.11
 Refactored Linting-Engine to Workspace modell and Resolver-Engine and added support for @-Notations and fixed a lot of linter render and linking bugs. Added a lot of tooltips.
 

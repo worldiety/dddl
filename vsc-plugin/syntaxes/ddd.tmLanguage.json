@@ -433,7 +433,7 @@
       "patterns": [
         {
           "comment": "Flow control keywords",
-          "match": "\\b(Arbeitsablauf|workflow|Kontext|event|Ereignis|context|data|Daten|Akteur|actor|Aufgabe|step|Ansicht|view|Eingabe|input|Ausgabe|output|TODO|Entscheidung wenn|dann|solange|while|if|then|Fehler|error|else|sonst|Versendet|sent|Endereignis)\\b",
+          "match": "\\b(Arbeitsablauf|workflow|Kontext|event|Ereignis|context|data|Daten|Akteur|actor|Aufgabe|step|Ansicht|view|Eingabe|input|Ausgabe|output|TODO|Entscheidung wenn|dann|solange|while|if|then|Fehler|error|else|sonst|Zwischenereignis|sent|Endereignis|Wiederholung)\\b",
           "name": "keyword.control.go"
         }
       ]

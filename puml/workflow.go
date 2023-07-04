@@ -199,7 +199,7 @@ func bpmSym(symbol BpmnSymbol) string {
 }
 
 func fromEventStmt(n *parser.EventStmt) *plantuml.ActivityState {
-	eventName := n.Literal.Value
+	eventName := n.Literal.Value()
 	ac := plantuml.NewActivityState(eventName)
 	ac.Color = "#ff992a"
 	ac.Name = bpmSym(bpmn_icon_receive) + "\n"
@@ -226,7 +226,11 @@ func fromActivityStmt(n *parser.ActivityStmt) *plantuml.ActivityState {
 	eventName := n.ScribbleOrIdent.Value()
 	ac := plantuml.NewActivityState(eventName)
 	ac.Color = "#3399fe"
-	ac.Name = bpmSym(bpmn_icon_task) + "\n"
+	if n.ScribbleOrIdent.Literal != nil {
+		ac.Name = bpmSym(bpmn_icon_task) + "\n"
+	} else {
+		ac.Name = bpmSym(bpmn_icon_subprocess_collapsed) + "\n"
+	}
 	ac.Name += "//Arbeitsschritt//\n" + eventName
 
 	if n.ViewStmt != nil {
@@ -268,7 +272,13 @@ func typeDeclToLinkStr(decl *parser.TypeDef) string {
 		}
 		tmp += ">"
 	} else {
-		tmp = "[[#" + tmp + " " + tmp + "]]"
+		ws := parser.WorkspaceOf(decl)
+		q, ok := ws.Resolve(decl.Name)
+		if ok {
+			// TODO this does not work properly in vsc, see also https://github.com/doxygen/doxygen/issues/7421
+			tmp = "[[#" + q.String() + " " + q.Name.Value + "]]"
+		}
+
 	}
 
 	return tmp
@@ -294,7 +304,7 @@ func fromIfStmt(ifStmt *parser.IfStmt) *plantuml.IfStmt {
 
 func fromWhileStmt(n *parser.WhileStmt) *plantuml.WhileStmt {
 	stmt := &plantuml.WhileStmt{
-		Condition:    bpmSym(bpmn_icon_gateway_xor) + "\\n" + n.Condition.Value + "?", // this is different than IF !?
+		Condition:    bpmSym(bpmn_icon_loop_marker) + "\\n" + n.Condition.Value + "?", // this is different than IF !?
 		PositiveText: "ja",
 		NegativeText: "nein",
 	}

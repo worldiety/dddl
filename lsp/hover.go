@@ -53,8 +53,11 @@ func (s *Server) Hover(params *protocol.HoverParams) protocol.Hover {
 	}
 }
 
-//go:embed tips/context.md
-var tipContext string
+//go:embed tips/kw_context_decl.md
+var tipKWContextDecl string
+
+//go:embed tips/kw_context_workflowdef.md
+var tipKWContextWFDef string
 
 //go:embed tips/declaredident.md
 var tipDeclarationIdent string
@@ -125,7 +128,11 @@ var tipWFEventSent string
 func (s *Server) hoverText(token *VSCToken) string {
 	switch n := token.Node.(type) {
 	case *parser.KeywordContext:
-		return fmt.Sprintf(tipContext, n.Keyword)
+		if _, isDecl := n.Parent().(*parser.Context); isDecl {
+			return fmt.Sprintf(tipKWContextDecl, n.Keyword)
+		} else {
+			return fmt.Sprintf(tipKWContextWFDef, n.Keyword)
+		}
 	case *parser.Ident:
 		declaration := false
 		switch n.Parent().(type) {

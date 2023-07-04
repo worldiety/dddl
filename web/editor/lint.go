@@ -29,18 +29,15 @@ func lintOnly(ws *parser.Workspace, lint Linter, model EditorPreview) EditorPrev
 			for _, n := range h.Contexts {
 				nt.Tasks = append(nt.Tasks, template.HTML(fmt.Sprintf("Kontext %s: %s", href(ws, n.Context.Name), n.Task.Task)))
 			}
-			model.NamedTasks = append(model.NamedTasks, nt)
 
-			nt = NamedTasks{Name: h.Assignee}
 			for _, workflow := range h.Workflows {
 				nt.Tasks = append(nt.Tasks, template.HTML(fmt.Sprintf("Arbeitsablauf %s: %s", href(ws, workflow.Workflow.Name), workflow.Task.Task)))
 			}
-			model.NamedTasks = append(model.NamedTasks, nt)
 
-			nt = NamedTasks{Name: h.Assignee}
 			for _, n := range h.Datas {
 				nt.Tasks = append(nt.Tasks, template.HTML(fmt.Sprintf("Daten %s: %s", href(ws, n.Data.Name), n.Task.Task)))
 			}
+
 			model.NamedTasks = append(model.NamedTasks, nt)
 
 			// jump over, this will be shown in its own section

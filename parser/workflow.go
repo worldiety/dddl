@@ -83,8 +83,8 @@ func (n *EventSentStmt) Children() []Node {
 
 type EventStmt struct {
 	node
-	KeywordEvent *KeywordEvent `@@`
-	Literal      *Literal      `@@`
+	KeywordEvent *KeywordEvent   `@@`
+	Literal      *IdentOrLiteral `@@`
 }
 
 func (n *EventStmt) Children() []Node {

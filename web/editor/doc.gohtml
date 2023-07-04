@@ -41,7 +41,7 @@
 {{define "Workflow"}}
     <div class="p-1">
 
-        <h3 id="{{.Name}}" class="font-normal text-lg mb-2">Arbeitsablauf {{.Name}}</h3>
+        <h3 id="{{.Qualifier}}" class="font-normal text-lg mb-2">Arbeitsablauf {{.Name}}</h3>
 
         {{if .Todo}}
             {{template "Todo" .Todo}}
@@ -58,7 +58,7 @@
 {{define "Daten"}}
     <div class="p-1">
 
-        <h3 id="{{.Name}}" class="font-normal text-lg mb-2">Daten {{.Name}}</h3>
+        <h3 id="{{.Qualifier}}" class="font-normal text-lg mb-2">Daten {{.Name}}</h3>
         {{if .Todo}}
             {{template "Todo" .Todo}}
         {{end}}

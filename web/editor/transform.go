@@ -2,7 +2,6 @@ package editor
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/worldiety/dddl/parser"
 	"github.com/worldiety/dddl/plantuml"
 	"github.com/worldiety/dddl/puml"
@@ -15,6 +14,7 @@ import (
 	"github.com/yuin/goldmark/util"
 	"golang.org/x/exp/slog"
 	"html/template"
+	"regexp"
 )
 
 func transform(pWS *parser.Workspace) *Doc {
@@ -48,11 +48,11 @@ func transform(pWS *parser.Workspace) *Doc {
 
 			ctx.Name = pCtx.Name.Value
 			if pCtx.Definition != nil {
-				ctx.Definition = linkify(markdown(pCtx.Definition.Text))
+				ctx.Definition = linkify(pCtx, markdown(pCtx.Definition.Text))
 			}
 
 			if pCtx.ToDo != nil {
-				ctx.Todo = linkify(markdown(pCtx.ToDo.Text.Text))
+				ctx.Todo = linkify(pCtx, markdown(pCtx.ToDo.Text.Text))
 			}
 
 			for _, pdata := range pCtx.DataTypes() {
@@ -72,14 +72,17 @@ func transform(pWS *parser.Workspace) *Doc {
 
 func convertData(pdata *parser.Data) *Data {
 	data := &Data{}
-
+	ws := parser.WorkspaceOf(pdata)
 	data.Name = pdata.Name.Value
+	q, _ := ws.Resolve(pdata.Name)
+	data.Qualifier = q.String()
+
 	if pdata.Definition != nil {
-		data.Definition = linkify(markdown(pdata.Definition.Text))
+		data.Definition = linkify(pdata.Definition, markdown(pdata.Definition.Text))
 	}
 
 	if pdata.ToDo != nil {
-		data.Todo = linkify(markdown(pdata.ToDo.Text.Text))
+		data.Todo = linkify(pdata.ToDo, markdown(pdata.ToDo.Text.Text))
 	}
 
 	if !pdata.Empty() {
@@ -97,13 +100,17 @@ func convertData(pdata *parser.Data) *Data {
 func convertWorkflow(pWorkflow *parser.Workflow) *Workflow {
 	wf := &Workflow{}
 
+	ws := parser.WorkspaceOf(pWorkflow)
 	wf.Name = pWorkflow.Name.Value
+	q, _ := ws.Resolve(pWorkflow.Name)
+	wf.Qualifier = q.String()
+
 	if pWorkflow.Definition != nil {
-		wf.Definition = markdown(pWorkflow.Definition.Text)
+		wf.Definition = linkify(pWorkflow.Definition, markdown(pWorkflow.Definition.Text))
 	}
 
 	if pWorkflow.ToDo != nil {
-		wf.Todo = markdown(pWorkflow.ToDo.Text.Text)
+		wf.Todo = linkify(pWorkflow.ToDo, markdown(pWorkflow.ToDo.Text.Text))
 	}
 
 	if pWorkflow.Block != nil && len(pWorkflow.Block.Statements) > 0 {
@@ -118,23 +125,21 @@ func convertWorkflow(pWorkflow *parser.Workflow) *Workflow {
 	return wf
 }
 
-func linkify(text template.HTML) template.HTML {
+var regexWord = regexp.MustCompile(`([À-ž]|\w)+`)
 
-	/*for _, context := range doc.Contexts {
-		for _, data := range context.DataTypes() {
-			text = template.HTML(strings.ReplaceAll(string(text), data.Name.Name, link(data.Name.Name)))
+func linkify(nearest parser.Node, text template.HTML) template.HTML {
+	ws := parser.WorkspaceOf(nearest)
+	tmp := regexWord.ReplaceAllStringFunc(string(text), func(s string) string {
+		potentialIdent := parser.NewIdentWithParent(nearest, s)
+		_, ok := ws.Resolve(potentialIdent)
+		if !ok {
+			return s
 		}
 
-		for _, wf := range context.Workflows() {
-			text = template.HTML(strings.ReplaceAll(string(text), wf.Name.Name, link(wf.Name.Name)))
-		}
-	}*/
+		return href(ws, potentialIdent)
+	})
 
-	return text
-}
-
-func link(name string) string {
-	return fmt.Sprintf(`<a class="text-green-600" href="#%s">%s</a>`, name, name)
+	return template.HTML(tmp)
 }
 
 func markdown(text string) template.HTML {
