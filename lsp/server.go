@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/alecthomas/participle/v2"
+	"github.com/worldiety/dddl/compiler/html"
 	"github.com/worldiety/dddl/linter"
 	"github.com/worldiety/dddl/lsp/protocol"
 	"github.com/worldiety/dddl/parser"
@@ -171,6 +172,15 @@ func (s *Server) FullSemanticTokens(params *protocol.SemanticTokensParams) proto
 	return protocol.SemanticTokens{
 		Data: tokens.Encode(),
 	}
+}
+
+func (s *Server) HTML() string {
+	ws, err := s.parseWorkspace()
+	if ws == nil {
+		return err.Error()
+	}
+
+	return html.Render(ws)
 }
 
 func (s *Server) AsciiDoc(filename protocol.DocumentURI) string {

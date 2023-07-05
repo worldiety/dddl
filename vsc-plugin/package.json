@@ -8,7 +8,7 @@
   },
   "publisher": "worldiety",
   "description": "Fügt die Unterstützung für die worldiety domain driven design language hinzu.",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "engines": {
     "vscode": "^1.67.0",
     "node": ">=12.0.0"
@@ -19,7 +19,8 @@
   "activationEvents": [
     "onLanguage:ddd",
     "onCommand:wdyspec.encodeXML",
-    "onCommand:wdyspec.previewHTML"
+    "onCommand:wdyspec.previewHTML",
+    "onCommand:ddd.ExportHTML"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -56,6 +57,11 @@
       {
         "command": "wdyspec.previewHTML",
         "title": "Vorschau",
+        "category": "wdy"
+      },
+      {
+        "command": "ddd.ExportHTML",
+        "title": "als HTML exportieren",
         "category": "wdy"
       }
     ]

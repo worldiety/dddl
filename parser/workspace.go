@@ -10,6 +10,7 @@ import (
 type Workspace struct {
 	node
 	Documents map[string]*Doc
+	Error     error
 }
 
 func (n *Workspace) ResolveData(name *Ident) *Data {

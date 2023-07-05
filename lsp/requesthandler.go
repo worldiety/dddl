@@ -105,6 +105,8 @@ func HandleRequests(ctx context.Context, server *Server, reader *bufio.Reader) {
 			}
 			sendResponse(server.AsciiDoc(params[0]), requestId)
 
+		case "custom/ExportHTML":
+			sendResponse(server.HTML(), requestId)
 		case "custom/webViewParams":
 			var params PreviewHtmlParams
 			if err := json.Unmarshal(request["params"], &params); err != nil {

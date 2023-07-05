@@ -59,6 +59,18 @@ export async function activate(context: vscode.ExtensionContext) {
     }));
 
 
+    context.subscriptions.push(vscode.commands.registerCommand("ddd.ExportHTML", () => {
+
+            client.sendRequest("custom/ExportHTML", null).then((resp) => {
+                vscode.workspace.openTextDocument({
+                    content: String(resp),
+                    language: "html"
+                }).then((document) => {
+                    vscode.window.showTextDocument(document);
+                });
+            });
+    }));
+
     //preview???
 
 

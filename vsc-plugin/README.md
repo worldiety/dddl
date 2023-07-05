@@ -12,8 +12,34 @@ Damit die Vorschaugenerierung richtig funktioniert, ist plantuml und der BPMN-Fo
 ```bash
 brew install plantuml
 ```
-
 Download und Installation der [bpmn.ttf](https://github.com/bpmn-io/bpmn-font/blob/master/dist/font/bpmn.ttf) aus dem bpmn-font Projekt.
+
+## Kommandos
+
+Mit shift+cmd+p öffnet sich die Kommandopalette von VSC.
+Die folgenden Kommandos stehen zur Verfügung
+
+* `Vorschau`: Die ist die empfohlene build-in Vorschau.
+* `als HTML exportieren`: Dies ist eine statisches Ausgabe zur Weitergabe oder Drucken. VSC hat keine eingebaute Preview für HTML-Dokumente. 
+Es gibt dafür die _Live Preview_ als entsprechende Extension von Microsoft.
+
+  
+## DevOps Tools
+
+Das Projekt enthält neben dem VSC-Plugin und dem LSP-Server auch die folgenden Tools.
+
+### dddc
+
+Der DDD Compiler für das automatisierte Erzeugen von verschiedenen Ausgabeformaten kann wie folgt installiert werden:
+
+```bash
+go install github.com/worldiety/dddl/cmd/dddc@latest
+
+# within the working directory of the  *.ddd files project
+dddc -format=html -out=index.html
+```
+
+
 
 ## Werkzeug für Workshops
 

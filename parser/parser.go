@@ -6,7 +6,9 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
+	"io/fs"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -132,6 +134,31 @@ func ParseText(filename, text string) (*Doc, error) {
 	return doc, err
 }
 
+func ParseWorkspaceDir(dir string) (*Workspace, error) {
+	files := map[string]string{}
+	err := filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
+		if info.IsDir() || strings.HasPrefix(info.Name(), ".") {
+			return nil
+		}
+
+		if strings.HasSuffix(path, ".ddd") {
+			buf, err := os.ReadFile(path)
+			if err != nil {
+				return fmt.Errorf("failed to read '%s': %w", path, err)
+			}
+
+			files[path] = string(buf)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("cannot walk '%s': %w", dir, err)
+	}
+
+	return ParseWorkspaceText(files)
+}
+
 // ParseWorkspaceText loads from filename->text and tries to parse each one.
 // Continues and always returns a Workspace, even if error is not nil.
 // If error is not nil, it is always [DocParserError].
@@ -159,6 +186,9 @@ func ParseWorkspaceText(filenamesWithText map[string]string) (*Workspace, error)
 	}
 
 	attachParent(nil, workspace)
+	if tmp != nil {
+		workspace.Error = tmp
+	}
 
 	if tmp != nil {
 		return workspace, tmp

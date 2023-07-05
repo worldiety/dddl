@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.13
+Added html export and dddc commandline tool.
+
 ## 0.0.12
 Removed : from TODO declarations, to be consistent.
 Improved and added more hover documentations, introduced "Wiederholung" prefix keyword for consistency and allowing Subprocess identifiers.
