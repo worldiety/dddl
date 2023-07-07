@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<style>
+body {
+	background-color: hsl(30,20%, 95%);
+}
+h1 {
+	font-family: sans-serif;
+	font-size: 1em;
+}
+</style>
+<!-- From https://github.com/tabatkins/railroad-diagrams -->
+<link rel='stylesheet' href='railroad-diagrams.css'>
+<script src='railroad-diagrams.js'></script>
+<body>
+<h1 id="Doc">Doc</h1>
+<script>
+Diagram(Choice(0, Sequence(ZeroOrMore(NonTerminal("ContextOrTypeDefinition", {href:"#ContextOrTypeDefinition"}))))).addTo();
+</script>
+
+<h1 id="ContextOrTypeDefinition">ContextOrTypeDefinition</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("Context", {href:"#Context"})), Sequence(NonTerminal("TypeDecl", {href:"#TypeDecl"})))).addTo();
+</script>
+
+<h1 id="Context">Context</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("KeywordContext", {href:"#KeywordContext"}), NonTerminal("Ident", {href:"#Ident"}), Optional(Choice(0, Sequence(Terminal("{"), Optional(NonTerminal("ToDo", {href:"#ToDo"})), Optional(NonTerminal("Definition", {href:"#Definition"})), ZeroOrMore(NonTerminal("TypeDecl", {href:"#TypeDecl"})), Terminal("}"))))))).addTo();
+</script>
+
+<h1 id="KeywordContext">KeywordContext</h1>
+<script>
+Diagram(Choice(0, Sequence(Choice(0, Sequence(Terminal("context")), Sequence(Terminal("Kontext")))))).addTo();
+</script>
+
+<h1 id="Ident">Ident</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("name")))).addTo();
+</script>
+
+<h1 id="ToDo">ToDo</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("KeywordTodo", {href:"#KeywordTodo"}), NonTerminal("ToDoText", {href:"#ToDoText"})))).addTo();
+</script>
+
+<h1 id="KeywordTodo">KeywordTodo</h1>
+<script>
+Diagram(Choice(0, Sequence(Terminal("TODO")))).addTo();
+</script>
+
+<h1 id="ToDoText">ToDoText</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("text")))).addTo();
+</script>
+
+<h1 id="Definition">Definition</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("text")))).addTo();
+</script>
+
+<h1 id="TypeDecl">TypeDecl</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("Data", {href:"#Data"})), Sequence(NonTerminal("Workflow", {href:"#Workflow"})))).addTo();
+</script>
+
+<h1 id="Data">Data</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("KeywordData", {href:"#KeywordData"}), NonTerminal("Ident", {href:"#Ident"}), Optional(Choice(0, Sequence(Terminal("{"), Optional(NonTerminal("ToDo", {href:"#ToDo"})), Optional(NonTerminal("Definition", {href:"#Definition"})), Optional(Choice(0, Sequence(NonTerminal("TypeDef", {href:"#TypeDef"}), ZeroOrMore(Choice(0, Sequence(Terminal("und"), NonTerminal("TypeDef", {href:"#TypeDef"})))), ZeroOrMore(Choice(0, Sequence(Terminal("oder"), NonTerminal("TypeDef", {href:"#TypeDef"}))))))), Terminal("}"))))))).addTo();
+</script>
+
+<h1 id="KeywordData">KeywordData</h1>
+<script>
+Diagram(Choice(0, Sequence(Choice(0, Sequence(Terminal("data")), Sequence(Terminal("Daten")))))).addTo();
+</script>
+
+<h1 id="TypeDef">TypeDef</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("Ident", {href:"#Ident"}), Optional(Choice(0, Sequence(Terminal("["), NonTerminal("TypeDef", {href:"#TypeDef"}), ZeroOrMore(Choice(0, Sequence(Terminal(","), NonTerminal("TypeDef", {href:"#TypeDef"})))), Terminal("]"))))))).addTo();
+</script>
+
+<h1 id="Workflow">Workflow</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("KeywordWorkflow", {href:"#KeywordWorkflow"}), NonTerminal("Ident", {href:"#Ident"}), Optional(Choice(0, Sequence(Terminal("{"), Optional(NonTerminal("ToDo", {href:"#ToDo"})), Optional(NonTerminal("Definition", {href:"#Definition"})), Optional(NonTerminal("Stmts", {href:"#Stmts"})), Terminal("}"))))))).addTo();
+</script>
+
+<h1 id="KeywordWorkflow">KeywordWorkflow</h1>
+<script>
+Diagram(Choice(0, Sequence(Choice(0, Sequence(Terminal("workflow")), Sequence(Terminal("Arbeitsablauf")))))).addTo();
+</script>
+
+<h1 id="Stmts">Stmts</h1>
+<script>
+Diagram(Choice(0, Sequence(ZeroOrMore(NonTerminal("Stmt", {href:"#Stmt"}))))).addTo();
+</script>
+
+<h1 id="Stmt">Stmt</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("IfStmt", {href:"#IfStmt"})), Sequence(NonTerminal("EventStmt", {href:"#EventStmt"})), Sequence(NonTerminal("EventSentStmt", {href:"#EventSentStmt"})), Sequence(NonTerminal("ActivityStmt", {href:"#ActivityStmt"})), Sequence(NonTerminal("ActorStmt", {href:"#ActorStmt"})), Sequence(NonTerminal("ContextStmt", {href:"#ContextStmt"})), Sequence(NonTerminal("ToDo", {href:"#ToDo"})), Sequence(NonTerminal("ReturnStmt", {href:"#ReturnStmt"})), Sequence(NonTerminal("ReturnErrorStmt", {href:"#ReturnErrorStmt"})), Sequence(NonTerminal("WhileStmt", {href:"#WhileStmt"})), Sequence(Choice(0, Sequence(Terminal("{"), NonTerminal("Stmts", {href:"#Stmts"}), Terminal("}")))))).addTo();
+</script>
+
+<h1 id="IfStmt">IfStmt</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("KeywordDecision", {href:"#KeywordDecision"}), NonTerminal("KeywordIf", {href:"#KeywordIf"}), NonTerminal("Literal", {href:"#Literal"}), NonTerminal("KeywordThen", {href:"#KeywordThen"}), NonTerminal("Stmt", {href:"#Stmt"}), Optional(Choice(0, Sequence(NonTerminal("KeywordElse", {href:"#KeywordElse"}), NonTerminal("Stmt", {href:"#Stmt"}))))))).addTo();
+</script>
+
+<h1 id="KeywordDecision">KeywordDecision</h1>
+<script>
+Diagram(Choice(0, Sequence(Choice(0, Sequence(Terminal("decision")), Sequence(Terminal("Entscheidung")))))).addTo();
+</script>
+
+<h1 id="KeywordIf">KeywordIf</h1>
+<script>
+Diagram(Choice(0, Sequence(Choice(0, Sequence(Terminal("if")), Sequence(Terminal("wenn")))))).addTo();
+</script>
+
+<h1 id="Literal">Literal</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("text")))).addTo();
+</script>
+
+<h1 id="KeywordThen">KeywordThen</h1>
+<script>
+Diagram(Choice(0, Sequence(Choice(0, Sequence(Terminal("then")), Sequence(Terminal("dann")))))).addTo();
+</script>
+
+<h1 id="KeywordElse">KeywordElse</h1>
+<script>
+Diagram(Choice(0, Sequence(Choice(0, Sequence(Terminal("else")), Sequence(Terminal("sonst")))))).addTo();
+</script>
+
+<h1 id="EventStmt">EventStmt</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("KeywordEvent", {href:"#KeywordEvent"}), NonTerminal("IdentOrLiteral", {href:"#IdentOrLiteral"})))).addTo();
+</script>
+
+<h1 id="KeywordEvent">KeywordEvent</h1>
+<script>
+Diagram(Choice(0, Sequence(Choice(0, Sequence(Terminal("event")), Sequence(Terminal("Ereignis")))))).addTo();
+</script>
+
+<h1 id="IdentOrLiteral">IdentOrLiteral</h1>
+<script>
+Diagram(Choice(0, Sequence(Choice(0, Sequence(NonTerminal("Ident", {href:"#Ident"})), Sequence(NonTerminal("Literal", {href:"#Literal"})))))).addTo();
+</script>
+
+<h1 id="EventSentStmt">EventSentStmt</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("KeywordEventSent", {href:"#KeywordEventSent"}), NonTerminal("IdentOrLiteral", {href:"#IdentOrLiteral"})))).addTo();
+</script>
+
+<h1 id="KeywordEventSent">KeywordEventSent</h1>
+<script>
+Diagram(Choice(0, Sequence(Choice(0, Sequence(Terminal("sent")), Sequence(Terminal("Zwischenereignis")))))).addTo();
+</script>
+
+<h1 id="ActivityStmt">ActivityStmt</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("KeywordActivity", {href:"#KeywordActivity"}), NonTerminal("IdentOrLiteral", {href:"#IdentOrLiteral"}), Optional(Choice(0, Sequence(Terminal("{"), Optional(NonTerminal("ViewStmt", {href:"#ViewStmt"})), Optional(NonTerminal("InputStmt", {href:"#InputStmt"})), Optional(NonTerminal("OutputStmt", {href:"#OutputStmt"})), Terminal("}"))))))).addTo();
+</script>
+
+<h1 id="KeywordActivity">KeywordActivity</h1>
+<script>
+Diagram(Choice(0, Sequence(Choice(0, Sequence(Terminal("step")), Sequence(Terminal("Aufgabe")))))).addTo();
+</script>
+
+<h1 id="ViewStmt">ViewStmt</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("KeywordView", {href:"#KeywordView"}), NonTerminal("IdentOrLiteral", {href:"#IdentOrLiteral"})))).addTo();
+</script>
+
+<h1 id="KeywordView">KeywordView</h1>
+<script>
+Diagram(Choice(0, Sequence(Choice(0, Sequence(Terminal("view")), Sequence(Terminal("Ansicht")))))).addTo();
+</script>
+
+<h1 id="InputStmt">InputStmt</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("KeywordInput", {href:"#KeywordInput"}), NonTerminal("IdentOrLiteral", {href:"#IdentOrLiteral"})))).addTo();
+</script>
+
+<h1 id="KeywordInput">KeywordInput</h1>
+<script>
+Diagram(Choice(0, Sequence(Choice(0, Sequence(Terminal("input")), Sequence(Terminal("Eingabe")))))).addTo();
+</script>
+
+<h1 id="OutputStmt">OutputStmt</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("KeywordOutput", {href:"#KeywordOutput"}), NonTerminal("IdentOrLiteral", {href:"#IdentOrLiteral"})))).addTo();
+</script>
+
+<h1 id="KeywordOutput">KeywordOutput</h1>
+<script>
+Diagram(Choice(0, Sequence(Choice(0, Sequence(Terminal("output")), Sequence(Terminal("Ausgabe")))))).addTo();
+</script>
+
+<h1 id="ActorStmt">ActorStmt</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("KeywordActor", {href:"#KeywordActor"}), NonTerminal("IdentOrLiteral", {href:"#IdentOrLiteral"}), Terminal("{"), NonTerminal("Stmts", {href:"#Stmts"}), Terminal("}")))).addTo();
+</script>
+
+<h1 id="KeywordActor">KeywordActor</h1>
+<script>
+Diagram(Choice(0, Sequence(Choice(0, Sequence(Terminal("actor")), Sequence(Terminal("Akteur")))))).addTo();
+</script>
+
+<h1 id="ContextStmt">ContextStmt</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("KeywordContext", {href:"#KeywordContext"}), NonTerminal("Ident", {href:"#Ident"}), Terminal("{"), NonTerminal("Stmts", {href:"#Stmts"}), Terminal("}")))).addTo();
+</script>
+
+<h1 id="ReturnStmt">ReturnStmt</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("KeywordReturn", {href:"#KeywordReturn"}), Optional(NonTerminal("IdentOrLiteral", {href:"#IdentOrLiteral"}))))).addTo();
+</script>
+
+<h1 id="KeywordReturn">KeywordReturn</h1>
+<script>
+Diagram(Choice(0, Sequence(Choice(0, Sequence(Terminal("return")), Sequence(Terminal("Endereignis")))))).addTo();
+</script>
+
+<h1 id="ReturnErrorStmt">ReturnErrorStmt</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("KeywordReturnError", {href:"#KeywordReturnError"}), Optional(NonTerminal("IdentOrLiteral", {href:"#IdentOrLiteral"}))))).addTo();
+</script>
+
+<h1 id="KeywordReturnError">KeywordReturnError</h1>
+<script>
+Diagram(Choice(0, Sequence(Choice(0, Sequence(Terminal("error")), Sequence(Terminal("Fehler")))))).addTo();
+</script>
+
+<h1 id="WhileStmt">WhileStmt</h1>
+<script>
+Diagram(Choice(0, Sequence(NonTerminal("KeywordWhile", {href:"#KeywordWhile"}), NonTerminal("Literal", {href:"#Literal"}), NonTerminal("Stmt", {href:"#Stmt"})))).addTo();
+</script>
+
+<h1 id="KeywordWhile">KeywordWhile</h1>
+<script>
+Diagram(Choice(0, Sequence(Choice(0, Sequence(Terminal("while")), Sequence(Choice(0, Sequence(Terminal("Wiederholung"), Terminal("solange")))))))).addTo();
+</script>
+
+</body>
+

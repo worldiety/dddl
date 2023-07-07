@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	HTML = "html"
+	HTML    = "html"
+	Grammar = "grammar"
 )
 
 func main() {
@@ -35,6 +36,9 @@ func realMain() error {
 	switch *format {
 	case HTML:
 		return html.Write(*out, ws)
+	case Grammar:
+		fmt.Println(parser.NewParser().String())
+		return nil
 	default:
 		return fmt.Errorf("invalid format '%s'", *format)
 	}
