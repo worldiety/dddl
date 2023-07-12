@@ -4,6 +4,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/worldiety/dddl/compiler/golang"
 	"github.com/worldiety/dddl/compiler/html"
 	"github.com/worldiety/dddl/parser"
 	"log"
@@ -13,6 +14,7 @@ import (
 const (
 	HTML    = "html"
 	Grammar = "grammar"
+	Go      = "go"
 )
 
 func main() {
@@ -39,6 +41,9 @@ func realMain() error {
 	case Grammar:
 		fmt.Println(parser.NewParser().String())
 		return nil
+	case Go:
+		opts := golang.Default()
+		return golang.Write(opts, *out, ws)
 	default:
 		return fmt.Errorf("invalid format '%s'", *format)
 	}

@@ -15,6 +15,7 @@ import (
 	"golang.org/x/exp/slog"
 	"html/template"
 	"regexp"
+	"strings"
 )
 
 func transform(pWS *parser.Workspace) *Doc {
@@ -40,34 +41,74 @@ func transform(pWS *parser.Workspace) *Doc {
 		}
 	}
 
-	for _, pdoc := range pWS.Docs() {
+	for _, pCtx := range pWS.CollectContextChildren() {
+		ctx := &Context{}
+		doc.Contexts = append(doc.Contexts, ctx)
 
-		for _, pCtx := range pdoc.Contexts() {
-			ctx := &Context{}
-			doc.Contexts = append(doc.Contexts, ctx)
+		ctx.Name = pCtx.Name
+		ctx.Definition = linkify(pCtx.Contexts[0], markdown(getContextDoc(pWS, ctx.Name)))
+		ctx.Todo = linkify(pCtx.Contexts[0], markdown(getContextToDo(pWS, ctx.Name)))
 
-			ctx.Name = pCtx.Name.Value
-			if pCtx.Definition != nil {
-				ctx.Definition = linkify(pCtx, markdown(pCtx.Definition.Text))
-			}
+		for _, child := range pCtx.Children {
 
-			if pCtx.ToDo != nil {
-				ctx.Todo = linkify(pCtx, markdown(pCtx.ToDo.Text.Text))
-			}
-
-			for _, pdata := range pCtx.DataTypes() {
+			if pdata, ok := child.(*parser.Data); ok {
 				data := convertData(pdata)
 				ctx.Data = append(ctx.Data, data)
-
 			}
 
-			for _, pWorkflow := range pCtx.Workflows() {
+			if pWorkflow, ok := child.(*parser.Workflow); ok {
 				wf := convertWorkflow(pWorkflow)
 				ctx.Workflows = append(ctx.Workflows, wf)
 			}
 		}
+
 	}
+
 	return doc
+}
+
+// getContextDoc joins all available definitions and todos into a big ball of text.
+func getContextDoc(ws *parser.Workspace, name string) string {
+	var sb strings.Builder
+	for _, context := range ws.Contexts() {
+		if context.Name.Value == name {
+			sb.WriteString(getDoc(context))
+		}
+	}
+
+	return sb.String()
+}
+
+func getDoc(def parser.Defineable) string {
+	var sb strings.Builder
+	if defText := parser.TextOf(def.GetDefinition()); defText != "" {
+		sb.WriteString(defText)
+		sb.WriteString("\n")
+	}
+
+	return sb.String()
+}
+
+// getContextDoc joins all available definitions and todos into a big ball of text.
+func getContextToDo(ws *parser.Workspace, name string) string {
+	var sb strings.Builder
+	for _, context := range ws.Contexts() {
+		if context.Name.Value == name {
+			sb.WriteString(getTodo(context))
+			sb.WriteString("\n")
+		}
+	}
+
+	return sb.String()
+}
+
+func getTodo(def parser.Defineable) string {
+	var sb strings.Builder
+	if defText := parser.TextOf(def.GetToDo()); defText != "" {
+		sb.WriteString(defText)
+	}
+
+	return sb.String()
 }
 
 func convertData(pdata *parser.Data) *Data {

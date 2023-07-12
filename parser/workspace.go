@@ -22,22 +22,35 @@ func (n *Workspace) ResolveData(name *Ident) *Data {
 	return nil
 }
 
+func (n *Workspace) ContextByName(name string) []*Context {
+	for _, c := range n.CollectContextChildren() {
+		if c.Name == name {
+			return c.Contexts
+		}
+	}
+
+	return nil
+}
+
 func (n *Workspace) ResolveTypeDeclaration(name *Ident) Declaration {
 	ctx := ContextOf(name)
 
-	// lookup in ctx
+	// lookup in all equally named ctx definitions
 	if ctx != nil {
-		for _, element := range ctx.Elements {
-			if element.Name().Value == name.Value {
-				if element.DataType != nil {
-					return element.DataType
-				}
+		for _, ctx := range n.ContextByName(name.Value) {
+			for _, element := range ctx.Elements {
+				if element.Name().Value == name.Value {
+					if element.DataType != nil {
+						return element.DataType
+					}
 
-				if element.Workflow != nil {
-					return element.Workflow
+					if element.Workflow != nil {
+						return element.Workflow
+					}
 				}
 			}
 		}
+
 	}
 
 	// lookup in shared kernel
@@ -73,16 +86,19 @@ func (n *Workspace) Resolve(name *Ident) (Qualifier, bool) {
 	root := name.Parent()
 	for root != nil {
 		if ctx, ok := root.(*Context); ok {
-			nodes := ctx.DeclarationsByName(name.Value)
-			if len(nodes) == 0 {
-				expectedNearest.Context = ctx
-				break
+			for _, ctx := range n.ContextByName(ctx.Name.Value) {
+				nodes := ctx.DeclarationsByName(name.Value)
+				if len(nodes) == 0 {
+					expectedNearest.Context = ctx
+					continue
+				}
+
+				return Qualifier{
+					Context: ctx,
+					Name:    name,
+				}, true
 			}
 
-			return Qualifier{
-				Context: ctx,
-				Name:    name,
-			}, true
 		}
 
 		root = root.Parent()
@@ -119,15 +135,85 @@ func (n *Workspace) Resolve(name *Ident) (Qualifier, bool) {
 	return expectedNearest, false
 }
 
-func (n *Workspace) Contexts() []*Context {
-	var tmp []*Context
-	for _, n := range n.Children() {
-		if c, ok := n.(*Context); ok {
-			tmp = append(tmp, c)
+func (n *Workspace) CollectFreeDataOrWorkflow() []DataOrWorkflow {
+	var res []DataOrWorkflow
+	for _, doc := range n.Documents {
+		for _, definition := range doc.Definitions {
+			if definition.TypeDefinition != nil {
+				if definition.TypeDefinition.DataType != nil {
+					res = append(res, definition.TypeDefinition.DataType)
+				}
+
+				if definition.TypeDefinition.Workflow != nil {
+					res = append(res, definition.TypeDefinition.Workflow)
+				}
+			}
+
 		}
 	}
 
-	return tmp
+	return res
+}
+
+type ContextCollection[T any] struct {
+	Name     string // name of context
+	Children []T
+	Contexts []*Context
+}
+
+func (n *Workspace) CollectContextChildren() []ContextCollection[Node] {
+	return CollectContextChildren[Node](n, func(context *Context) []Node {
+		var res []Node
+		for _, element := range context.Elements {
+			if element.Workflow != nil {
+				res = append(res, element.Workflow)
+			}
+
+			if element.DataType != nil {
+				res = append(res, element.DataType)
+			}
+		}
+		return res
+	})
+}
+
+func CollectContextChildren[T any](ws *Workspace, collect func(ctx *Context) []T) []ContextCollection[T] {
+	tmp := map[string][]T{}
+	tmp2 := map[string][]*Context{}
+
+	for _, doc := range ws.Documents {
+		for _, context := range doc.Contexts() {
+			tmp2[context.Name.Value] = append(tmp2[context.Name.Value], context)
+			for _, t := range collect(context) {
+				tmp[context.Name.Value] = append(tmp[context.Name.Value], t)
+			}
+
+		}
+	}
+
+	keys := maps.Keys(tmp)
+	slices.Sort(keys)
+
+	var res []ContextCollection[T]
+	for _, key := range keys {
+		collection := ContextCollection[T]{Name: key}
+		for _, data := range tmp[key] {
+			collection.Children = append(collection.Children, data)
+		}
+		collection.Contexts = tmp2[key]
+		res = append(res, collection)
+	}
+
+	return res
+}
+
+func (n *Workspace) Contexts() []*Context {
+	var res []*Context
+	for _, doc := range n.Docs() {
+		res = append(res, doc.Contexts()...)
+	}
+
+	return res
 }
 
 // Docs returns a stable sorted list of Documents.

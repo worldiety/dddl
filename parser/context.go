@@ -22,6 +22,14 @@ func ContextOf(root Node) *Context {
 	return nil
 }
 
+func (n *Context) GetDefinition() string {
+	return n.Definition.Value()
+}
+
+func (n *Context) GetToDo() string {
+	return n.ToDo.Value()
+}
+
 func (n *Context) DeclarationsByName(name string) []Node {
 	var res []Node
 	for _, element := range n.Elements {

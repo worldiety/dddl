@@ -9,9 +9,55 @@ type Declaration interface {
 	DeclaredName() *Ident
 }
 
+type Defineable interface {
+	GetDefinition() string
+	GetToDo() string
+}
+
+type DataOrWorkflow interface {
+	DataOrWorkflow() bool
+}
+
 type Qualifier struct {
 	Context *Context // can be nil for "shared kernel"
 	Name    *Ident
+}
+
+// AsChoiceType returns the first matching Data Node, where the name matches and if data actually declares a choice type.
+func (q Qualifier) AsChoiceType() *Data {
+	for _, n := range q.Context.DeclarationsByName(q.Name.Value) {
+		if data, ok := n.(*Data); ok {
+			if data.IsChoiceType() {
+				return data
+			}
+		}
+	}
+
+	return nil
+}
+
+// AsRecordType returns the first matching Data Node, where the name matches and if data actually declares a record type.
+func (q Qualifier) AsRecordType() *Data {
+	for _, n := range q.Context.DeclarationsByName(q.Name.Value) {
+		if data, ok := n.(*Data); ok {
+			if !data.IsChoiceType() {
+				return data
+			}
+		}
+	}
+
+	return nil
+}
+
+// AsWorkflowType returns the first matching Data Node, where the name matches and if data actually declares a workflow type.
+func (q Qualifier) AsWorkflowType() *Workflow {
+	for _, n := range q.Context.DeclarationsByName(q.Name.Value) {
+		if wf, ok := n.(*Workflow); ok {
+			return wf
+		}
+	}
+
+	return nil
 }
 
 func (q Qualifier) String() string {
@@ -65,13 +111,104 @@ func (n *Ident) EndPosition() lexer.Position {
 	return n.relocateEndPos(n.Tokens)
 }
 
+func (n *Ident) IsList() bool {
+	return n.Value == UList || n.Value == UListDE
+}
+
+func (n *Ident) IsSet() bool {
+	return n.Value == USet || n.Value == USetDE
+}
+
+func (n *Ident) IsMap() bool {
+	return n.Value == UMap || n.Value == UMapDE
+}
+
+func (n *Ident) IsNumber() bool {
+	return n.Value == UNumber || n.Value == UNumberDE
+}
+
+func (n *Ident) IsFloat() bool {
+	return n.Value == UFloat || n.Value == UFloatDE
+}
+
+func (n *Ident) IsInt() bool {
+	return n.Value == UInt || n.Value == UIntDE
+}
+
+func (n *Ident) IsAny() bool {
+	return n.Value == UAny
+}
+
+func (n *Ident) IsFunc() bool {
+	return n.Value == UFunc
+}
+
+func (n *Ident) NormalizeUniverse() string {
+	if n.IsList() {
+		return UList
+	}
+
+	if n.IsSet() {
+		return USet
+	}
+
+	if n.IsMap() {
+		return UMap
+	}
+
+	if n.IsNumber() {
+		return UNumber
+	}
+
+	if n.IsFloat() {
+		return UFloat
+	}
+
+	if n.IsInt() {
+		return UInt
+	}
+
+	if n.IsAny() {
+		return UAny
+	}
+
+	if n.IsFunc() {
+		return UFunc
+	}
+
+	return ""
+}
+
+const (
+	UList     = "List"
+	UListDE   = "Liste"
+	USet      = "Set"
+	USetDE    = "Menge"
+	UMap      = "Map"
+	UMapDE    = "Zuordnung"
+	UString   = "String"
+	UStringDE = "Text"
+	UNumber   = "Number"
+	UNumberDE = "Zahl"
+	UInt      = "Integer"
+	UIntDE    = "Ganzzahl"
+	UFloat    = "Float"
+	UFloatDE  = "Gleitkommazahl"
+	UAny      = "any"
+	UFunc     = "func"
+	UError    = "error"
+	UContext  = "context"
+)
+
 func (n *Ident) IsUniverse() bool {
 	// Boolean is not defined, we encourage to use a choicetype
 	switch n.Value {
 	//list, set, map, string, int, float
-	case "Liste", "Menge", "Zuordnung", "Text", "Ganzzahl", "Zahl", "Gleitkommazahl":
+	case UListDE, USetDE, UMapDE, UStringDE, UNumberDE, UIntDE, UFloatDE:
 		return true
-	case "List", "Set", "Map", "String", "Number", "Integer", "Float":
+	case UList, USet, UMap, UString, UNumber, UInt, UFloat:
+		return true
+	case UAny, UFunc, UError, UContext:
 		return true
 	default:
 		return false

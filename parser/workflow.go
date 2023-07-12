@@ -1,5 +1,7 @@
 package parser
 
+import "fmt"
+
 type Workflow struct {
 	node
 	KeywordWorkflow *KeywordWorkflow `@@`
@@ -19,6 +21,131 @@ func WorkflowOf(root Node) *Workflow {
 	}
 
 	return nil
+}
+
+func (n *Workflow) DataOrWorkflow() bool {
+	return true
+}
+
+// Dependencies returns all ActivityStmt instances which refer to identifiers. By definition, these must
+// be declared as other Workflows. If it is internal, it must be a Literal.
+// Logically, these are either valid sub-workflows or something from the infrastructure like a repository function.
+func (n *Workflow) Dependencies() []*ActivityStmt {
+	var res []*ActivityStmt
+	err := Walk(n, func(n Node) error {
+		if ac, ok := n.(*ActivityStmt); ok {
+			if ac.ScribbleOrIdent.Name != nil {
+				res = append(res, ac)
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		panic(fmt.Errorf("unreachable: %w", err))
+	}
+
+	return res
+}
+
+// Inputs returns all InputStmt and EventStmt instances which refer to identifiers. By definition, each of them
+// must be (a potentially blocking function) which returns the named Data.
+func (n *Workflow) Inputs() []InputOrEvent {
+	var res []InputOrEvent
+	err := Walk(n, func(n Node) error {
+		if n, ok := n.(*InputStmt); ok {
+			if n.ScribbleOrIdent.Name != nil {
+				res = append(res, n)
+			}
+		}
+
+		if n, ok := n.(*EventStmt); ok {
+			if n.Literal.Name != nil {
+				res = append(res, n)
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		panic(fmt.Errorf("unreachable: %w", err))
+	}
+
+	return res
+}
+
+// OutputEvents returns all EventSentStmt instances which refer to identifiers. By definition, each of them
+// must be (a potentially blocking function) which receives the named Data.
+func (n *Workflow) OutputEvents() []*EventSentStmt {
+	var res []*EventSentStmt
+	err := Walk(n, func(n Node) error {
+		if n, ok := n.(*EventSentStmt); ok {
+			if n.Literal.Name != nil {
+				res = append(res, n)
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		panic(fmt.Errorf("unreachable: %w", err))
+	}
+
+	return res
+}
+
+// Output returns all ReturnStmt instances which refer to identifiers. By definition, each of them
+// must be a named Data type.
+func (n *Workflow) Output() []*ReturnStmt {
+	var res []*ReturnStmt
+	err := Walk(n, func(n Node) error {
+		if n, ok := n.(*ReturnStmt); ok {
+			if n.Stmt.Name != nil {
+				res = append(res, n)
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		panic(fmt.Errorf("unreachable: %w", err))
+	}
+
+	return res
+}
+
+// Errors returns all ReturnErrorStmt instances which refer to identifiers. By definition, each of them
+// must be a named Data type.
+func (n *Workflow) Errors() []*ReturnErrorStmt {
+	var res []*ReturnErrorStmt
+	err := Walk(n, func(n Node) error {
+		if n, ok := n.(*ReturnErrorStmt); ok {
+			//Stmt can be nil for unnamed fatal returns
+			if n.Stmt != nil && n.Stmt.Name != nil {
+				res = append(res, n)
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		panic(fmt.Errorf("unreachable: %w", err))
+	}
+
+	return res
+}
+
+func (n *Workflow) GetDefinition() string {
+	return n.Definition.Value()
+}
+
+func (n *Workflow) GetToDo() string {
+	return n.ToDo.Value()
 }
 
 func (n *Workflow) DeclaredName() *Ident {
@@ -87,6 +214,14 @@ type EventStmt struct {
 	Literal      *IdentOrLiteral `@@`
 }
 
+func (n *EventStmt) IdentOrLiteral() *IdentOrLiteral {
+	return n.Literal
+}
+
+func (n *EventStmt) InputOrEvent() bool {
+	return true
+}
+
 func (n *EventStmt) Children() []Node {
 	return sliceOf(n.KeywordEvent, n.Literal)
 }
@@ -122,10 +257,23 @@ func (n *OutputStmt) Children() []Node {
 	return sliceOf(n.KeywordOutput, n.ScribbleOrIdent)
 }
 
+type InputOrEvent interface {
+	InputOrEvent() bool
+	IdentOrLiteral() *IdentOrLiteral
+}
+
 type InputStmt struct {
 	node
 	KeywordInput    *KeywordInput   `@@`
 	ScribbleOrIdent *IdentOrLiteral `@@`
+}
+
+func (n *InputStmt) InputOrEvent() bool {
+	return true
+}
+
+func (n *InputStmt) IdentOrLiteral() *IdentOrLiteral {
+	return n.ScribbleOrIdent
 }
 
 func (n *InputStmt) Children() []Node {

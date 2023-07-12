@@ -19,4 +19,8 @@ protocol:
 	cp /tmp/dddl/go-tools/LICENSE lsp/protocol
 	cp /tmp/dddl/go-tools/internal/lsp/protocol/tsprotocol.go lsp/protocol
 
-.PHONY: protocol
+.PHONY: protocol ebnf
+
+ebnf:
+	go run github.com/worldiety/dddl/cmd/dddc -format=grammar > ebnf/grammar.ebnf
+	go run github.com/alecthomas/participle/v2/cmd/railroad@latest < ebnf/grammar.ebnf > ebnf/grammar.html

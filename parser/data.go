@@ -26,6 +26,18 @@ func DataOf(root Node) *Data {
 	return nil
 }
 
+func (d *Data) DataOrWorkflow() bool {
+	return true
+}
+
+func (d *Data) GetDefinition() string {
+	return d.Definition.Value()
+}
+
+func (d *Data) GetToDo() string {
+	return d.ToDo.Value()
+}
+
 func (d *Data) DeclaredName() *Ident {
 	return d.Name
 }
@@ -62,6 +74,10 @@ func (d *Data) Children() []Node {
 	}
 
 	return res
+}
+
+func (d *Data) IsChoiceType() bool {
+	return len(d.ChoiceTypes()) > 0
 }
 
 // ChoiceTypes is nil, if any field is defined.

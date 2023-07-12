@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.14
+Fixed rendering and resolving of multiple context declarations.
+
 ## 0.0.13
 Added html export and dddc commandline tool.
 
