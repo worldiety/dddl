@@ -1,17 +1,24 @@
 package gen
 
 type Options struct {
-	Module string `json:"module"`
+	Module              string `json:"module"`
+	Dir                 string `json:"dir"`
+	DomainPackagePrefix string `json:"domainPackagePrefix"`
 }
 
-func DefaultOptions() Options {
-	return Options{}
-}
-
-func (o Options) GetModule() string {
-	if o.Module == "" {
-		return "github.com/example/project"
+func DefaultOptions(dir string) Options {
+	modname, moddir := ModuleName(dir)
+	if moddir == "" {
+		moddir = dir
 	}
 
-	return o.Module
+	if modname == "" {
+		modname = "example.de/project"
+	}
+
+	return Options{
+		Module:              modname,
+		Dir:                 moddir,
+		DomainPackagePrefix: "internal",
+	}
 }

@@ -71,6 +71,13 @@ export async function activate(context: vscode.ExtensionContext) {
             });
     }));
 
+    context.subscriptions.push(vscode.commands.registerCommand("ddd.GenerateGo", () => {
+
+        client.sendRequest("custom/GenerateGo", null).then((resp) => {
+
+        });
+    }));
+
     //preview???
 
 

@@ -6,6 +6,8 @@ import (
 	"github.com/worldiety/dddl/compiler/golang/tpl"
 	"github.com/worldiety/dddl/compiler/model"
 	"github.com/worldiety/dddl/parser"
+	"log"
+	"path/filepath"
 	"strings"
 	"testing/fstest"
 )
@@ -32,7 +34,13 @@ func Write(opts Options, dstDir string, src *parser.Workspace) error {
 		return g.errors[0]
 	}
 
-	fmt.Println(g.String())
+	log.Println(g.String())
+
+	// intentionally we use opts.Dir and not dstDir because we may have an awkward location
+	// and auto-detect by default the module root and place the files into a stable position.
+	if err := model.Deploy(opts.Dir, g.fs); err != nil {
+		return fmt.Errorf("cannot deploy generated files: %w", err)
+	}
 
 	return nil
 }
@@ -76,7 +84,8 @@ func (g *gen) emit() error {
 			return fmt.Errorf("cannot render package %s: %w", pkg.Name, err)
 		}
 
-		g.fs[pkg.Name+"/model.gen.go"] = &fstest.MapFile{
+		fname := filepath.Join(g.opts.DomainPackagePrefix, pkg.Name, "domain.gen.go")
+		g.fs[fname] = &fstest.MapFile{
 			Data: buf,
 		}
 	}
@@ -85,4 +94,5 @@ func (g *gen) emit() error {
 
 func (g *gen) genAll() {
 	g.pkgs = model.Convert(g.src)
+
 }

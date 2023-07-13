@@ -1,0 +1,46 @@
+{{define "Choice"}}
+    {{makeComment .Comment -}}
+    {{- if and .Single (not .IsError) -}}
+        type {{.Name}} {{typeDef .Single.Type.Name}}
+    {{else -}}
+        type {{.Name}} interface {
+        {{ if .IsError}}error{{end}}
+
+        {{ if .Choices}}
+        // {{ orTypeDefs .Choices}}
+        {{end}}
+
+        {{- .Name}}() bool // {{.Name}} is a marker interface method
+        }
+    {{end}}
+
+    {{range .Choices}}
+        {{if not .Name.Local}}
+        // {{typeDef .}} cannot be part of choice type {{$.Name}} because it does not belong to this context
+        {{else}}
+        // {{$.Name}} is a marker interface method.
+        func ({{ typeDef .}}) {{$.Name}}()bool{return true}
+        {{end}}
+    {{end}}
+
+    {{if or (not .Single) (.IsError)}}
+        {{template "ChoiceTypeMatcher" .}}
+    {{end}}
+{{end}}
+
+
+{{define "ChoiceTypeMatcher"}}
+    // Match{{.Name}} checks each type case and panics either if choiceType is nil or if an interface compatible
+    // type has been passed but is not part of the sum type specification.
+    // Each case must be handled and evaluate properly, so nil functions will panic.
+    func Match{{.Name}}[R any](choiceType {{.Name}}, {{range .Choices}}match{{typeDefAsIdent .Name}} func({{typeDef .}})R,{{end}})R{
+        switch t:=choiceType.(type){
+                {{- range .Choices}}
+                case {{typeDef .}}:
+                    return match{{typeDefAsIdent .Name}}(t)
+                {{- end -}}
+        }
+
+        panic(fmt.Sprintf("%T is not part of the choice type {{.Name}}",choiceType))
+    }
+{{end}}

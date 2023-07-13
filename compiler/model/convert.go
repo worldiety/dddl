@@ -73,7 +73,7 @@ func Convert(ws *parser.Workspace) []*Package {
 }
 
 func convertWorkflow(ws *parser.Workspace, parent *Package, wf *parser.Workflow) *FuncType {
-	typeName := makeUpIdentifier(wf.Name.Value)
+	typeName := MakeUpIdentifier(wf.Name.Value)
 	res := &FuncType{
 		Parent:  parent,
 		Comment: getDoc(wf),
@@ -109,7 +109,7 @@ func convertWorkflow(ws *parser.Workspace, parent *Package, wf *parser.Workflow)
 		res.FuncDef.Input = append(res.FuncDef.Input, &TypeDef{
 			FuncDef: &FuncDef{
 				Input:  []*TypeDef{{Name: QualifiedName{Name: parser.UContext}}},
-				Output: &TypeDef{Name: QualifiedName{PackageName: makePkgIdentifier(qualifier.Context.Name.Value), Name: makeUpIdentifier(qualifier.Name.Value)}},
+				Output: &TypeDef{Name: QualifiedName{PackageName: makePkgIdentifier(qualifier.Context.Name.Value), Name: MakeUpIdentifier(qualifier.Name.Value)}},
 				Error:  &TypeDef{Name: QualifiedName{Name: parser.UError}},
 			},
 		})
@@ -127,7 +127,7 @@ func convertWorkflow(ws *parser.Workspace, parent *Package, wf *parser.Workflow)
 			FuncDef: &FuncDef{
 				Input: []*TypeDef{
 					{Name: QualifiedName{Name: parser.UContext}},
-					{Name: QualifiedName{PackageName: makePkgIdentifier(qualifier.Context.Name.Value), Name: makeUpIdentifier(qualifier.Name.Value)}},
+					{Name: QualifiedName{PackageName: makePkgIdentifier(qualifier.Context.Name.Value), Name: MakeUpIdentifier(qualifier.Name.Value)}},
 				},
 				Error: &TypeDef{Name: QualifiedName{Name: parser.UError}},
 			},
@@ -146,7 +146,7 @@ func convertWorkflow(ws *parser.Workspace, parent *Package, wf *parser.Workflow)
 		outputDataTypes = append(outputDataTypes, data)
 	}
 
-	res.FuncDef.Output = declareNewChoiceType(parent, res.Name+"Result", outputDataTypes)
+	res.FuncDef.Output = declareNewChoiceType(parent, res.Name+"Result", outputDataTypes, false)
 
 	// error are all exit points with errors which also create an artificial choice type, just like sum of all output types
 	var errorDataType []*parser.Data
@@ -160,12 +160,12 @@ func convertWorkflow(ws *parser.Workspace, parent *Package, wf *parser.Workflow)
 		errorDataType = append(errorDataType, data)
 	}
 
-	res.FuncDef.Error = declareNewChoiceType(parent, res.Name+"Error", errorDataType)
+	res.FuncDef.Error = declareNewChoiceType(parent, res.Name+"Error", errorDataType, true)
 
 	return res
 }
 
-func declareNewChoiceType(pkg *Package, name string, types []*parser.Data) *TypeDef {
+func declareNewChoiceType(pkg *Package, name string, types []*parser.Data, isError bool) *TypeDef {
 	def := &TypeDef{Name: QualifiedName{PackageName: pkg.Name, Name: name}}
 	if pkg.HasType(name) {
 		return def
@@ -174,7 +174,7 @@ func declareNewChoiceType(pkg *Package, name string, types []*parser.Data) *Type
 	var choiceDefs []*TypeDef
 	var choiceNames []string
 	for _, data := range types {
-		tname := makeUpIdentifier(data.Name.Value)
+		tname := MakeUpIdentifier(data.Name.Value)
 		choiceNames = append(choiceNames, tname)
 		choiceDefs = append(choiceDefs, &TypeDef{
 			Name: QualifiedName{PackageName: makePkgIdentifier(parser.ContextOf(data).Name.Value), Name: tname},
@@ -186,13 +186,14 @@ func declareNewChoiceType(pkg *Package, name string, types []*parser.Data) *Type
 		Comment: fmt.Sprintf("%s is the choice type of %s", name, strings.Join(choiceNames, "|")),
 		Name:    name,
 		Choices: choiceDefs,
+		IsError: isError,
 	})
 
 	return def
 }
 
 func convertChoice(ws *parser.Workspace, parent *Package, data *parser.Data) *ChoiceType {
-	typeName := makeUpIdentifier(data.Name.Value)
+	typeName := MakeUpIdentifier(data.Name.Value)
 	res := &ChoiceType{
 		Parent:  parent,
 		Comment: getDoc(data),
@@ -208,7 +209,7 @@ func convertChoice(ws *parser.Workspace, parent *Package, data *parser.Data) *Ch
 }
 
 func convertRecord(ws *parser.Workspace, parent *Package, data *parser.Data) *RecordType {
-	typeName := makeUpIdentifier(data.Name.Value)
+	typeName := MakeUpIdentifier(data.Name.Value)
 	res := &RecordType{
 		Parent:  parent,
 		Comment: getDoc(data),
@@ -219,7 +220,7 @@ func convertRecord(ws *parser.Workspace, parent *Package, data *parser.Data) *Re
 		def := convertTypeDef(ws, tDef)
 		res.Fields = append(res.Fields, &Field{
 			Parent: res,
-			Name:   makeUpIdentifier(tDef.Name.Value),
+			Name:   MakeUpIdentifier(tDef.Name.Value),
 			Type:   def,
 		})
 	}
@@ -236,10 +237,12 @@ func convertTypeDef(ws *parser.Workspace, tDef *parser.TypeDef) *TypeDef {
 		qualifier, ok := ws.Resolve(tDef.Name)
 		if !ok {
 			def.Name = QualifiedName{Name: parser.UAny}
-
+			slog.Error(fmt.Sprintf("TypeDef '%s' is not resolvable", tDef.Name))
 		} else {
 			pkgName := strings.ToLower(makeIdentifier(qualifier.Context.Name.Value))
+			localType := parser.ContextOf(tDef).Name.Value == qualifier.Context.Name.Value
 			def.Name = QualifiedName{
+				Local:       localType,
 				PackageName: pkgName,
 				Name:        qualifier.Name.Value,
 			}

@@ -7,7 +7,11 @@ You can install the dddl standalone compiler as follows.
 go install github.com/worldiety/dddl/cmd/dddc@latest
 
 # within the working directory of the  *.ddd files project
+# e.g. to generate a standalone html file
 dddc -format=html -out=index.html
+
+# or generate go code (by default places always in mod-root/internal/<context name>
+dddc -format=go
 ```
 
 ## Plugin for Visual Studio Code

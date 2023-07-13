@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.15
+Added basic code generator support for Go.
+
 ## 0.0.14
 Fixed rendering and resolving of multiple context declarations.
 

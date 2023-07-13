@@ -22,6 +22,9 @@ Die folgenden Kommandos stehen zur Verfügung
 * `Vorschau`: Die ist die empfohlene build-in Vorschau.
 * `als HTML exportieren`: Dies ist eine statisches Ausgabe zur Weitergabe oder Drucken. VSC hat keine eingebaute Preview für HTML-Dokumente. 
 Es gibt dafür die _Live Preview_ als entsprechende Extension von Microsoft.
+* `generiere Go Code`: Hiermit wird im aktuellen Workspace Go Code generiert.
+Dazu wird das übergeordnete Go-Module gesucht und dort im internal Package für jeden Bounded Context ein eigenes Package generiert.
+Gibt es kein Go-Module, wird der Code in den Workspace-Folder geschrieben.
 
   
 ## DevOps Tools
@@ -36,7 +39,11 @@ Der DDD Compiler für das automatisierte Erzeugen von verschiedenen Ausgabeforma
 go install github.com/worldiety/dddl/cmd/dddc@latest
 
 # within the working directory of the  *.ddd files project
+# e.g. to generate a standalone html file
 dddc -format=html -out=index.html
+
+# or generate go code (by default places always in mod-root/internal/<context name>
+dddc -format=go
 ```
 
 

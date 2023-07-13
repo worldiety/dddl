@@ -1,7 +1,7 @@
 Kontext Rechnungsgenerator {
 
 	Arbeitsablauf Zeitloggen {
-	    TODO: "schrott"
+	    TODO "schrott"
 
 		"Super beschreibung"
 

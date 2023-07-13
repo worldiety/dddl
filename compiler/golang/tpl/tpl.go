@@ -3,6 +3,8 @@ package tpl
 import (
 	"bytes"
 	"fmt"
+	model2 "github.com/worldiety/dddl/compiler/model"
+	"github.com/worldiety/dddl/parser"
 	"go/format"
 	"io/fs"
 	"strings"
@@ -23,24 +25,32 @@ func Execute(fsys fs.FS, name string, model any) ([]byte, error) {
 
 	tpl.Funcs(map[string]any{
 		"makeComment": func(s string) string {
+			s = strings.TrimSpace(s)
+			if s == "" {
+				return ""
+			}
 			tmp := ""
-			for _, line := range strings.Split(string(s), "\n") {
+			for _, line := range strings.Split(s, "\n") {
 				tmp += "// " + line + "\n"
 			}
 
 			return tmp
 		},
 
-		"orIdents": func(idents []string) string {
+		"orTypeDefs": func(idents []*model2.TypeDef) string {
 			tmp := ""
 			for i, ident := range idents {
-				tmp += string(ident)
+				tmp += typeDef(ident)
 				if i < len(idents)-1 {
 					tmp += " | "
 				}
 			}
 			return tmp
 		},
+
+		"typeDef": typeDef,
+
+		"typeDefAsIdent": typeDefAsIdent,
 	})
 
 	tpl, err := tpl.ParseFS(fsys, "*.gotmpl")
@@ -60,4 +70,76 @@ func Execute(fsys fs.FS, name string, model any) ([]byte, error) {
 	}
 
 	return b, nil
+}
+
+func typeDefAsIdent(q model2.QualifiedName) string {
+	if q.IsUniverse() || q.Local {
+		return model2.MakeUpIdentifier(q.Name)
+	}
+
+	if q.PackageName != "" {
+		return model2.MakeUpIdentifier(q.PackageName + "." + q.Name)
+	}
+
+	return model2.MakeUpIdentifier(q.Name)
+}
+
+func typeDef(def *model2.TypeDef) string {
+	if def.FuncDef != nil {
+		tmp := "func("
+		for _, t := range def.FuncDef.Input {
+			tmp += typeDef(t)
+			tmp += ","
+		}
+		tmp += ") ("
+
+		tmp += typeDef(def.FuncDef.Output)
+		tmp += ","
+		tmp += typeDef(def.FuncDef.Error)
+		tmp += ")"
+
+		return tmp
+	}
+
+	tmp := typeDefName(def.Name)
+	if tmp == "map" && len(def.Parameter) == 2 {
+		return "map[" + typeDef(def.Parameter[0]) + "]" + typeDef(def.Parameter[1])
+	}
+
+	for i, t := range def.Parameter {
+		tmp += typeDef(t)
+		if i < len(def.Parameter)-1 {
+			tmp += ","
+		}
+
+	}
+
+	return tmp
+}
+
+func typeDefName(q model2.QualifiedName) string {
+	if q.Local {
+		return q.Name
+	}
+
+	if q.PackageName != "" {
+		return q.PackageName + "." + q.Name
+	}
+
+	if q.IsUniverse() {
+		switch q.Name {
+		case parser.UString:
+			return "string"
+		case parser.UInt:
+			return "int64"
+		case parser.UList:
+			return "[]"
+		case parser.UMap:
+			return "map"
+		default:
+			return "/*fix me*/ " + q.Name
+		}
+	}
+
+	return q.Name
 }

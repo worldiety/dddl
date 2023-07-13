@@ -4,8 +4,18 @@
 {{makeComment .Comment -}}
 package {{.Name}}
 
+import (
+    "fmt"
+)
+
+var _ fmt.Stringer
+
 {{range .RecordTypes}}
     {{template "Record" .}}
+{{end}}
+
+{{range .ChoiceTypes}}
+    {{template "Choice" .}}
 {{end}}
 
 {{end}}

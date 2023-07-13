@@ -44,6 +44,15 @@ type ChoiceType struct {
 	Comment string
 	Name    string
 	Choices []*TypeDef
+	IsError bool
+}
+
+func (t *ChoiceType) Single() *TypeDef {
+	if len(t.Choices) == 1 {
+		return t.Choices[0]
+	}
+
+	return nil
 }
 
 type RecordType struct {
@@ -51,6 +60,14 @@ type RecordType struct {
 	Comment string
 	Name    string
 	Fields  []*Field
+}
+
+func (t *RecordType) Single() *Field {
+	if len(t.Fields) == 1 {
+		return t.Fields[0]
+	}
+
+	return nil
 }
 
 type Field struct {
@@ -71,6 +88,7 @@ type QualifiedName struct {
 	PackageImportPath string
 	PackageName       string
 	Name              string
+	Local             bool
 }
 
 func (q QualifiedName) IsUniverse() bool {

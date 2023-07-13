@@ -1,19 +1,20 @@
 {{define "Record"}}
 
     {{makeComment .Comment -}}
-    type {{.Name}} struct {
-        {{range .Fields}}
-            {{template "RecordField" .}}
-        {{end}}
-    }
+    {{- if .Single -}}
+        type {{.Name}} {{typeDef .Single.Type}}
+    {{else -}}
+        type {{.Name}} struct {
+            {{range .Fields}}
+                {{template "RecordField" .}}
+            {{end}}
+        }
+    {{end}}
 {{end}}
 
 
 {{define "RecordField"}}
     {{makeComment .Comment -}}
-    {{.Name}} {{template "TypeDef" .Type}}
+    {{.Name}} {{typeDef .Type}}
 {{end}}
 
-{{define "TypeDef"}}
-    {{if .Name.PackageName}}{{.Name.PackageName}}.{{end}}{{if .Name.Name}}{{.Name.Name}}{{end}}
-{{end}}

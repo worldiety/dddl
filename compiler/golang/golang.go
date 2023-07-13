@@ -10,7 +10,7 @@ func Write(opts Options, dstDir string, src *parser.Workspace) error {
 	switch opts.Style {
 	case DDDv1:
 		if opts.VersionedGenOptions.DDDv1 == nil {
-			gopt := gen.DefaultOptions()
+			gopt := gen.DefaultOptions(dstDir)
 			opts.VersionedGenOptions.DDDv1 = &gopt
 		}
 

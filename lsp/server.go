@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/alecthomas/participle/v2"
+	"github.com/worldiety/dddl/compiler/golang"
 	"github.com/worldiety/dddl/compiler/html"
 	"github.com/worldiety/dddl/linter"
 	"github.com/worldiety/dddl/lsp/protocol"
@@ -339,4 +340,21 @@ func (s *Server) RenderPreviewHtml(params PreviewHtmlParams) string {
 	})
 
 	return editor.RenderViewHtml(linter, ws, model)
+}
+
+func (s *Server) GenerateGo() {
+	opts := golang.Default()
+	ws, err := s.parseWorkspace()
+	if err != nil {
+		log.Println(err)
+	}
+
+	if ws.Error != nil {
+		log.Println(ws.Error)
+	}
+
+	err = golang.Write(opts, s.rootPath, ws)
+	if err != nil {
+		log.Println("cannot generate go code", err)
+	}
 }

@@ -143,6 +143,10 @@ func (n *Ident) IsFunc() bool {
 	return n.Value == UFunc
 }
 
+func (n *Ident) IsString() bool {
+	return n.Value == UString || n.Value == UStringDE
+}
+
 func (n *Ident) NormalizeUniverse() string {
 	if n.IsList() {
 		return UList
@@ -176,7 +180,11 @@ func (n *Ident) NormalizeUniverse() string {
 		return UFunc
 	}
 
-	return ""
+	if n.IsString() {
+		return UString
+	}
+
+	return n.Value
 }
 
 const (

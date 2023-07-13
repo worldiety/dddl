@@ -21,7 +21,7 @@ func makePkgIdentifier(s string) string {
 	return strings.ToLower(makeIdentifier(s))
 }
 
-func makeUpIdentifier(s string) string {
+func MakeUpIdentifier(s string) string {
 	ident := makeIdentifier(s)
 	var sb strings.Builder
 	for i, r := range ident {

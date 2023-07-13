@@ -7,6 +7,7 @@ import (
 	"github.com/worldiety/dddl/compiler/golang"
 	"github.com/worldiety/dddl/compiler/html"
 	"github.com/worldiety/dddl/parser"
+	"golang.org/x/exp/slog"
 	"log"
 	"os"
 )
@@ -33,6 +34,10 @@ func realMain() error {
 	ws, err := parser.ParseWorkspaceDir(*in)
 	if ws == nil {
 		return err
+	}
+
+	if ws.Error != nil {
+		slog.Error("cannot parse workspace *.ddd files properly", slog.Any("err", ws.Error))
 	}
 
 	switch *format {
