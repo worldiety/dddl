@@ -1,0 +1,44 @@
+{{define "overview"}}
+    <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {{range .Doc.Contexts}}
+            {{template "ctxBox" .}}
+        {{end}}
+
+
+    </div>
+{{end}}
+
+
+
+{{define "ctxBox"}}
+    <a href="#{{.Ref}}" class="bg-white shadow rounded-lg p-3">
+        <div class="flex items-start ">
+            {{template "ctxIcon"}}
+
+            <div class="ml-4">
+                <h2 class="font-semibold">{{.Name}}</h2>
+                {{if not .ShortDef}}
+                    <p class="mt-2 text-sm text-gray-500">Noch keine Beschreibung vorhanden.</p>
+                {{else}}
+                    <div class="mt-2 text-sm text-gray-500">{{.ShortDef}}</div>
+                {{end}}
+            </div>
+
+
+        </div>
+        <table class="mt-6 -mb-2 w-full text-gray-600">
+            <tbody>
+
+            {{if len .Types}}
+                <tr>
+                    <td class="py-2">Typen</td>
+                    <td class="text-gray-500">{{len .Types}}</td>
+                </tr>
+            {{end}}
+
+
+
+            </tbody>
+        </table>
+    </a>
+{{end}}

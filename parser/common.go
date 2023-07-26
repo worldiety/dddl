@@ -5,69 +5,6 @@ import (
 	"strings"
 )
 
-type Declaration interface {
-	DeclaredName() *Ident
-}
-
-type Defineable interface {
-	GetDefinition() string
-	GetToDo() string
-}
-
-type DataOrWorkflow interface {
-	DataOrWorkflow() bool
-}
-
-type Qualifier struct {
-	Context *Context // can be nil for "shared kernel"
-	Name    *Ident
-}
-
-// AsChoiceType returns the first matching Data Node, where the name matches and if data actually declares a choice type.
-func (q Qualifier) AsChoiceType() *Data {
-	for _, n := range q.Context.DeclarationsByName(q.Name.Value) {
-		if data, ok := n.(*Data); ok {
-			if data.IsChoiceType() {
-				return data
-			}
-		}
-	}
-
-	return nil
-}
-
-// AsRecordType returns the first matching Data Node, where the name matches and if data actually declares a record type.
-func (q Qualifier) AsRecordType() *Data {
-	for _, n := range q.Context.DeclarationsByName(q.Name.Value) {
-		if data, ok := n.(*Data); ok {
-			if !data.IsChoiceType() {
-				return data
-			}
-		}
-	}
-
-	return nil
-}
-
-// AsWorkflowType returns the first matching Data Node, where the name matches and if data actually declares a workflow type.
-func (q Qualifier) AsWorkflowType() *Workflow {
-	for _, n := range q.Context.DeclarationsByName(q.Name.Value) {
-		if wf, ok := n.(*Workflow); ok {
-			return wf
-		}
-	}
-
-	return nil
-}
-
-func (q Qualifier) String() string {
-	if q.Context == nil {
-		return q.Name.String()
-	}
-
-	return q.Context.Name.String() + "." + q.Name.String()
-}
-
 // Literal refers to the rules of quoted Text by the Lexer.
 type Literal struct {
 	node

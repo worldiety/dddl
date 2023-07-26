@@ -1,0 +1,35 @@
+{{define "type"}}
+
+    <div class="border-b border-gray-100 ml-10 mr-10 "></div>
+
+    <div id="{{.Ref}}" class="p-4 grid md:grid-cols-2 md:divide-x hover:bg-green-50">
+
+        <div class="flex flex-row px-2 py-3 mx-3">
+            <a href="#{{.Parent.Ref}}_definition"> {{template "dataIcon"}}</a>
+            <div class="flex flex-col mb-2 ml-4 mt-1">
+                <div class="text-gray-600 font-semibold">{{.Name}}</div>
+                <div class="flex w-full mt-1">
+                    <div class="text-green-700 font-base text-xs mr-1 ">
+                        {{.Parent.Name}} > {{.Category}}
+                    </div>
+
+                </div>
+
+
+                <div >
+                    {{.Definition}}
+                </div>
+            </div>
+        </div>
+            <div class="pl-2 ">
+                <div class="flex justify-center items-center">
+                {{.SVG}}
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+{{end}}

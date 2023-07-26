@@ -1,35 +1,53 @@
 package html
 
 import (
-	"github.com/worldiety/dddl/linter"
+	"embed"
+	"github.com/worldiety/dddl/html"
 	"github.com/worldiety/dddl/parser"
-	"github.com/worldiety/dddl/web/editor"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
+//go:embed *.gohtml
+var appFiles embed.FS
+
+var viewFunc html.ViewFunc[PreviewModel]
+
+func init() {
+	viewFunc = html.MustParse[PreviewModel](
+		html.FS(appFiles),
+		html.Execute("ViewPage"),
+	)
+}
+
+func RenderViewHtml(doc *parser.Workspace, model PreviewModel) string {
+	model.Doc = transform(doc)
+	w := httptest.NewRecorder()
+
+	viewFunc(w, &http.Request{}, model)
+	return w.Body.String()
+}
+
 func Write(dstDir string, src *parser.Workspace) error {
-	html := Render(src)
+	buf := Render(src)
 	outfile := dstDir
 	if !strings.HasSuffix(outfile, ".html") {
 		outfile = filepath.Join(outfile, "index.html")
 	}
 
-	return os.WriteFile(outfile, []byte(html), os.ModePerm)
+	return os.WriteFile(outfile, []byte(buf), os.ModePerm)
 }
 
 func Render(src *parser.Workspace) string {
-	var model editor.EditorPreview
-	model.VSCode.ScriptUris = append(model.VSCode.ScriptUris, "https://cdn.tailwindcss.com")
+	var model PreviewModel
+	model.Head.ScriptUris = append(model.Head.ScriptUris, "https://cdn.tailwindcss.com")
 
 	if src.Error != nil {
 		model.Error = src.Error.Error()
 	}
 
-	lint := editor.Linter(func(ws *parser.Workspace) []linter.Hint {
-		return linter.Lint(ws)
-	})
-
-	return editor.RenderViewHtml(lint, src, model)
+	return RenderViewHtml(src, model)
 }

@@ -1,6 +1,9 @@
 package parser
 
-import "github.com/alecthomas/participle/v2/lexer"
+import (
+	"fmt"
+	"github.com/alecthomas/participle/v2/lexer"
+)
 
 type Node interface {
 	Position() lexer.Position
@@ -46,6 +49,12 @@ func (n *node) relocateEndPos(tokens []lexer.Token) lexer.Position {
 
 func (n *node) Children() []Node {
 	return nil
+}
+
+func MustWalk(n Node, visitor func(n Node) error) {
+	if err := Walk(n, visitor); err != nil {
+		panic(fmt.Errorf("unexpected %w", err))
+	}
 }
 
 func Walk(n Node, visitor func(n Node) error) error {

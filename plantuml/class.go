@@ -113,6 +113,7 @@ func (d *Class) Render(wr io.Writer) error {
 		w.Print(escapeP(d.name))
 		w.Print("\n")
 	}
+
 	return w.Err
 }
 

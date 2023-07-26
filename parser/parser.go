@@ -12,60 +12,6 @@ import (
 	"strings"
 )
 
-// A TypeDecl is either a DataType or a Workflow.
-// To simplify the parsing without lookahead, we just use
-// this kind of union.
-// See also TypeDef.
-type TypeDecl struct {
-	node
-
-	DataType *Data     `@@`
-	Workflow *Workflow `|@@`
-}
-
-func (d *TypeDecl) Children() []Node {
-	if d.DataType != nil {
-		return []Node{d.DataType}
-	}
-
-	if d.Workflow != nil {
-		return []Node{d.Workflow}
-	}
-
-	return nil
-}
-
-func (d *TypeDecl) Name() *Ident {
-	if d.DataType != nil {
-		return d.DataType.Name
-	}
-
-	return d.Workflow.Name
-}
-
-// A TypeDef is either a Name or a parameterized Name
-// - a generic.
-type TypeDef struct {
-	node
-
-	Name   *Ident     `@@`
-	Params []*TypeDef `("[" @@ ("," @@)* "]" )?`
-}
-
-func (n *TypeDef) Children() []Node {
-	if n == nil {
-		return nil
-	}
-
-	var res []Node
-	res = append(res, n.Name)
-	for _, param := range n.Params {
-		res = append(res, param)
-	}
-
-	return res
-}
-
 // TextOf extracts and normalizes string literals.
 func TextOf(s string) string {
 	lines := strings.Split(s, "\n")
@@ -219,10 +165,12 @@ func (e *DocParserError) Unwrap() []error {
 func NewParser() *participle.Parser[Doc] {
 	var basicLexer = lexer.MustSimple([]lexer.SimpleRule{
 		{"comment", `//.*|/\*.*?\*/`},
+		{"Keyword", `(?i)\b(Aufgabe|fn|note|Notiz|enum|Auswahl|struct|Verbund|Daten|typ|Type|alias|Synonym|view|Ansicht|aggregate|Aggregat|workflow|Arbeitsablauf)`},
 		{"Text", `\"(\\.|[^"\\])*\"`},
 		{"Name", `([À-ž]|\w)+`},
 		{"Assign", `=`},
-		{"Colon", "[:,]"},
+		{"FnRet", "->"},
+		{"Colon", `[:,><.|@]`},
 		{"Block", "[{}]"},
 		{"Generic", `[\[\]\(\)]`},
 		{"whitespace", `[ \t\n\r]+`},
@@ -231,6 +179,8 @@ func NewParser() *participle.Parser[Doc] {
 	parser, err := participle.Build[Doc](
 		participle.Lexer(basicLexer),
 		participle.Unquote("Text"),
+		participle.Union[FnStmt](&FnStmtIf{}, &FnStmtBlock{}, &FuncTypeRet{}, &FnLitExpr{}),
+		participle.Union[NamedType](&Function{}, &Choice{}, &Struct{}, &Type{}, &Alias{}, &Context{}, &Aggregate{}),
 	)
 
 	if err != nil {

@@ -25,9 +25,7 @@ func TestParse(t *testing.T) {
 
 func TestParse2(t *testing.T) {
 	v, err := ParseWorkspaceText(map[string]string{"testdata/test3.txt": test})
-	v.ResolveData(&Ident{
-		Value: "asdf",
-	})
+
 	if err != nil {
 		t.Fatal(err)
 	}

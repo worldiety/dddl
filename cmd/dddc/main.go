@@ -4,7 +4,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/worldiety/dddl/compiler/golang"
 	"github.com/worldiety/dddl/compiler/html"
 	"github.com/worldiety/dddl/parser"
 	"golang.org/x/exp/slog"
@@ -47,8 +46,9 @@ func realMain() error {
 		fmt.Println(parser.NewParser().String())
 		return nil
 	case Go:
-		opts := golang.Default()
-		return golang.Write(opts, *out, ws)
+		//opts := golang.Default()
+		//return golang.Write(opts, *out, ws)
+		panic("fix me")
 	default:
 		return fmt.Errorf("invalid format '%s'", *format)
 	}

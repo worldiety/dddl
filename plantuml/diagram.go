@@ -14,6 +14,7 @@ type Diagram struct {
 	includes             []string
 	Renderables          []Renderable
 	DefaultTextAlignment DefaultTextAlignment
+	BackgroundColor      string
 }
 
 func NewDiagram() *Diagram {
@@ -34,6 +35,12 @@ func (d *Diagram) Include(inc ...string) *Diagram {
 func (d *Diagram) Render(wr io.Writer) error {
 	w := strWriter{Writer: wr}
 	w.Print("@startuml\n")
+	if d.BackgroundColor != "" {
+		w.Print("skinparam backgroundColor ")
+		w.Print(d.BackgroundColor)
+		w.Print("\n")
+	}
+
 	if d.DefaultTextAlignment != "" {
 		w.Print(string(d.DefaultTextAlignment))
 		w.Print("\n")

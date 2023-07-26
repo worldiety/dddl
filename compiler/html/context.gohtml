@@ -1,0 +1,65 @@
+{{define "context"}}
+
+
+    <div id="{{.Ref}}" class="bg-white shadow sticky top-0 mt-10 mb-10">
+        <div class="flex flex-row px-2 py-3 mx-3">
+            <a href="#top"> {{template "ctxIcon"}}</a>
+            <div class="flex flex-col mb-2 ml-4 mt-1">
+                <div class="text-gray-600 font-semibold">{{.Name}}</div>
+                <div class="flex w-full mt-1">
+                    <div class="text-green-700 font-base text-xs mr-1 ">
+                        Bounded Context
+                    </div>
+                    <div class="text-gray-400 font-thin text-xs">
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="pl-2">
+                {{range .Types}}
+                    <a href="#{{.Ref}}"
+                       class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded ">{{.Name}}</a>
+                {{end}}
+            </div>
+        </div>
+
+        <div class="border-b border-white"></div>
+    </div>
+
+
+
+    <div class="text-gray-600 bg-white shadow rounded-b-lg mb-6 md:ml-20 -mt-10">
+
+
+        <div class="p-4 grid md:grid-cols-2 md:divide-x">
+            <div class="flex flex-row px-2 py-3 mx-3">
+                <div id="{{.Ref}}_definition" >{{template "quoteIcon"}}</div>
+                <div class="ml-4">
+                    <div class="font-semibold leading-relaxed">Definition</div>
+                    {{if .Definition}}
+                        <div class="leading-snug md:leading-normal">{{.Definition}}</div>
+                    {{else}}
+                        <div class="leading-snug md:leading-normal">Keine Definition vorhanden.</div>
+                    {{end}}
+                </div>
+            </div>
+
+            <div class="pr-2 pl-2">
+                {{range .Types}}
+                    <a href="#{{.Ref}}"
+                       class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded ">{{.Name}}</a>
+                {{end}}
+            </div>
+        </div>
+
+        {{range .Types}}
+            {{template "type" .}}
+        {{end}}
+
+
+    </div>
+
+
+
+{{end}}

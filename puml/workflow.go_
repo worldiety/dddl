@@ -260,29 +260,7 @@ func fromActivityStmt(n *parser.ActivityStmt) *plantuml.ActivityState {
 	return ac
 }
 
-func typeDeclToLinkStr(decl *parser.TypeDef) string {
-	tmp := decl.Name.Value
-	if len(decl.Params) > 0 {
-		tmp += "<"
-		for i, param := range decl.Params {
-			tmp += typeDeclToLinkStr(param)
-			if i < len(decl.Params)-1 {
-				tmp += ", "
-			}
-		}
-		tmp += ">"
-	} else {
-		ws := parser.WorkspaceOf(decl)
-		q, ok := ws.Resolve(decl.Name)
-		if ok {
-			// TODO this does not work properly in vsc, see also https://github.com/doxygen/doxygen/issues/7421
-			tmp = "[[#" + q.String() + " " + q.Name.Value + "]]"
-		}
 
-	}
-
-	return tmp
-}
 
 func fromIfStmt(ifStmt *parser.IfStmt) *plantuml.IfStmt {
 	stmt := &plantuml.IfStmt{
