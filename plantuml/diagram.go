@@ -32,6 +32,16 @@ func (d *Diagram) Include(inc ...string) *Diagram {
 	return d
 }
 
+func (d *Diagram) ActivityStatements() []ActivityStatement {
+	var res []ActivityStatement
+	for _, renderable := range d.Renderables {
+		if acstmt, ok := renderable.(ActivityStatement); ok {
+			res = append(res, acstmt)
+		}
+	}
+	return res
+}
+
 func (d *Diagram) Render(wr io.Writer) error {
 	w := strWriter{Writer: wr}
 	w.Print("@startuml\n")

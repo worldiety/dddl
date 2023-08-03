@@ -20,6 +20,10 @@ func NewResolver(ws *parser.Workspace) *Resolver {
 	return r
 }
 
+func (r *Resolver) Workspace() *parser.Workspace {
+	return r.ws
+}
+
 func (r *Resolver) initTypeDefLookup() {
 	parser.MustWalk(r.ws, func(n parser.Node) error {
 		if n, ok := n.(*parser.TypeDefinition); ok {

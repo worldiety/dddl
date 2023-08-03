@@ -1,45 +1,31 @@
 package linter
 
 import (
-	"fmt"
 	"github.com/worldiety/dddl/parser"
+	"github.com/worldiety/dddl/resolver"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )
 
 type AmbiguousDeclaration struct {
 	hint
-	Declarations []parser.Declaration
+	Declarations []*parser.TypeDefinition
 }
 
 // CheckAmbiguous validates that defined terms (e.g. Context, Workflow and Data)
 // are all unique.
-func CheckAmbiguous(root parser.Node) []Hint {
-	ws := parser.WorkspaceOf(root)
-	if ws == nil {
-		return nil
-	}
+func CheckAmbiguous(r *resolver.Resolver) []Hint {
 
-	allDefs := map[string][]parser.Declaration{}
-	err := parser.Walk(root, func(n parser.Node) error {
-		if decl, ok := n.(parser.Declaration); ok {
-			if _, isCtx := decl.(*parser.Context); isCtx {
-				return nil
-			}
-
-			q, ok := ws.Resolve(decl.DeclaredName())
-			if ok {
-				list := allDefs[q.String()]
-				list = append(list, decl)
-				allDefs[q.String()] = list
+	allDefs := map[string][]*parser.TypeDefinition{}
+	for _, context := range r.Contexts() {
+		for _, fragment := range context.Fragments {
+			for _, definition := range fragment.Definitions {
+				qname := resolver.NewQualifiedNameFromNamedType(definition.Type)
+				list := allDefs[qname.String()]
+				list = append(list, definition)
+				allDefs[qname.String()] = list
 			}
 		}
-
-		return nil
-	})
-
-	if err != nil {
-		panic(fmt.Errorf("cannot happen: %w", err))
 	}
 
 	var res []Hint

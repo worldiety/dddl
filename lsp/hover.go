@@ -136,7 +136,7 @@ func (s *Server) hoverText(token *VSCToken) string {
 	case *parser.Ident:
 		declaration := false
 		switch n.Parent().(type) {
-		case *parser.Data, *parser.Workflow, *parser.Context:
+		case *parser.Function, *parser.Alias, *parser.Struct, *parser.Choice, *parser.Type, *parser.Context:
 			declaration = true
 		}
 		if declaration {
@@ -175,11 +175,11 @@ func (s *Server) hoverText(token *VSCToken) string {
 	case *parser.Literal:
 		if identOrLit, ok := n.Parent().(*parser.IdentOrLiteral); ok {
 			switch identOrLit.Parent().(type) {
-			case *parser.ActorStmt:
-				return fmt.Sprintf(tipWFActor, n.Value)
-			case *parser.ActivityStmt:
+			/*case *parser.ActorStmt:
+			return fmt.Sprintf(tipWFActor, n.Value)*/
+			case *parser.Function:
 				return fmt.Sprintf(tipWFTask, n.Value)
-			case *parser.ViewStmt:
+			/*case *parser.ViewStmt:
 				return fmt.Sprintf(tipWFView, n.Value)
 			case *parser.InputStmt:
 				return fmt.Sprintf(tipWFInput, n.Value)
@@ -189,6 +189,7 @@ func (s *Server) hoverText(token *VSCToken) string {
 				return fmt.Sprintf(tipWFReturnErr, n.Value)
 			case *parser.EventSentStmt:
 				return fmt.Sprintf(tipWFEventSent, n.Value)
+			*/
 			default:
 
 				return fmt.Sprintf("undokumentierte Literalverwendung: %T", token.Node)
@@ -196,10 +197,10 @@ func (s *Server) hoverText(token *VSCToken) string {
 		}
 
 		switch n.Parent().(type) {
-		case *parser.IfStmt:
+		case *parser.FnStmtIf:
 			return fmt.Sprintf(tipWFIf, n.Value)
-		case *parser.WhileStmt:
-			return fmt.Sprintf(tipWFWhile, n.Value)
+			/*case *parser.WhileStmt:
+			return fmt.Sprintf(tipWFWhile, n.Value)*/
 		}
 
 		return fmt.Sprintf("undokumentierte Identverwendung: %T", token.Node)

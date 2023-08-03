@@ -1,5 +1,7 @@
 package puml
 
+import "fmt"
+
 // BpmnSymbol is a unicode code point from the bpmn font,
 // see https://cdn.staticaly.com/gh/bpmn-io/bpmn-font/master/dist/demo.html
 type BpmnSymbol string
@@ -21,3 +23,15 @@ const (
 	bpmn_icon_subprocess_collapsed BpmnSymbol = "e81f"
 	bpmn_icon_loop_marker          BpmnSymbol = "e809"
 )
+
+const (
+	ColorEvent                     = "#ff992a"
+	ColorErrorEvent                = "#ec4d4e"
+	ColorTask                      = "#3399fe"
+	ColorTaskUndefined             = "#94c9ff"
+	ColorIntermediateFnResultEvent = "#fccd9a"
+)
+
+func bpmSym(symbol BpmnSymbol) string {
+	return fmt.Sprintf("<size:25><font:bpmn><U+%s></font></size>", symbol)
+}

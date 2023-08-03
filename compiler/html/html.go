@@ -3,7 +3,9 @@ package html
 import (
 	"embed"
 	"github.com/worldiety/dddl/html"
+	"github.com/worldiety/dddl/linter"
 	"github.com/worldiety/dddl/parser"
+	"github.com/worldiety/dddl/resolver"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -23,8 +25,12 @@ func init() {
 	)
 }
 
-func RenderViewHtml(doc *parser.Workspace, model PreviewModel) string {
-	model.Doc = transform(doc)
+func RenderViewHtml(ws *parser.Workspace, model PreviewModel) string {
+	rslv := resolver.NewResolver(ws)
+	model.Doc = transform(rslv)
+	lintHints := linter.Lint(rslv)
+	model = transformLintHints(rslv, lintHints, model)
+
 	w := httptest.NewRecorder()
 
 	viewFunc(w, &http.Request{}, model)

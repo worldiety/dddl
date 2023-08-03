@@ -109,6 +109,15 @@ type FnStmts struct {
 	Statements []FnStmt `@@*`
 }
 
+func (n *FnStmts) Children() []Node {
+	var res []Node
+	for _, statement := range n.Statements {
+		res = append(res, statement)
+	}
+
+	return res
+}
+
 type FnStmt interface {
 	Node
 	fnStmt()
@@ -118,7 +127,7 @@ type FnStmtIf struct {
 	node
 	KeywordIf *KeywordIf `@@`
 	Condition *FnLitExpr `@@`
-	Stmt      FnStmt     `@@`
+	Body      FnStmt     `@@`
 	// may be nil
 	KeywordElse *KeywordElse `( @@`
 	// may be nil
@@ -126,7 +135,7 @@ type FnStmtIf struct {
 }
 
 func (n *FnStmtIf) Children() []Node {
-	return sliceOf(n.KeywordIf, n.Condition, n.Stmt, n.KeywordElse, n.Else)
+	return sliceOf(n.KeywordIf, n.Condition, n.Body, n.KeywordElse, n.Else)
 }
 
 func (*FnStmtIf) fnStmt() {}
@@ -145,7 +154,7 @@ func (*FnStmtBlock) fnStmt() {}
 type FnLitExpr struct {
 	node
 	Name   *QualifiedName     `@@`
-	Params []*TypeDeclaration `("(" @@ ("," @@)* ")" )?`
+	Params []*TypeDeclaration `("(" (@@ ("," @@)*)? ")" )?`
 }
 
 func (n *FnLitExpr) Children() []Node {

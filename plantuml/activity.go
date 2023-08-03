@@ -2,6 +2,189 @@ package plantuml
 
 import "io"
 
+type ActivityStatement interface {
+	acStmt() // marker method
+	Renderable
+}
+
+type ActLabelStmt struct {
+	Color string
+	Name  string
+	Notes []*ActivityNote
+}
+
+func (n *ActLabelStmt) Render(wr io.Writer) error {
+	w := strWriter{Writer: wr}
+	if n.Color != "" {
+		w.Print(n.Color)
+	}
+	w.Printf(":%s;\n", n.Name)
+
+	for _, note := range n.Notes {
+		_ = note.Render(w)
+	}
+
+	return w.Err
+}
+
+func (n *ActLabelStmt) acStmt() {}
+
+type ActSplitStmt struct {
+	Stmts []ActivityStatement
+}
+
+func (n *ActSplitStmt) Render(wr io.Writer) error {
+	w := strWriter{Writer: wr}
+	if len(n.Stmts) < 1 {
+		return nil
+	}
+
+	if len(n.Stmts) == 1 {
+		_ = n.Stmts[0].Render(w)
+		return w.Err
+	}
+
+	w.Printf("split\n")
+	for i, stmt := range n.Stmts {
+		_ = stmt.Render(w)
+
+		if i < len(n.Stmts)-1 {
+			w.Printf("split again\n")
+		}
+	}
+	w.Printf("end split\n")
+
+	return w.Err
+}
+
+func (n *ActSplitStmt) acStmt() {}
+
+type ActStmts []ActivityStatement
+
+func (n ActStmts) acStmt() {}
+
+func (n ActStmts) Render(wr io.Writer) error {
+	w := strWriter{Writer: wr}
+	for _, statement := range n {
+		_ = statement.Render(w)
+		w.Print("\n")
+	}
+
+	return w.Err
+}
+
+type ActPartitionStmt struct {
+	Name string
+	Body ActStmts
+}
+
+func (n *ActPartitionStmt) Render(wr io.Writer) error {
+	w := strWriter{Writer: wr}
+	w.Printf("partition %s {\n", n.Name)
+	if n.Body != nil {
+		_ = n.Body.Render(wr)
+	}
+	w.Print("}\n")
+
+	return w.Err
+}
+
+func (n *ActPartitionStmt) acStmt() {}
+
+type ActStartStmt struct {
+	Note *ActivityNote
+}
+
+func (n *ActStartStmt) Render(wr io.Writer) error {
+	w := strWriter{Writer: wr}
+	w.Printf("start\n")
+	if n.Note != nil {
+		if err := n.Note.Render(wr); err != nil {
+			return err
+		}
+	}
+
+	return w.Err
+}
+
+func (n *ActStartStmt) acStmt() {}
+
+type ActKillStmt struct {
+}
+
+func (n *ActKillStmt) Render(wr io.Writer) error {
+	w := strWriter{Writer: wr}
+	w.Printf("kill\n")
+
+	return w.Err
+}
+
+func (n *ActKillStmt) acStmt() {}
+
+type ActDetachStmt struct {
+}
+
+func (n *ActDetachStmt) Render(wr io.Writer) error {
+	w := strWriter{Writer: wr}
+	w.Printf("detach\n")
+
+	return w.Err
+}
+
+func (n *ActDetachStmt) acStmt() {}
+
+type ActIfStmt struct {
+	Condition    string
+	PositiveText string
+	PositiveStmt ActStmts
+	NegativeText string
+	NegativeStmt ActStmts
+}
+
+func (n *ActIfStmt) Render(wr io.Writer) error {
+	w := strWriter{Writer: wr}
+	w.Printf("if (%s) then (%s)\n", n.Condition, n.PositiveText)
+	if len(n.PositiveStmt) != 0 {
+		_ = n.PositiveStmt.Render(w)
+	}
+
+	if len(n.NegativeStmt) != 0 {
+		w.Printf("else (%s)\n", n.NegativeText)
+		_ = n.NegativeStmt.Render(w)
+	}
+
+	w.Print("endif\n")
+
+	return w.Err
+}
+
+func (n *ActIfStmt) acStmt() {}
+
+type ActGotoLabel struct {
+	Name string
+}
+
+func (n *ActGotoLabel) Render(wr io.Writer) error {
+	w := strWriter{Writer: wr}
+	w.Printf("label %s\n", n.Name)
+	return w.Err
+}
+
+func (n *ActGotoLabel) acStmt() {}
+
+type ActGoto struct {
+	Name string
+}
+
+func (n *ActGoto) Render(wr io.Writer) error {
+	w := strWriter{Writer: wr}
+	w.Printf("goto %s\n", n.Name)
+	return w.Err
+}
+
+func (n *ActGoto) acStmt() {}
+
+// ============
 type Activity struct {
 	Stmts []*Stmt
 }
@@ -15,8 +198,8 @@ func (a *Activity) Start() *Activity {
 	return a
 }
 
-func (a *Activity) AddState(ac *ActivityState) *Activity {
-	a.Stmts = append(a.Stmts, &Stmt{State: ac})
+func (a *Activity) AddStmt(stmt *Stmt) *Activity {
+	a.Stmts = append(a.Stmts, stmt)
 	return a
 }
 
@@ -31,16 +214,15 @@ func (a *Activity) Render(wr io.Writer) error {
 }
 
 type Stmt struct {
-	Start         *StartStmt
-	While         *WhileStmt
-	Stop          *StopStmt
-	Kill          *KillStmt
-	State         *ActivityState
-	IfStmt        *IfStmt
-	Block         []*Stmt
-	PartitionStmt *PartitionStmt
-	Note          *ActivityNote
-	Swimlane      *Swimlane
+	Start *StartStmt
+	While *WhileStmt
+	Stop  *StopStmt
+
+	Block []*Stmt
+
+	Note      *ActivityNote
+	Swimlane  *Swimlane
+	SplitStmt *ActSplitStmt
 }
 
 func (n *Stmt) Render(wr io.Writer) error {
@@ -57,32 +239,14 @@ func (n *Stmt) Render(wr io.Writer) error {
 		}
 	}
 
-	if n.State != nil {
-		if err := n.State.Render(wr); err != nil {
-			return err
-		}
-	}
-
 	if n.Swimlane != nil {
 		if err := n.Swimlane.Render(wr); err != nil {
 			return err
 		}
 	}
 
-	if n.IfStmt != nil {
-		if err := n.IfStmt.Render(wr); err != nil {
-			return err
-		}
-	}
-
 	if n.While != nil {
 		if err := n.While.Render(wr); err != nil {
-			return err
-		}
-	}
-
-	if n.PartitionStmt != nil {
-		if err := n.PartitionStmt.Render(wr); err != nil {
 			return err
 		}
 	}
@@ -99,8 +263,8 @@ func (n *Stmt) Render(wr io.Writer) error {
 		}
 	}
 
-	if n.Kill != nil {
-		if err := n.Kill.Render(wr); err != nil {
+	if n.SplitStmt != nil {
+		if err := n.SplitStmt.Render(wr); err != nil {
 			return err
 		}
 	}
@@ -176,47 +340,6 @@ func (n *StopStmt) Render(wr io.Writer) error {
 	return w.Err
 }
 
-type KillStmt struct {
-}
-
-func (n *KillStmt) Render(wr io.Writer) error {
-	w := strWriter{Writer: wr}
-	w.Printf("kill\n")
-
-	return w.Err
-}
-
-type ActivityState struct {
-	Color string
-	Name  string
-	Notes []*ActivityNote
-}
-
-func NewActivityState(name string) *ActivityState {
-	return &ActivityState{Name: name}
-}
-
-func (n *ActivityState) SetColor(c string) *ActivityState {
-	n.Color = c
-	return n
-}
-
-func (n *ActivityState) Render(wr io.Writer) error {
-	w := strWriter{Writer: wr}
-	if n.Color != "" {
-		w.Print(n.Color)
-	}
-	w.Printf(":%s;\n", n.Name)
-
-	for _, note := range n.Notes {
-		if err := note.Render(wr); err != nil {
-			return err
-		}
-	}
-
-	return w.Err
-}
-
 type WhileStmt struct {
 	Condition    string
 	PositiveText string
@@ -242,55 +365,4 @@ func (n *WhileStmt) Render(wr io.Writer) error {
 	}
 	w.Print("\n")
 	return nil
-}
-
-type IfStmt struct {
-	Condition    string
-	PositiveText string
-	PositiveStmt *Stmt
-	NegativeText string
-	NegativeStmt *Stmt
-}
-
-func NewIfStmt(condition string) *IfStmt {
-	return &IfStmt{Condition: condition}
-}
-
-func (n *IfStmt) Render(wr io.Writer) error {
-	w := strWriter{Writer: wr}
-	w.Printf("if (%s) then (%s)\n", n.Condition, n.PositiveText)
-	if n.PositiveStmt != nil {
-		if err := n.PositiveStmt.Render(wr); err != nil {
-			return err
-		}
-	}
-
-	if n.NegativeStmt != nil {
-		w.Printf("else (%s)\n", n.NegativeText)
-		if err := n.NegativeStmt.Render(wr); err != nil {
-			return err
-		}
-	}
-
-	w.Print("endif\n")
-
-	return w.Err
-}
-
-type PartitionStmt struct {
-	Name string
-	Body *Stmt
-}
-
-func (n *PartitionStmt) Render(wr io.Writer) error {
-	w := strWriter{Writer: wr}
-	w.Printf("partition %s {\n", n.Name)
-	if n.Body != nil {
-		if err := n.Body.Render(wr); err != nil {
-			return err
-		}
-	}
-	w.Print("}\n")
-
-	return w.Err
 }

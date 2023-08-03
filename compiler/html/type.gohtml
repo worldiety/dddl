@@ -5,7 +5,17 @@
     <div id="{{.Ref}}" class="p-4 grid md:grid-cols-2 md:divide-x hover:bg-green-50">
 
         <div class="flex flex-row px-2 py-3 mx-3">
-            <a href="#{{.Parent.Ref}}_definition"> {{template "dataIcon"}}</a>
+            <a href="#{{.Parent.Ref}}_definition">
+                {{if eq .Category "Synonym"}}
+                    {{template "aliasIcon"}}
+                {{else if eq .Category "Basistyp"}}
+                    {{template "baseIcon"}}
+                {{else if eq .Category "Auswahltyp"}}
+                    {{template "choiceIcon"}}
+                {{else}}
+                    {{template "dataIcon"}}
+                {{end}}
+            </a>
             <div class="flex flex-col mb-2 ml-4 mt-1">
                 <div class="text-gray-600 font-semibold">{{.Name}}</div>
                 <div class="flex w-full mt-1">
@@ -16,17 +26,17 @@
                 </div>
 
 
-                <div >
+                <div>
                     {{.Definition}}
                 </div>
             </div>
         </div>
-            <div class="pl-2 ">
-                <div class="flex justify-center items-center">
+        <div class="pl-2 ">
+            <div class="flex justify-center items-center">
                 {{.SVG}}
-                </div>
             </div>
         </div>
+    </div>
 
 
 

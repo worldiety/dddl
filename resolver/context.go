@@ -13,6 +13,17 @@ type Context struct {
 	Fragments   []*parser.Context
 }
 
+func (c *Context) Empty() bool {
+	count := 0
+	for _, fragment := range c.Fragments {
+		for range fragment.Definitions {
+			count++
+		}
+	}
+
+	return count == 0
+}
+
 func (c *Context) ShortString() string {
 	if len(c.Description) < 200 {
 		return c.Description
@@ -76,6 +87,28 @@ func (r *Resolver) initContexts() {
 		context.Description = desc
 
 		r.contexts = append(r.contexts, context)
+	}
+
+	anonName := "unbenannt"
+	ctx := &Context{
+		Name:        anonName,
+		Description: "Dieser Kontext ist virtuell und enthält Elemente, die noch keinem _Bounded Context_ zugeordnet wurden.",
+	}
+	for _, doc := range r.ws.Documents {
+		anonCtx := doc.NewVirtualContext(anonName)
+		for _, node := range doc.Children() {
+			if _, ok := node.(*parser.Context); ok {
+				continue
+			}
+			if def, ok := node.(*parser.TypeDefinition); ok {
+				anonCtx.Definitions = append(anonCtx.Definitions, def)
+			}
+		}
+
+		ctx.Fragments = append(ctx.Fragments, anonCtx)
+	}
+	if !ctx.Empty() {
+		r.contexts = append(r.contexts, ctx)
 	}
 }
 

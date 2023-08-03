@@ -1,91 +1,57 @@
 package linter
 
 import (
-	"fmt"
 	"github.com/worldiety/dddl/parser"
-	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
+	"github.com/worldiety/dddl/resolver"
+	"log"
 )
 
-type UndeclaredUsageInData struct {
+type UndeclaredTypeDeclInNamedType struct {
 	hint
-	Parent            *parser.Data
-	Name              *parser.Ident
-	ExpectedQualifier parser.Qualifier
+	Parent   *parser.TypeDefinition
+	TypeDecl *parser.TypeDeclaration
 }
 
-type UndeclaredUsageInWorkflow struct {
+type FirstUndeclaredTypeDeclInNamedType struct {
 	hint
-	Parent            *parser.Workflow
-	Name              *parser.Ident
-	ExpectedQualifier parser.Qualifier
+	Parent   *parser.TypeDefinition
+	TypeDecl *parser.TypeDeclaration
 }
 
 // CheckUndefined searches for all Identifiers and checks
 // if there are workflows or data types for them.
-func CheckUndefined(root parser.Node) []Hint {
-	ws := parser.WorkspaceOf(root)
-	if ws == nil {
-		return nil
-	}
+func CheckUndefined(r *resolver.Resolver) []Hint {
+	var res []Hint
 
-	dedupTableData := map[string]*UndeclaredUsageInData{}
-	dedupTableWorkflow := map[string]*UndeclaredUsageInWorkflow{}
-
-	err := parser.Walk(root, func(n parser.Node) error {
-		if name, ok := n.(*parser.Ident); ok {
-			if name.IsUniverse() {
-				return nil
-			}
-
-			if parent := parser.DataOf(name); parent != nil {
-				expected, declared := ws.Resolve(name)
-				if !declared {
-					hint := dedupTableData[expected.String()]
-					if hint == nil {
-						dedupTableData[expected.String()] = &UndeclaredUsageInData{
-							Parent:            parent,
-							Name:              name,
-							ExpectedQualifier: expected,
-						}
-					}
+	dedupTableNames := map[string]struct{}{}
+	parser.MustWalk(r.Workspace(), func(n parser.Node) error {
+		if decl, ok := n.(*parser.TypeDeclaration); ok {
+			qname := resolver.NewQualifiedNameFromLocalName(decl.Name)
+			defs := r.Resolve(qname)
+			if len(defs) == 0 {
+				namedType := parser.TypeDefinitionFrom(decl)
+				if namedType == nil {
+					log.Println("failed to get nearest type definition from declaration: ", decl.Name.String())
+					return nil
 				}
-			}
 
-			if parent := parser.WorkflowOf(name); parent != nil {
-				expected, declared := ws.Resolve(name)
-				if !declared {
-					hint := dedupTableWorkflow[expected.String()]
-					if hint == nil {
-						dedupTableWorkflow[expected.String()] = &UndeclaredUsageInWorkflow{
-							Parent:            parent,
-							Name:              name,
-							ExpectedQualifier: expected,
-						}
-					}
+				parentQname := resolver.NewQualifiedNameFromNamedType(namedType.Type)
+				if _, ok := dedupTableNames[parentQname.String()]; !ok {
+					dedupTableNames[parentQname.String()] = struct{}{}
+					res = append(res, &FirstUndeclaredTypeDeclInNamedType{
+						Parent:   namedType,
+						TypeDecl: decl,
+					})
 				}
+
+				res = append(res, &UndeclaredTypeDeclInNamedType{
+					Parent:   namedType,
+					TypeDecl: decl,
+				})
 			}
 		}
-
 		return nil
 	})
-
-	if err != nil {
-		panic(fmt.Errorf("cannot happen: %w", err))
-	}
-
-	var res []Hint
-	keys := maps.Keys(dedupTableWorkflow)
-	slices.Sort(keys)
-	for _, key := range keys {
-		res = append(res, dedupTableWorkflow[key])
-	}
-
-	keys = maps.Keys(dedupTableData)
-	slices.Sort(keys)
-	for _, key := range keys {
-		res = append(res, dedupTableData[key])
-	}
 
 	return res
 }

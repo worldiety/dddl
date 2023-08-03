@@ -3,6 +3,7 @@ package linter
 import (
 	"fmt"
 	"github.com/worldiety/dddl/parser"
+	"github.com/worldiety/dddl/resolver"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 	"regexp"
@@ -37,109 +38,51 @@ func ParseAssignees(str string) []AssignedTask {
 	return res
 }
 
-type AssignedContext struct {
-	hint
-	Task    AssignedTask
-	Context *parser.Context // from to-do or definition
-}
-
-type AssignedData struct {
+type AssignedDefinition struct {
 	hint
 	Task AssignedTask
-	Data *parser.Data // from to-do or definition
-}
-
-type AssignedWorkflow struct {
-	hint
-	Task     AssignedTask
-	Workflow *parser.Workflow // from to-do or definition or nested to-do within the actual workflow
+	Def  *parser.TypeDefinition
 }
 
 type AssignedTasks struct {
 	hint
-	Assignee  string
-	Contexts  []AssignedContext
-	Workflows []AssignedWorkflow
-	Datas     []AssignedData
+	Assignee   string
+	Categories map[string][]AssignedDefinition
 }
 
 // CheckAssignees inspects all definitions and Todos for assigned tasks.
-func CheckAssignees(root parser.Node) []Hint {
+func CheckAssignees(r *resolver.Resolver) []Hint {
 	var res []Hint
 	clustered := map[string]*AssignedTasks{}
 	getter := func(task AssignedTask) *AssignedTasks {
 		tmp := clustered[task.Assignee]
 		if tmp == nil {
-			tmp = &AssignedTasks{Assignee: task.Assignee}
+			tmp = &AssignedTasks{Assignee: task.Assignee, Categories: map[string][]AssignedDefinition{}}
 			clustered[task.Assignee] = tmp
 		}
 
 		return tmp
 	}
 
-	err := parser.Walk(root, func(n parser.Node) error {
-		switch n := n.(type) {
-		case *parser.Context:
-			for _, task := range ParseAssignees(n.Definition.Value()) {
-				tmp := getter(task)
-				tmp.Contexts = append(tmp.Contexts, AssignedContext{Task: task, Context: n})
-				res = append(res, &AssignedContext{Task: task, Context: n})
-			}
-
-			for _, task := range ParseAssignees(n.ToDo.Value()) {
-				tmp := getter(task)
-				tmp.Contexts = append(tmp.Contexts, AssignedContext{Task: task, Context: n})
-				res = append(res, &AssignedContext{Task: task, Context: n})
-			}
-
-		case *parser.Workflow:
-			for _, task := range ParseAssignees(n.Definition.Value()) {
-				tmp := getter(task)
-				tmp.Workflows = append(tmp.Workflows, AssignedWorkflow{Task: task, Workflow: n})
-				res = append(res, &AssignedWorkflow{Task: task, Workflow: n})
-			}
-
-			for _, task := range ParseAssignees(n.ToDo.Value()) {
-				tmp := getter(task)
-				tmp.Workflows = append(tmp.Workflows, AssignedWorkflow{Task: task, Workflow: n})
-				res = append(res, &AssignedWorkflow{Task: task, Workflow: n})
-			}
-
-			err := parser.Walk(n.Block, func(node parser.Node) error {
-				if todo, ok := node.(*parser.ToDo); ok {
-					for _, task := range ParseAssignees(todo.Value()) {
+	for _, context := range r.Contexts() {
+		for _, fragment := range context.Fragments {
+			for _, definition := range fragment.Definitions {
+				if definition.Description != nil {
+					for _, task := range ParseAssignees(definition.Description.Value) {
 						tmp := getter(task)
-						tmp.Workflows = append(tmp.Workflows, AssignedWorkflow{Task: task, Workflow: n})
-						res = append(res, &AssignedWorkflow{Task: task, Workflow: n})
+						typename := fmt.Sprintf("%T", definition.Type)
+						list := tmp.Categories[typename]
+						list = append(list, AssignedDefinition{
+							Task: task,
+							Def:  definition,
+						})
+						tmp.Categories[typename] = list
 					}
+
 				}
 
-				return nil
-			})
-
-			if err != nil {
-				return err
-			}
-
-		case *parser.Data:
-			for _, task := range ParseAssignees(n.Definition.Value()) {
-				tmp := getter(task)
-				tmp.Datas = append(tmp.Datas, AssignedData{Task: task, Data: n})
-				res = append(res, &AssignedData{Task: task, Data: n})
-			}
-
-			for _, task := range ParseAssignees(n.ToDo.Value()) {
-				tmp := getter(task)
-				tmp.Datas = append(tmp.Datas, AssignedData{Task: task, Data: n})
-				res = append(res, &AssignedData{Task: task, Data: n})
 			}
 		}
-
-		return nil
-	})
-
-	if err != nil {
-		panic(fmt.Errorf("cannot happen: %w", err))
 	}
 
 	keys := maps.Keys(clustered)
@@ -147,6 +90,6 @@ func CheckAssignees(root parser.Node) []Hint {
 	for _, key := range keys {
 		res = append(res, clustered[key])
 	}
-	
+
 	return res
 }

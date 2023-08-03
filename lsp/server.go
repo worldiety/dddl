@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/alecthomas/participle/v2"
-	"github.com/worldiety/dddl/compiler/golang"
+	"github.com/worldiety/dddl/compiler/asciidoc"
 	"github.com/worldiety/dddl/compiler/html"
 	"github.com/worldiety/dddl/linter"
 	"github.com/worldiety/dddl/lsp/protocol"
 	"github.com/worldiety/dddl/parser"
-	"github.com/worldiety/dddl/web/editor"
+	"github.com/worldiety/dddl/resolver"
 	"golang.org/x/exp/slog"
 	"io/fs"
 	"log"
@@ -185,20 +185,12 @@ func (s *Server) HTML() string {
 }
 
 func (s *Server) AsciiDoc(filename protocol.DocumentURI) string {
-	var out strings.Builder
-	doc, err := s.parseWorkspace()
-	if doc == nil {
+	src, err := s.parseWorkspace()
+	if src == nil {
 		return err.Error()
 	}
 
-	out.WriteString("= Implement me\n\n")
-	for _, context := range doc.Contexts() {
-		out.WriteString("== ")
-		out.WriteString(context.Name.Value)
-		out.WriteString("\n")
-	}
-
-	return out.String()
+	return asciidoc.Render(src)
 }
 
 const ErrPreviewParamsMissing = "lastPreviewParams missing" // checked by the client
@@ -280,13 +272,14 @@ func (s *Server) sendDiagnostics() {
 
 			if len(diagnostics) == 0 {
 				// we have no errors, so its worth to lint the entire thing
-				doc, err := s.parseWorkspace()
+				ws, err := s.parseWorkspace()
 				if err != nil {
 					log.Println("unexpected workspace parser error", err)
 				}
 
-				if doc != nil {
-					hints := linter.Lint(doc)
+				if ws != nil {
+					rslv := resolver.NewResolver(ws)
+					hints := linter.Lint(rslv)
 					diags := renderLintTexts(file.Uri, hints)
 					diagnostics = append(diagnostics, diags...)
 				}
@@ -323,8 +316,8 @@ func (s *Server) RenderPreviewHtml(params PreviewHtmlParams) string {
 	log.Println(params)
 	s.lastPreviewParams = &params
 
-	var model editor.EditorPreview
-	model.VSCode.ScriptUris = append(model.VSCode.ScriptUris, string(s.lastPreviewParams.TailwindUri))
+	var model html.PreviewModel
+	model.Head.ScriptUris = append(model.Head.ScriptUris, string(s.lastPreviewParams.TailwindUri))
 
 	ws, err := s.parseWorkspace()
 	if ws == nil {
@@ -335,15 +328,11 @@ func (s *Server) RenderPreviewHtml(params PreviewHtmlParams) string {
 		model.Error = err.Error()
 	}
 
-	linter := editor.Linter(func(ws *parser.Workspace) []linter.Hint {
-		return linter.Lint(ws)
-	})
-
-	return editor.RenderViewHtml(linter, ws, model)
+	return html.RenderViewHtml(ws, model)
 }
 
 func (s *Server) GenerateGo() {
-	opts := golang.Default()
+	/*opts := golang.Default()
 	ws, err := s.parseWorkspace()
 	if err != nil {
 		log.Println(err)
@@ -357,4 +346,7 @@ func (s *Server) GenerateGo() {
 	if err != nil {
 		log.Println("cannot generate go code", err)
 	}
+
+	*/
+	log.Println("TODO implement me again")
 }

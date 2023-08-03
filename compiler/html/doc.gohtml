@@ -2,6 +2,9 @@
     {{template "overview" .}}
 
 
+    {{if not .Doc.Contexts}}
+        <p>Keine Definitionen vorhanden.</p>
+    {{end}}
 
     {{range .Doc.Contexts}}
         {{template "context" .}}
@@ -16,24 +19,8 @@
 
 
 
-{{define "Workflow"}}
-    <div class="p-1">
 
-        <h3 id="{{.Qualifier}}" class="font-normal text-lg mb-2">Arbeitsablauf {{.Name}}</h3>
 
-        {{if .Todo}}
-            {{template "Todo" .Todo}}
-        {{end}}
-
-        {{.Definition}}
-
-        {{if .SVG}}
-            {{.SVG}}
-        {{end}}
-    </div>
-{{end}}
-
-{
 
 
 

@@ -1,7 +1,7 @@
 package linter
 
 import (
-	"github.com/worldiety/dddl/parser"
+	"github.com/worldiety/dddl/resolver"
 )
 
 type hint struct {
@@ -16,13 +16,12 @@ type Hint interface {
 }
 
 // Lint applies all available linters.
-func Lint(root parser.Node) []Hint {
+func Lint(r *resolver.Resolver) []Hint {
 	var res []Hint
-	res = append(res, CheckToDos(root)...)
-	res = append(res, CheckLiteralDefinitions(root)...)
-	res = append(res, CheckUndefined(root)...)
-	res = append(res, CheckAmbiguous(root)...)
-	res = append(res, CheckAssignees(root)...)
+	res = append(res, CheckLiteralDefinitions(r)...)
+	res = append(res, CheckUndefined(r)...)
+	res = append(res, CheckAmbiguous(r)...)
+	res = append(res, CheckAssignees(r)...)
 
 	return res
 }

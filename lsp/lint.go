@@ -42,71 +42,30 @@ func renderLintTexts(matchFile protocol.DocumentURI, hints []linter.Hint) []prot
 		switch h := hint.(type) {
 		case *linter.AmbiguousDeclaration:
 			for _, declaration := range h.Declarations {
-				if matches(declaration.DeclaredName()) {
-					res = append(res, newDiag(h.Declarations[0].DeclaredName(), "Dieser Bezeichner wurde bereits woanders deklariert"))
+				if matches(declaration.Type.GetName()) {
+					res = append(res, newDiag(h.Declarations[0].Type.GetName(), "Dieser Bezeichner wurde bereits woanders deklariert"))
 				}
 			}
-		case *linter.AssignedContext:
-			if matches(h.Context) {
-				res = append(res, newDiag(h.Context.Name, h.Task.Assignee+" hat eine offene Aufgabe: "+h.Task.Task))
-			}
-		case *linter.AssignedData:
-			if matches(h.Data) {
-				res = append(res, newDiag(h.Data.Name, h.Task.Assignee+" hat eine offene Aufgabe: "+h.Task.Task))
+		case *linter.AssignedDefinition:
+			if matches(h.Def) {
+				res = append(res, newDiag(h.Def.Type.GetName(), h.Task.Assignee+" hat eine offene Aufgabe: "+h.Task.Task))
 			}
 
 		case *linter.AssignedTasks:
 			// ignore, for linting, we use the inflated ones
-		case *linter.AssignedWorkflow:
-			if matches(h.Workflow) {
-				res = append(res, newDiag(h.Workflow.Name, h.Task.Assignee+" hat eine offene Aufgabe: "+h.Task.Task))
-			}
-		case *linter.ContextHasQuestions:
-			if matches(h.Context) {
-				res = append(res, newDiag(h.Context.Name, "Der Kontext enthält noch offene Fragen."))
-			}
-		case *linter.ContextNotDescribed:
-			if matches(h.Context) {
-				res = append(res, newDiag(h.Context.Name, "Der Kontext wurde noch nicht beschrieben."))
-			}
-		case *linter.DataHasQuestions:
-			if matches(h.Data) {
-				res = append(res, newDiag(h.Data.Name, "Die Daten-Deklaration enthält noch offene Fragen."))
-			}
-		case *linter.DataNotDescribed:
-			if matches(h.Data) {
-				res = append(res, newDiag(h.Data.Name, "Die Daten-Deklaration hat keine Beschreibung."))
-			}
-		case *linter.ToDoContext:
-			if matches(h.Parent) {
-				res = append(res, newDiag(h.Parent.Name, "Die Kontext-Deklaration hat ein offenes TODO"))
-			}
-		case *linter.ToDoData:
-			if matches(h.Parent) {
-				res = append(res, newDiag(h.Parent.Name, "Die Daten-Deklaration hat ein offenes TODO."))
-			}
-		case *linter.ToDoWorkflow:
-			if matches(h.Parent) {
-				res = append(res, newDiag(h.Parent.Name, "Die Arbeitsablauf-Deklaration hat ein offenes TODO"))
-			}
-		case *linter.UndeclaredUsageInData:
-			if matches(h.Parent) {
-				res = append(res, newDiag(h.Parent.Name, "Die Daten-Deklaration verwendet den unbekannten Bezeichner "+h.Name.Value))
-			}
-		case *linter.UndeclaredUsageInWorkflow:
-			if matches(h.Parent) {
-				res = append(res, newDiag(h.Parent.Name, "Der Arbeitsablauf verwendet den unbekannten Bezeichner "+h.Name.Value))
-			}
-		case *linter.WorkflowHasQuestions:
-			if matches(h.Workflow) {
-				res = append(res, newDiag(h.Workflow.Name, "Der Arbeitsablauf enthält noch offene Fragen."))
+
+		case *linter.TypeDefinitionNotDescribed:
+			if matches(h.Def) {
+				res = append(res, newDiag(h.Def.Type.GetName(), "Der Kontext wurde noch nicht beschrieben."))
 			}
 
-		case *linter.WorkflowNotDescribed:
-			if matches(h.Workflow) {
-				res = append(res, newDiag(h.Workflow.Name, "Der Arbeitsablauf ist noch nicht beschrieben."))
+		case *linter.UndeclaredTypeDeclInNamedType:
+			if matches(h.Parent) {
+				res = append(res, newDiag(h.Parent, "Die Deklaration kann nicht aufgelöst werden: "+h.TypeDecl.Name.String()))
 			}
 
+		case *linter.FirstUndeclaredTypeDeclInNamedType:
+			continue
 		default:
 			panic(fmt.Sprintf("implement lint support: %T", h))
 		}

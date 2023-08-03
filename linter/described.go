@@ -1,79 +1,42 @@
 package linter
 
 import (
-	"fmt"
 	"github.com/worldiety/dddl/parser"
+	"github.com/worldiety/dddl/resolver"
+	"strings"
 )
 
-type ContextNotDescribed struct {
+type TypeDefinitionNotDescribed struct {
 	hint
-	Context *parser.Context
-}
-
-type ContextHasQuestions struct {
-	hint
-	Context *parser.Context
-}
-
-type WorkflowHasQuestions struct {
-	hint
-	Workflow *parser.Workflow
-}
-
-type WorkflowNotDescribed struct {
-	hint
-	Workflow *parser.Workflow
-}
-
-type DataNotDescribed struct {
-	hint
-	Data *parser.Data
-}
-
-type DataHasQuestions struct {
-	hint
-	Data *parser.Data
+	Def *parser.TypeDefinition
 }
 
 // CheckLiteralDefinitions inspects the "Definition" literals for types.
 // Every parser.TypeDecl should have one, otherwise
 // the ubiquitous language is incomplete.
-func CheckLiteralDefinitions(root parser.Node) []Hint {
+func CheckLiteralDefinitions(r *resolver.Resolver) []Hint {
 	var res []Hint
-	err := parser.Walk(root, func(n parser.Node) error {
-		switch n := n.(type) {
-		case *parser.Context:
-			if n.Definition.Empty() {
-				res = append(res, &ContextNotDescribed{Context: n})
-			}
 
-			if n.Definition.NeedsRevise() {
-				res = append(res, &ContextHasQuestions{Context: n})
-			}
-		case *parser.Workflow:
-			if n.Definition.Empty() {
-				res = append(res, &WorkflowNotDescribed{Workflow: n})
-			}
+	for _, context := range r.Contexts() {
+		for _, fragment := range context.Fragments {
+			for _, definition := range fragment.Definitions {
+				if definition.Description == nil {
+					res = append(res, &TypeDefinitionNotDescribed{Def: definition})
+					continue
+				}
 
-			if n.Definition.NeedsRevise() {
-				res = append(res, &WorkflowHasQuestions{Workflow: n})
-			}
+				text := strings.TrimSpace(strings.ToLower(definition.Description.Value))
+				if text == "" {
+					res = append(res, &TypeDefinitionNotDescribed{Def: definition})
+					continue
+				}
 
-		case *parser.Data:
-			if n.Definition.Empty() {
-				res = append(res, &DataNotDescribed{Data: n})
-			}
-
-			if n.Definition.NeedsRevise() {
-				res = append(res, &DataHasQuestions{Data: n})
+				if strings.Contains(text, "todo") {
+					res = append(res, &TypeDefinitionNotDescribed{Def: definition})
+					continue
+				}
 			}
 		}
-
-		return nil
-	})
-
-	if err != nil {
-		panic(fmt.Errorf("cannot happen: %w", err))
 	}
 
 	return res

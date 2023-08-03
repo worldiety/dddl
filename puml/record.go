@@ -6,37 +6,6 @@ import (
 	"github.com/worldiety/dddl/resolver"
 )
 
-type RFlags struct {
-	MainType parser.NamedType
-	Visited  map[parser.NamedType]bool
-}
-
-func NewRFlags(mainType parser.NamedType) RFlags {
-	return RFlags{
-		MainType: mainType,
-		Visited:  map[parser.NamedType]bool{},
-	}
-}
-
-func RenderNamedType(r *resolver.Resolver, namedType parser.NamedType, flags RFlags) *plantuml.Diagram {
-	diag := plantuml.NewDiagram()
-	diag.BackgroundColor = "#00000000"
-	if _, ok := flags.Visited[namedType]; ok {
-		return diag
-	}
-
-	flags.Visited[namedType] = true
-
-	switch t := namedType.(type) {
-	case *parser.Struct:
-		diag.Add(Record(r, t, flags).Renderables...)
-	case *parser.Choice:
-		diag.Add(Choice(r, t, flags).Renderables...)
-	}
-
-	return diag
-}
-
 func Record(r *resolver.Resolver, data *parser.Struct, flags RFlags) *plantuml.Diagram {
 	diag := plantuml.NewDiagram()
 	class := ClassFromRecord(r, data)

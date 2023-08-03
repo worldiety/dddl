@@ -59,6 +59,19 @@ func (w strWriter) Printf(format string, args ...interface{}) {
 	}
 }
 
+func (w strWriter) Write(p []byte) (n int, err error) {
+	if w.Err != nil {
+		return 0, err
+	}
+
+	n, err = w.Writer.Write(p)
+	if err != nil {
+		w.Err = err
+	}
+
+	return
+}
+
 func escapeP(str string) string {
 	return strings.ReplaceAll(str, `"`, "<U+0022>")
 }

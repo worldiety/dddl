@@ -1,37 +1,83 @@
 {{define "Hints"}}
-    <h2 id="_Aufgaben" class="font-medium text-lg mb-2">Offene Aufgaben</h2>
-    <ul>
-        {{range .Hints}}
-            <li>
-                <div class="flex m-1 ml-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                         stroke="currentColor" class="w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                    <div>{{.}}</div>
+
+
+    {{if .Hints}}
+        <div id="_Aufgaben" class="bg-white shadow sticky top-0 mt-10 mb-10">
+            <div class="flex flex-row px-2 py-3 mx-3">
+                <a href="#top"> {{template "ctxIcon"}}</a>
+                <div class="flex flex-col mb-2 ml-4 mt-1">
+                    <div class="text-gray-600 font-semibold">Offene Aufgaben</div>
+                    <div class="flex w-full mt-1">
+                        <div class="text-green-700 font-base text-xs mr-1 ">
+                            Allgemeine Aufgaben
+                        </div>
+                        <div class="text-gray-400 font-thin text-xs">
+
+                        </div>
+                    </div>
                 </div>
 
-            </li>
-        {{end}}
-    </ul>
+                <div class="pl-2">
+
+                </div>
+            </div>
+
+            <div class="border-b border-white"></div>
+        </div>
+
+
+        <div class="text-gray-600 bg-white shadow rounded-b-lg mb-6 md:ml-20 -mt-10">
+            <ol class="list-decimal pl-12">
+                {{range .Hints}}
+                    <li>{{.}}</li>
+                {{end}}
+            </ol>
+        </div>
+
+    {{end}}
+
+
+
 
     {{if .NamedTasks}}
         {{range .NamedTasks}}
-            <h2 id="_Aufgaben_{{.Name}}" class="font-medium text-lg mb-2">Aufgaben für {{.Name}}</h2>
-            <ul>
-                {{range .Tasks}}
-                    <li>
-                        <div class="flex m-1 ml-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                 stroke="currentColor" class="w-6 h-6">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                            <div>{{.}}</div>
-                        </div>
+            <div id="_Aufgaben_{{.Name}}" class="bg-white shadow sticky top-0 mt-10 mb-10">
+                <div class="flex flex-row px-2 py-3 mx-3">
+                    <a href="#top"> {{template "ctxIcon"}}</a>
+                    <div class="flex flex-col mb-2 ml-4 mt-1">
+                        <div class="text-gray-600 font-semibold">Aufgaben für {{.Name}}</div>
+                        <div class="flex w-full mt-1">
+                            <div class="text-green-700 font-base text-xs mr-1 ">
+                                Personenbezogene Aufgaben
+                            </div>
+                            <div class="text-gray-400 font-thin text-xs">
 
-                    </li>
-                {{end}}
-            </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pl-2">
+
+                    </div>
+                </div>
+
+                <div class="border-b border-white"></div>
+            </div>
+
+
+            <div class="text-gray-600 bg-white shadow rounded-b-lg mb-6 md:ml-20 -mt-10">
+                <ol class="list-decimal pl-12">
+                    {{range .Tasks}}
+                        <li>{{.}}</li>
+                    {{end}}
+                </ol>
+            </div>
         {{end}}
     {{end}}
+
+
+
+
+
+    
 {{end}}

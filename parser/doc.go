@@ -5,6 +5,20 @@ type Doc struct {
 	Types []*TypeDefinition `@@*`
 }
 
+func (n *Doc) NewVirtualContext(name string) *Context {
+	return &Context{
+		node: n.node,
+		KeywordContext: &KeywordContext{
+			node:    n.node,
+			Keyword: "context",
+		},
+		Name: &Name{
+			node:  n.node,
+			Value: name,
+		},
+	}
+}
+
 func (n *Doc) Children() []Node {
 	var res []Node
 	for _, t := range n.Types {
