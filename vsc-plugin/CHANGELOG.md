@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.16
+Redesigned grammar based on experience reports.
+
 ## 0.0.15
 Added basic code generator support for Go.
 
