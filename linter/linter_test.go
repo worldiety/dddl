@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"github.com/worldiety/dddl/parser"
+	"github.com/worldiety/dddl/resolver"
 	"testing"
 )
 
@@ -18,6 +19,6 @@ func TestLint(t *testing.T) {
 
 	ws := &parser.Workspace{Documents: map[string]*parser.Doc{"bla": v}}
 
-	hints := Lint(ws)
+	hints := Lint(resolver.NewResolver(ws))
 	fmt.Printf("%#v", hints)
 }

@@ -125,6 +125,12 @@ var tipWFReturnErr string
 //go:embed tips/wf_eventsent.md
 var tipWFEventSent string
 
+//go:embed tips/kw_choice.md
+var tipKWChoice string
+
+//go:embed tips/kw_type.md
+var tipKWTyp string
+
 func (s *Server) hoverText(token *VSCToken) string {
 	switch n := token.Node.(type) {
 	case *parser.KeywordContext:
@@ -133,31 +139,39 @@ func (s *Server) hoverText(token *VSCToken) string {
 		} else {
 			return fmt.Sprintf(tipKWContextWFDef, n.Keyword)
 		}
-	case *parser.Ident:
+	case *parser.KeywordChoice:
+		return fmt.Sprintf(tipKWChoice, n.Keyword)
+
+	case *parser.KeywordStruct:
+		return fmt.Sprintf(tipKWData, n.Keyword)
+	case *parser.KeywordType:
+		return fmt.Sprintf(tipKWTyp, n.Keyword)
+	case *parser.KeywordFn:
+		return fmt.Sprintf(tipKWTask, n.Keyword)
+	case *parser.TypeDeclaration:
 		declaration := false
 		switch n.Parent().(type) {
 		case *parser.Function, *parser.Alias, *parser.Struct, *parser.Choice, *parser.Type, *parser.Context:
 			declaration = true
 		}
 		if declaration {
-			return fmt.Sprintf(tipDeclarationIdent, n.Value)
+			return fmt.Sprintf(tipDeclarationIdent, n.Name.String())
 		}
 
-		if n.IsUniverse() {
-			return fmt.Sprintf(tipUniverseIdent, n.Value)
+		if parser.UniverseName(n.Name.String()).IsUniverse() {
+			return fmt.Sprintf(tipUniverseIdent, n.Name.String())
 		}
 
-		return fmt.Sprintf(tipDefinedIdent, n.Value)
+		return fmt.Sprintf(tipDefinedIdent, n.Name.String())
+		/*
+			case *parser.Literal:
+				s := shortStringLit(n.Text)
+				return fmt.Sprintf(tipDefinition, s)
 
-	case *parser.Definition:
-		s := shortStringLit(n.Text)
-		return fmt.Sprintf(tipDefinition, s)
+			case *parser.ToDoText:
+				s := shortStringLit(n.Text)
+				return fmt.Sprintf(tipTodoText, s)*/
 
-	case *parser.ToDoText:
-		s := shortStringLit(n.Text)
-		return fmt.Sprintf(tipTodoText, s)
-	case *parser.KeywordData:
-		return fmt.Sprintf(tipKWData, n.Keyword)
 	case *parser.KeywordWorkflow:
 		return fmt.Sprintf(tipKWWorkflow, n.Keyword)
 	case *parser.KeywordActor:
@@ -172,38 +186,6 @@ func (s *Server) hoverText(token *VSCToken) string {
 		return fmt.Sprintf(tipKWOutput, n.Keyword)
 	case *parser.KeywordReturn:
 		return fmt.Sprintf(tipKWReturn, n.Keyword)
-	case *parser.Literal:
-		if identOrLit, ok := n.Parent().(*parser.IdentOrLiteral); ok {
-			switch identOrLit.Parent().(type) {
-			/*case *parser.ActorStmt:
-			return fmt.Sprintf(tipWFActor, n.Value)*/
-			case *parser.Function:
-				return fmt.Sprintf(tipWFTask, n.Value)
-			/*case *parser.ViewStmt:
-				return fmt.Sprintf(tipWFView, n.Value)
-			case *parser.InputStmt:
-				return fmt.Sprintf(tipWFInput, n.Value)
-			case *parser.OutputStmt:
-				return fmt.Sprintf(tipWFOutput, n.Value)
-			case *parser.ReturnErrorStmt:
-				return fmt.Sprintf(tipWFReturnErr, n.Value)
-			case *parser.EventSentStmt:
-				return fmt.Sprintf(tipWFEventSent, n.Value)
-			*/
-			default:
-
-				return fmt.Sprintf("undokumentierte Literalverwendung: %T", token.Node)
-			}
-		}
-
-		switch n.Parent().(type) {
-		case *parser.FnStmtIf:
-			return fmt.Sprintf(tipWFIf, n.Value)
-			/*case *parser.WhileStmt:
-			return fmt.Sprintf(tipWFWhile, n.Value)*/
-		}
-
-		return fmt.Sprintf("undokumentierte Identverwendung: %T", token.Node)
 
 	default:
 		return fmt.Sprintf("%T", token.Node)

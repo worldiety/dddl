@@ -12,6 +12,10 @@ type Aggregate struct {
 	Types            []*TypeDefinition `( "{" @@* "}" )?`
 }
 
+func (n *Aggregate) GetKeyword() string {
+	return n.KeywordAggregate.Keyword
+}
+
 func (n *Aggregate) GetName() *Name {
 	return n.Name
 }

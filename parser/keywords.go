@@ -4,6 +4,16 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 )
 
+type KeywordType struct {
+	node
+	Tokens  []lexer.Token
+	Keyword string `@("type" | "Typ")`
+}
+
+func (n *KeywordType) EndPosition() lexer.Position {
+	return n.relocateEndPos(n.Tokens)
+}
+
 type KeywordView struct {
 	node
 	Tokens  []lexer.Token
@@ -131,16 +141,6 @@ type KeywordActor struct {
 }
 
 func (n *KeywordActor) EndPosition() lexer.Position {
-	return n.relocateEndPos(n.Tokens)
-}
-
-type KeywordData struct {
-	node
-	Tokens  []lexer.Token
-	Keyword string `@("data" | "Daten")`
-}
-
-func (n *KeywordData) EndPosition() lexer.Position {
 	return n.relocateEndPos(n.Tokens)
 }
 

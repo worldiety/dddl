@@ -1,12 +1,25 @@
 package lsp
 
 import (
+	_ "embed"
 	"fmt"
 	"github.com/worldiety/dddl/linter"
 	"github.com/worldiety/dddl/lsp/protocol"
 	"github.com/worldiety/dddl/parser"
 	"path/filepath"
 )
+
+//go:embed tips/help_missingdescription.md
+var help_missingdescription string
+
+//go:embed tips/help_tododescription.md
+var help_tododescription string
+
+//go:embed tips/help_nocontext.md
+var help_nocontext string
+
+//go:embed tips/help_undefined.md
+var help_undefined string
 
 func newDiag(n parser.Node, msg string) protocol.Diagnostic {
 	pos := n.Position()
@@ -43,7 +56,7 @@ func renderLintTexts(matchFile protocol.DocumentURI, hints []linter.Hint) []prot
 		case *linter.AmbiguousDeclaration:
 			for _, declaration := range h.Declarations {
 				if matches(declaration.Type.GetName()) {
-					res = append(res, newDiag(h.Declarations[0].Type.GetName(), "Dieser Bezeichner wurde bereits woanders deklariert"))
+					res = append(res, newDiag(h.Declarations[0].Type.GetName(), "Dieser Bezeichner wurde bereits woanders deklariert: "+declaration.Pos.String()))
 				}
 			}
 		case *linter.AssignedDefinition:
@@ -56,16 +69,29 @@ func renderLintTexts(matchFile protocol.DocumentURI, hints []linter.Hint) []prot
 
 		case *linter.TypeDefinitionNotDescribed:
 			if matches(h.Def) {
-				res = append(res, newDiag(h.Def.Type.GetName(), "Der Kontext wurde noch nicht beschrieben."))
+				keyword := h.Def.Type.GetKeyword()
+				typeName := h.Def.Type.GetName().Value
+				if h.HasOpenTasks {
+					res = append(res, newDiag(h.Def.Type.GetName(), fmt.Sprintf(help_tododescription, keyword, typeName)))
+				} else {
+					res = append(res, newDiag(h.Def.Type.GetName(), fmt.Sprintf(help_missingdescription, keyword, typeName)))
+				}
 			}
 
 		case *linter.UndeclaredTypeDeclInNamedType:
-			if matches(h.Parent) {
-				res = append(res, newDiag(h.Parent, "Die Deklaration kann nicht aufgelöst werden: "+h.TypeDecl.Name.String()))
+			typeName := h.TypeDecl.Name.String()
+			if matches(h.TypeDecl) {
+				res = append(res, newDiag(h.TypeDecl.Name, fmt.Sprintf(help_undefined, typeName)))
 			}
 
 		case *linter.FirstUndeclaredTypeDeclInNamedType:
 			continue
+		case *linter.DeclaredWithoutContext:
+			keyword := h.TypeDef.Type.GetKeyword()
+			typeName := h.TypeDef.Type.GetName().Value
+			if matches(h.TypeDef) {
+				res = append(res, newDiag(h.TypeDef.Type.GetName(), fmt.Sprintf(help_nocontext, keyword, typeName)))
+			}
 		default:
 			panic(fmt.Sprintf("implement lint support: %T", h))
 		}

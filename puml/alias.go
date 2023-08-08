@@ -33,7 +33,7 @@ func Alias(r *resolver.Resolver, data *parser.Alias, flags RFlags) *plantuml.Dia
 			})
 		}
 
-		addUniverse(diag, iface.Name(), parser.NewIdentWithParent(data, data.BaseType.Name.String()))
+		addUniverse(diag, iface.Name(), parser.UniverseName(data.BaseType.Name.String()))
 
 		insertTypeParams(r, iface.Name(), diag, data.BaseType, flags)
 	}

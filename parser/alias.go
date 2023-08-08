@@ -12,6 +12,10 @@ type Alias struct {
 	BaseType     *TypeDeclaration `( "=" @@ )?`
 }
 
+func (n *Alias) GetKeyword() string {
+	return n.KeywordAlias.Keyword
+}
+
 func (n *Alias) GetName() *Name {
 	return n.Name
 }

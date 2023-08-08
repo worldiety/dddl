@@ -86,14 +86,12 @@ func (v VSCTokens) Encode() []uint32 {
 
 func getTokenType(node parser.Node) int {
 	switch node.(type) {
-	case *parser.Ident:
-		return TokenType
+
 	case *parser.KeywordTodo,
 		*parser.KeywordContext,
 		*parser.KeywordActor,
 		*parser.KeywordEvent,
 		*parser.KeywordEventSent,
-		*parser.KeywordData,
 		*parser.KeywordActivity,
 		*parser.KeywordIf,
 		*parser.KeywordThen,
@@ -108,10 +106,9 @@ func getTokenType(node parser.Node) int {
 		*parser.KeywordWorkflow:
 		return TokenKeyword
 
-	case *parser.Literal, *parser.Definition:
+	case *parser.Literal:
 		return TokenString
-	case *parser.ToDoText:
-		return TokenComment
+
 	default:
 		return TokenComment
 	}
@@ -123,7 +120,6 @@ func isSemanticToken(n parser.Node) bool {
 		*parser.KeywordActor,
 		*parser.KeywordEvent,
 		*parser.KeywordEventSent,
-		*parser.KeywordData,
 		*parser.KeywordContext,
 		*parser.KeywordActivity,
 		*parser.KeywordIf,
@@ -136,9 +132,21 @@ func isSemanticToken(n parser.Node) bool {
 		*parser.KeywordView,
 		*parser.KeywordInput,
 		*parser.KeywordOutput,
-		*parser.KeywordWorkflow:
+		*parser.KeywordWorkflow,
+		*parser.KeywordChoice,
+		*parser.KeywordFn,
+		*parser.KeywordType,
+		*parser.KeywordAlias,
+		*parser.KeywordStruct:
+
 		return true
-	case *parser.Ident, *parser.Literal, *parser.Definition, *parser.ToDoText:
+	case *parser.Literal:
+		return true
+	case *parser.TypeDeclaration:
+		return true
+	case *parser.Choice, *parser.Type, *parser.Alias, *parser.Struct, *parser.Function:
+		return true
+	case parser.FnStmt:
 		return true
 	}
 

@@ -2,7 +2,7 @@ package parser
 
 type KeywordChoice struct {
 	node
-	Keyword string `@("enum" | "Auswahl")`
+	Keyword string `@("choice" | "Auswahl")`
 }
 
 type Choice struct {
@@ -10,6 +10,10 @@ type Choice struct {
 	KeywordChoice *KeywordChoice     `@@`
 	Name          *Name              `@@`
 	Choices       []*TypeDeclaration `("{" @@ ((","|"or"|"oder") @@)+ "}" )?`
+}
+
+func (n *Choice) GetKeyword() string {
+	return n.KeywordChoice.Keyword
 }
 
 func (n *Choice) GetName() *Name {

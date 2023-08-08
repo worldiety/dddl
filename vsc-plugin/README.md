@@ -134,76 +134,43 @@ _Ist-Zustands_ besser den zukünftig erwünschten und ggf. neu digitalisierten A
 
 ```ddd
 
-// kontextfreier Arbeitsablauf
+"TODO: Format noch zu klären."
+Typ Kundennummer = Text
 
-Arbeitsablauf AuftragPlatzieren {
-    "AuftragPlatzieren ist der Kernprozess."
-
-    Kontext Produktion {
-        Akteur Mitarbeiter {
-            Ereignis "Auftrag erhalten"
-            Aufgabe "Auftrag prüfen" 
-        }
-    }
-
-
-    Kontext Einkauf {
-        Akteur HauptEinkäufer {
-            Ereignis MaterialWurdeVerbraucht
-            Aufgabe "Preise prüfen und neues Material bestellen"
-            Entscheidung wenn "Material lieferbar" dann {
-                Zwischenereignis ArtikelBestellungAusgelöst
-            } sonst{
-                // Bezeichner
-                Aufgabe FehllisteErstellen {
-                    Ansicht Dashboard
-                    Eingabe "Kladde vom Mitarbeiter"
-                    Ausgabe Exceldatei
-                }
-                Zwischenereignis PanikEMailAnChef
-                Fehler KeinMaterialVerfügbar
-            }
-        }
-    }
-
-    Kontext Produktion {
-        Akteur Mitarbeiter {
-            Wiederholung solange "noch kein Material da"{
-                Aufgabe "busy waiting"
-            }
-            Aufgabe "Beende Fertigung"
-            Zwischenereignis "Fertigung beendet"
-        }
-    }
-
-    Kontext Fakturierung {
-        Akteur Rechnungssteller {
-            Ereignis "Fertigung beendet"
-            Aufgabe RechnungsErstellung 
-                TODO "@Torben: Dieser Prozess muss noch modelliert werden"
-            Endereignis "Auftrag fertig"
-        }
-    }
+"
+@Torben: Heißt das wirklich Kunde oder wird eigentlich ein anderer Name verwendet?
+* Verbraucher?
+* Gewerk?
+"
+Auswahl Kunde {
+    Firmenkunde
+    oder Privatkunde
 }
 
-// ggf. in anderen Dateien
+"Diesen _Bounded Kontext_ konnten wir bereits identifizieren."
+Kontext Scoring {
 
-// Eine leere Kontext-Deklaration kann als Erinnerungsstütze nützlich sein
-Kontext Rechnungsstellung
-
-Kontext Zeiterfassung {
-    TODO "
-    Es bleibt noch viel zu tun:
-        * @Torben: Rechtslage prüfen
-        * @Olaf: Format der Stundenzettel zeigen lassen
-    "
+    Daten Kunde {
+        Kundennummer
+    }
     
-    "Die Zeiterfassung ist ein _spannender_ **Kontext**."
+    Synonym Verbraucher = Kunde
     
-    Daten Vorgang
-    
-    Arbeitsablauf ZeitBuchen
+    "Ganz kompliziert, geht aber auch ohne Body und ohne Parameter, um die Erkundung der Domäne zu vereinfachen."
+    Aufgabe ImmoFinanzScoringBerechnen(EingereichterAntrag) -> (BerechneterAntrag , Abgelehnt|BerechnungsFehler) {
+        wenn "eingereichter Antrag Basisscore < 5" -> Abgelehnt
+        sonst {
+            wenn "Sonne scheint" {
+                -> Berechnungsfehler
+            }
+        }
+       
+       -> BerechnterAntrag
+    } 
 }
+
+
+ 
 
 
 ```

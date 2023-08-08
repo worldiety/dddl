@@ -5,7 +5,7 @@ import "github.com/alecthomas/participle/v2/lexer"
 type KeywordFn struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `@("fn" | "Aufgabe"|"view"|"Ansicht"|"workflow"|"Arbeitsablauf")`
+	Keyword string `@("task" | "Aufgabe")`
 }
 
 func (n *KeywordFn) EndPosition() lexer.Position {
@@ -39,27 +39,6 @@ func (n *FuncTypeRet) Children() []Node {
 
 func (*FuncTypeRet) fnStmt() {}
 
-type Name struct {
-	node
-	Value string `(@Name | @Text)`
-}
-
-type QualifiedName struct {
-	node
-	Names []*Name `@@ ("." @@)*`
-}
-
-func (n *QualifiedName) String() string {
-	tmp := ""
-	for i, name := range n.Names {
-		tmp += name.Value
-		if i < len(n.Names)-1 {
-			tmp += "."
-		}
-	}
-	return tmp
-}
-
 type Function struct {
 	node
 	KeywordFn *KeywordFn `@@`
@@ -70,6 +49,10 @@ type Function struct {
 	Return *FuncTypeRet `@@?`
 	// Body may be nil for stubs or unknown branch-behavior
 	Body *FnStmtBlock `( @@ )?`
+}
+
+func (n *Function) GetKeyword() string {
+	return n.KeywordFn.Keyword
 }
 
 func (n *Function) Children() []Node {

@@ -7,6 +7,10 @@ type Context struct {
 	Definitions    []*TypeDefinition `("{"@@*"}")?`
 }
 
+func (n *Context) GetKeyword() string {
+	return n.KeywordContext.Keyword
+}
+
 func (n *Context) GetName() *Name {
 	return n.Name
 }

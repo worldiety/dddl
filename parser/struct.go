@@ -2,7 +2,7 @@ package parser
 
 type KeywordStruct struct {
 	node
-	Keyword string `@("struct" | "Verbund" | "Daten")`
+	Keyword string `@("data" | "Daten")`
 }
 
 type Struct struct {
@@ -10,6 +10,10 @@ type Struct struct {
 	KeywordStruct *KeywordStruct     `@@`
 	Name          *Name              `@@`
 	Fields        []*TypeDeclaration `( "{" @@ (("," | "und" ) @@)* "}" )?`
+}
+
+func (n *Struct) GetKeyword() string {
+	return n.KeywordStruct.Keyword
 }
 
 func (n *Struct) Children() []Node {

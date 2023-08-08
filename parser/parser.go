@@ -165,7 +165,7 @@ func (e *DocParserError) Unwrap() []error {
 func NewParser() *participle.Parser[Doc] {
 	var basicLexer = lexer.MustSimple([]lexer.SimpleRule{
 		{"comment", `//.*|/\*.*?\*/`},
-		{"Keyword", `(?i)\b(Aufgabe|fn|note|Notiz|enum|Auswahl|struct|Verbund|Daten|typ|Type|alias|Synonym|view|Ansicht|aggregate|Aggregat|workflow|Arbeitsablauf)`},
+		{"Keyword", `(?i)\b(Auswahl|choice|Daten|data|Synonym|alias|type|Typ|task|Aufgabe)`},
 		{"Text", `\"(\\.|[^"\\])*\"`},
 		{"Name", `([À-ž]|\w)+`},
 		{"Assign", `=`},

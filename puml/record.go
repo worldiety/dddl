@@ -36,7 +36,7 @@ func insertTypeParams(r *resolver.Resolver, ownername string, diag *plantuml.Dia
 		return
 	}
 
-	ident := parser.NewIdentWithParent(field, field.Name.String())
+	ident := parser.UniverseName(field.Name.String())
 	mult := ident.IsList() || ident.IsMap()
 	for _, param := range field.Params {
 		defs := r.ResolveLocalQualifier(param.Name)

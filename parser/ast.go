@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"github.com/alecthomas/participle/v2/lexer"
+	"strings"
 )
 
 type Node interface {
@@ -43,7 +44,7 @@ func (n *node) relocateEndPos(tokens []lexer.Token) lexer.Position {
 	}
 
 	pos := n.Position()
-	pos.Column += len(tokens[len(tokens)-1].Value)
+	pos.Column += len(strings.TrimSpace(tokens[len(tokens)-1].Value))
 	return pos
 }
 

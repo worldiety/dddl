@@ -33,7 +33,7 @@ func Type(r *resolver.Resolver, data *parser.Type, flags RFlags) *plantuml.Diagr
 			})
 		}
 
-		addUniverse(diag, iface.Name(), parser.NewIdentWithParent(data, data.Basetype.Name.String()))
+		addUniverse(diag, iface.Name(), parser.UniverseName(data.Basetype.Name.String()))
 
 		insertTypeParams(r, iface.Name(), diag, data.Basetype, flags)
 	}
@@ -41,14 +41,14 @@ func Type(r *resolver.Resolver, data *parser.Type, flags RFlags) *plantuml.Diagr
 	return diag
 }
 
-func addUniverse(diag *plantuml.Diagram, typeName string, ident *parser.Ident) {
-	if !ident.IsUniverse() {
+func addUniverse(diag *plantuml.Diagram, typeName string, name parser.UniverseName) {
+	if !name.IsUniverse() {
 		return
 	}
 
 	diag.Add(&plantuml.Association{
 		Child: typeName,
-		Owner: ident.Value,
+		Owner: string(name),
 		Type:  plantuml.AssocExtension,
 	})
 }

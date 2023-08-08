@@ -23,7 +23,7 @@ func transformLintHints(r *resolver.Resolver, hints []linter.Hint, model Preview
 			}
 			entry += "</ul>"
 		case *linter.AssignedDefinition:
-			typeDefName := categoryName(h.Def.Type)
+			typeDefName := CategoryName(h.Def.Type)
 			entry = fmt.Sprintf(`%s %s enthält eine offene Aufgabe für %s: %s`, typeDefName, href(r, h.Def.Type), h.Task.Assignee, h.Task.Task)
 		case *linter.AssignedTasks:
 			nt := NamedTasks{Name: h.Assignee}
@@ -32,7 +32,7 @@ func transformLintHints(r *resolver.Resolver, hints []linter.Hint, model Preview
 			for _, key := range keys {
 				cat := h.Categories[key]
 				for _, definition := range cat {
-					nt.Tasks = append(nt.Tasks, template.HTML(fmt.Sprintf("in %s %s: %s", categoryNameStr(key), href(r, definition.Def.Type), definition.Task.Task)))
+					nt.Tasks = append(nt.Tasks, template.HTML(fmt.Sprintf("in %s %s: %s", CategoryNameStr(key), href(r, definition.Def.Type), definition.Task.Task)))
 				}
 			}
 
@@ -40,13 +40,16 @@ func transformLintHints(r *resolver.Resolver, hints []linter.Hint, model Preview
 			// jump over, this will be shown in its own section template (NamedTasks)
 			continue
 		case *linter.FirstUndeclaredTypeDeclInNamedType:
-			entry = fmt.Sprintf(`Die Definition %s verwendet den undeklarierten Bezeichner %s`, href(r, h.Parent.Type), puml.TypeDeclToStr(h.TypeDecl))
+			entry = fmt.Sprintf(`Die Definition %s verwendet den undefinierten Bezeichner %s`, href(r, h.Parent.Type), puml.TypeDeclToStr(h.TypeDecl))
 		case *linter.UndeclaredTypeDeclInNamedType:
 			// we only show the first occurence in our report
 			continue
 		case *linter.TypeDefinitionNotDescribed:
-			typeDefName := categoryName(h.Def.Type)
+			typeDefName := CategoryName(h.Def.Type)
 			entry = fmt.Sprintf(`%s %s hat noch keine vollständige Beschreibung.`, typeDefName, href(r, h.Def.Type))
+		case *linter.DeclaredWithoutContext:
+			typeDefName := CategoryName(h.TypeDef.Type)
+			entry = fmt.Sprintf(`%s %s ist fachlich nicht zugeordnet und muss in einem Bounded Context definiert werden.`, typeDefName, href(r, h.TypeDef.Type))
 		default:
 			entry = fmt.Sprintf("implement: %T", hint)
 		}
@@ -58,11 +61,11 @@ func transformLintHints(r *resolver.Resolver, hints []linter.Hint, model Preview
 	return model
 }
 
-func categoryName(namedType parser.NamedType) string {
-	return categoryNameStr(fmt.Sprintf("%T", namedType))
+func CategoryName(namedType parser.NamedType) string {
+	return CategoryNameStr(fmt.Sprintf("%T", namedType))
 }
 
-func categoryNameStr(namedType string) string {
+func CategoryNameStr(namedType string) string {
 	typeDefName := namedType
 	switch namedType {
 	case "*parser.Context":

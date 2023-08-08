@@ -22,6 +22,7 @@ func Lint(r *resolver.Resolver) []Hint {
 	res = append(res, CheckUndefined(r)...)
 	res = append(res, CheckAmbiguous(r)...)
 	res = append(res, CheckAssignees(r)...)
+	res = append(res, CheckNoContext(r)...)
 
 	return res
 }

@@ -34,4 +34,5 @@ type NamedType interface {
 	Node
 	namedType()
 	GetName() *Name
+	GetKeyword() string
 }

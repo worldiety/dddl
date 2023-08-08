@@ -8,7 +8,8 @@ import (
 
 type TypeDefinitionNotDescribed struct {
 	hint
-	Def *parser.TypeDefinition
+	Def          *parser.TypeDefinition
+	HasOpenTasks bool
 }
 
 // CheckLiteralDefinitions inspects the "Definition" literals for types.
@@ -32,7 +33,7 @@ func CheckLiteralDefinitions(r *resolver.Resolver) []Hint {
 				}
 
 				if strings.Contains(text, "todo") {
-					res = append(res, &TypeDefinitionNotDescribed{Def: definition})
+					res = append(res, &TypeDefinitionNotDescribed{Def: definition, HasOpenTasks: true})
 					continue
 				}
 			}
