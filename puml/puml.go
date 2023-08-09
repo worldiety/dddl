@@ -9,12 +9,14 @@ import (
 type RFlags struct {
 	MainType parser.NamedType
 	Visited  map[parser.NamedType]bool
+	Depth    int
 }
 
 func NewRFlags(mainType parser.NamedType) RFlags {
 	return RFlags{
 		MainType: mainType,
 		Visited:  map[parser.NamedType]bool{},
+		Depth:    2,
 	}
 }
 
@@ -24,6 +26,12 @@ func RenderNamedType(r *resolver.Resolver, namedType parser.NamedType, flags RFl
 	if _, ok := flags.Visited[namedType]; ok {
 		return diag
 	}
+
+	if flags.Depth <= 0 {
+		return diag
+	}
+
+	flags.Depth--
 
 	flags.Visited[namedType] = false
 

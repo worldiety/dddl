@@ -10,16 +10,16 @@ func Type(r *resolver.Resolver, data *parser.Type, flags RFlags) *plantuml.Diagr
 	diag := plantuml.NewDiagram()
 	iface := plantuml.NewClass(data.Name.Value)
 	diag.Add(iface)
-	if flags.MainType == data {
-		note := ""
-		if data.Basetype != nil {
-			note += "Neuer eigenständiger Datentyp\nmit dem Basistyp " + typeDeclToLinkStr(r, data.Basetype)
-		} else {
-			note = "Nicht näher bestimmter Datentyp."
-		}
-
-		iface.NoteRight(plantuml.NewNote(note))
+	//if flags.MainType == data {
+	note := ""
+	if data.Basetype != nil {
+		note += "Neuer eigenständiger Datentyp\nmit dem Basistyp " + typeDeclToLinkStr(r, data.Basetype)
+	} else {
+		note = "Nicht näher bestimmter Datentyp."
 	}
+
+	iface.NoteBottom(plantuml.NewNote(note))
+	//}
 
 	if data.Basetype != nil {
 
@@ -31,6 +31,10 @@ func Type(r *resolver.Resolver, data *parser.Type, flags RFlags) *plantuml.Diagr
 				Owner: def.Type.GetName().Value,
 				Type:  plantuml.AssocExtension,
 			})
+		}
+
+		if flags.Depth <= 0 {
+			return diag
 		}
 
 		addUniverse(diag, iface.Name(), parser.UniverseName(data.Basetype.Name.String()))
@@ -51,4 +55,9 @@ func addUniverse(diag *plantuml.Diagram, typeName string, name parser.UniverseNa
 		Owner: string(name),
 		Type:  plantuml.AssocExtension,
 	})
+	/*
+		note := plantuml.NewNote(string(name))
+		note.Dir = "right"
+		note.Node = typeName
+		diag.Add(note)*/
 }

@@ -101,6 +101,10 @@ func (r *Resolver) initContexts() {
 				continue
 			}
 			if def, ok := node.(*parser.TypeDefinition); ok {
+				if _, isCtx := def.Type.(*parser.Context); isCtx {
+					continue
+				}
+
 				anonCtx.Definitions = append(anonCtx.Definitions, def)
 			}
 		}

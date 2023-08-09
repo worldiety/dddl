@@ -26,14 +26,14 @@ func typeDeclToLinkStr(r *resolver.Resolver, decl *parser.TypeDeclaration) strin
 	qname := resolver.NewQualifiedNameFromLocalName(decl.Name)
 	tmp := qname.Name()
 	if len(decl.Params) > 0 {
-		tmp += "["
+		tmp += "[ " // significant whitespace, otherwise plantuml will omit the link
 		for i, param := range decl.Params {
 			tmp += typeDeclToLinkStr(r, param)
 			if i < len(decl.Params)-1 {
 				tmp += ", "
 			}
 		}
-		tmp += "]"
+		tmp += " ]" // significant whitespace, otherwise plantuml will omit the link
 	} else {
 		defs := r.Resolve(qname)
 		if len(defs) > 0 {
@@ -47,6 +47,10 @@ func typeDeclToLinkStr(r *resolver.Resolver, decl *parser.TypeDeclaration) strin
 }
 
 func record2Str(data *parser.Struct) string {
+	if len(data.Fields) == 0 {
+		return "Es wurden noch keine\nFelder definiert."
+	}
+
 	tmp := data.Name.Value + " = \n"
 	for i, declaration := range data.Fields {
 		tmp += TypeDeclToStr(declaration)
@@ -59,6 +63,10 @@ func record2Str(data *parser.Struct) string {
 }
 
 func choice2Str(data *parser.Choice) string {
+	if len(data.Choices) == 0 {
+		return "Es wurden noch keine\nWahlmöglichkeiten definiert."
+	}
+
 	tmp := data.Name.Value + " = \n"
 	for i, declaration := range data.Choices {
 		tmp += TypeDeclToStr(declaration)

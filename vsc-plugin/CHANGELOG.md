@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.18
+Rendering UML trees only with a depth of 2, inserting more comments for base types.
+
 ## 0.0.17
 Various bug fixes: scroll stable preview, replace <> with [] in UML preview, render base types as Class, invert extension between types.
 

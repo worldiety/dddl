@@ -14,10 +14,15 @@ func Record(r *resolver.Resolver, data *parser.Struct, flags RFlags) *plantuml.D
 	}
 	diag.Add(class)
 
+	if flags.Depth <= 0 {
+		return diag
+	}
+
 	for _, field := range data.Fields {
 		defs := r.ResolveLocalQualifier(field.Name)
 		for _, def := range defs {
-			diag.Add(RenderNamedType(r, def.Type, flags).Renderables...)
+			fields := RenderNamedType(r, def.Type, flags).Renderables
+			diag.Add(fields...)
 			diag.Add(&plantuml.Association{
 				Owner:            class.Name(),
 				OwnerCardinality: "1",
@@ -28,6 +33,7 @@ func Record(r *resolver.Resolver, data *parser.Struct, flags RFlags) *plantuml.D
 
 		insertTypeParams(r, class.Name(), diag, field, flags)
 	}
+
 	return diag
 }
 
