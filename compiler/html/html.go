@@ -2,10 +2,10 @@ package html
 
 import (
 	"embed"
-	"github.com/worldiety/dddl/html"
 	"github.com/worldiety/dddl/linter"
 	"github.com/worldiety/dddl/parser"
 	"github.com/worldiety/dddl/resolver"
+	"github.com/worldiety/hg"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -16,13 +16,14 @@ import (
 //go:embed *.gohtml
 var appFiles embed.FS
 
-var viewFunc html.ViewFunc[PreviewModel]
+var viewFunc hg.ViewFunc[PreviewModel]
 
 func init() {
-	viewFunc = html.MustParse[PreviewModel](
-		html.FS(appFiles),
-		html.Execute("ViewPage"),
+	viewFunc = hg.MustParse[PreviewModel](
+		hg.FS(appFiles),
+		hg.Execute("ViewPage"),
 	)
+
 }
 
 func RenderViewHtml(ws *parser.Workspace, model PreviewModel) string {

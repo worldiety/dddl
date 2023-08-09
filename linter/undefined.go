@@ -26,6 +26,9 @@ func CheckUndefined(r *resolver.Resolver) []Hint {
 	dedupTableNames := map[string]struct{}{}
 	parser.MustWalk(r.Workspace(), func(n parser.Node) error {
 		if decl, ok := n.(*parser.TypeDeclaration); ok {
+			if parser.UniverseName(decl.Name.String()).IsUniverse() {
+				return nil
+			}
 
 			qname := resolver.NewQualifiedNameFromLocalName(decl.Name)
 			defs := r.Resolve(qname)

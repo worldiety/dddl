@@ -94,7 +94,7 @@
 
     {
       "comment": "Function declarations",
-      "match": "^(\\bfunc\\b)(?:\\s+(\\([^\\)]+\\)\\s+)?(\\w+)(?=\\())?",
+      "match": "^(\\Aufgabe|task\\b)(?:\\s+(\\([^\\)]+\\)\\s+)?(\\w+)(?=\\())?",
       "captures": {
         "1": {
           "name": "keyword.function.go"
@@ -125,7 +125,7 @@
     },
     {
       "comment": "Functions",
-      "match": "(\\bfunc\\b)|(\\w+)(?=\\()",
+      "match": "(\\bAufgabe|task\\b)|(\\w+)(?=\\()",
       "captures": {
         "1": {
           "name": "keyword.function.go"
@@ -205,7 +205,7 @@
       ]
     },
     {
-      "begin": "\\b(var)\\s+",
+      "begin": "\\b(@\\w+)\\s+",
       "beginCaptures": {
         "1": {
           "name": "keyword.var.go"
@@ -433,9 +433,15 @@
       "patterns": [
         {
           "comment": "Flow control keywords",
-          "match": "\\b(Auswahl|choice|Daten|data|Synonym|alias|type|Typ|task|Aufgabe)\\b",
+          "match": "\\b(Auswahl|choice|Daten|data|Synonym|alias|type|Typ|task|Aufgabe|context|Kontext|wenn|if|sonst|else)\\b",
           "name": "keyword.control.go"
+        },
+        {
+          "match":"->",
+          "name": "keyword.control.ret.go"
         }
+        
+        
       ]
     },
     "operators": {
@@ -569,6 +575,11 @@
         {
           "match": "\\bZuordnung\\b",
           "name": "storage.type.map.go"
+        },
+
+        {
+          "match":"@\\w+",
+          "name":"storage.type.annotation"
         }
       ]
     },

@@ -8,7 +8,7 @@ import (
 
 func Type(r *resolver.Resolver, data *parser.Type, flags RFlags) *plantuml.Diagram {
 	diag := plantuml.NewDiagram()
-	iface := plantuml.NewInterface(data.Name.Value)
+	iface := plantuml.NewClass(data.Name.Value)
 	diag.Add(iface)
 	if flags.MainType == data {
 		note := ""
@@ -27,8 +27,8 @@ func Type(r *resolver.Resolver, data *parser.Type, flags RFlags) *plantuml.Diagr
 		for _, def := range defs {
 			diag.Add(RenderNamedType(r, def.Type, flags).Renderables...)
 			diag.Add(&plantuml.Association{
-				Owner: iface.Name(),
-				Child: def.Type.GetName().Value,
+				Child: iface.Name(),
+				Owner: def.Type.GetName().Value,
 				Type:  plantuml.AssocExtension,
 			})
 		}

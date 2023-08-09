@@ -27,11 +27,12 @@ type jobQueueEntry struct {
 // DYML language server.
 type Server struct {
 	// Map from Uri's to files.
-	files             map[protocol.DocumentURI]File
-	lastPreviewParams *PreviewHtmlParams
-	jobQueues         map[string]jobQueueEntry
-	jobQueuesLock     sync.Mutex
-	rootPath          string
+	files                 map[protocol.DocumentURI]File
+	lastPreviewParams     *PreviewHtmlParams
+	jobQueues             map[string]jobQueueEntry
+	jobQueuesLock         sync.Mutex
+	rootPath              string
+	lastSuccessfulPreview string
 }
 
 func NewServer() *Server {
@@ -326,9 +327,15 @@ func (s *Server) RenderPreviewHtml(params PreviewHtmlParams) string {
 
 	if err != nil {
 		model.Error = err.Error()
+
+		if s.lastSuccessfulPreview != "" {
+			return html.PostInsertError(s.lastSuccessfulPreview, err)
+		}
 	}
 
-	return html.RenderViewHtml(ws, model)
+	htmlText := html.RenderViewHtml(ws, model)
+	s.lastSuccessfulPreview = htmlText
+	return htmlText
 }
 
 func (s *Server) GenerateGo() {

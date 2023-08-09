@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.17
+Various bug fixes: scroll stable preview, replace <> with [] in UML preview, render base types as Class, invert extension between types.
+
 ## 0.0.16
 Redesigned grammar based on experience reports.
 
