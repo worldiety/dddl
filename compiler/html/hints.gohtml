@@ -8,7 +8,7 @@
                 <div class="flex flex-col mb-2 ml-4 mt-1">
                     <div class="text-gray-600 font-semibold">Offene Aufgaben</div>
                     <div class="flex w-full mt-1">
-                        <div class="text-green-700 font-base text-xs mr-1 ">
+                        <div class="text-green-700 font-base text-xs mr-1">
                             Allgemeine Aufgaben
                         </div>
                         <div class="text-gray-400 font-thin text-xs">
@@ -27,7 +27,7 @@
 
 
         <div class="text-gray-600 bg-white shadow rounded-b-lg mb-6 md:ml-20 -mt-10">
-            <ol class="list-decimal pl-12">
+            <ol class="list-decimal pl-12 py-4 pr-8">
                 {{range .Hints}}
                     <li>{{.}}</li>
                 {{end}}
@@ -47,7 +47,7 @@
                     <div class="flex flex-col mb-2 ml-4 mt-1">
                         <div class="text-gray-600 font-semibold">Aufgaben für {{.Name}}</div>
                         <div class="flex w-full mt-1">
-                            <div class="text-green-700 font-base text-xs mr-1 ">
+                            <div class="text-green-700 font-base text-xs mr-1">
                                 Personenbezogene Aufgaben
                             </div>
                             <div class="text-gray-400 font-thin text-xs">
@@ -66,7 +66,7 @@
 
 
             <div class="text-gray-600 bg-white shadow rounded-b-lg mb-6 md:ml-20 -mt-10">
-                <ol class="list-decimal pl-12">
+                <ol class="list-decimal pl-12 py-4 pr-8">
                     {{range .Tasks}}
                         <li>{{.}}</li>
                     {{end}}
