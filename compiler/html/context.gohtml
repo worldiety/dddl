@@ -9,13 +9,13 @@
                         <div class="text-gray-600 mx-4">Keine Typen vorhanden</div>
                     {{else}}
                         {{range .Types}}
-                                <a href="#{{.Ref}}" class="mx-4">
-                                    <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
-                                        <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
-                                            {{.Name}}
-                                        </div>
+                            <a href="#{{.Ref}}" class="mx-4">
+                                <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+                                    <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
+                                        {{.Name}}
                                     </div>
-                                </a>
+                                </div>
+                            </a>
                         {{end}}
                     {{end}}
                 </div>
