@@ -1,10 +1,11 @@
 package resolver
 
 import (
+	"strings"
+
 	"github.com/worldiety/dddl/parser"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
-	"strings"
 )
 
 type Context struct {
@@ -79,7 +80,6 @@ func (r *Resolver) initContexts() {
 					desc += parser.TextOf(typeDef.Description.Value)
 					desc += "\n\n"
 				}
-
 			}
 		}
 
@@ -124,6 +124,21 @@ func CollectFromContext[T parser.NamedType](ctx *Context) []T {
 			if t, ok := definition.Type.(T); ok {
 				res = append(res, t)
 			}
+		}
+	}
+
+	slices.SortFunc(res, func(a, b T) bool {
+		return a.GetName().Value < b.GetName().Value
+	})
+
+	return res
+}
+
+func CollectFromAggregate[T parser.NamedType](aggregate *parser.Aggregate) []T {
+	var res []T
+	for _, definition := range aggregate.Types {
+		if t, ok := definition.Type.(T); ok {
+			res = append(res, t)
 		}
 	}
 

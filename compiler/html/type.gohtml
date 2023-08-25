@@ -2,32 +2,62 @@
 
     <div class="border-b border-gray-100 ml-10 mr-10"></div>
 
-    <div id="{{.Ref}}" class="p-4 grid grid-cols-1 xl:grid-cols-2 xl:divide-x hover:bg-green-50 scroll-mt-16">
+    <div id="{{.Ref}}" class="p-4 grid grid-cols-1 xl:grid-cols-2 xl:divide-x hover:bg-green-50 scroll-mt-32">
         <div class="flex flex-row px-2 py-3 mx-3">
-            <a href="#{{.Parent.Ref}}_definition">
-                {{if eq .Category "Synonym"}}
-                    {{template "aliasIcon"}}
-                {{else if eq .Category "Basistyp"}}
-                    {{template "baseIcon"}}
-                {{else if eq .Category "Auswahltyp"}}
-                    {{template "choiceIcon"}}
-                {{else}}
-                    {{template "dataIcon"}}
-                {{end}}
-            </a>
+            {{if .Context }}
+                <a href="#{{.Context.Ref}}_definition">
+                    {{if eq .Category "Synonym"}}
+                        {{template "aliasIcon"}}
+                    {{else if eq .Category "Basistyp"}}
+                        {{template "baseIcon"}}
+                    {{else if eq .Category "Auswahltyp"}}
+                        {{template "choiceIcon"}}
+                    {{else}}
+                        {{template "dataIcon"}}
+                    {{end}}
+                </a>
+            {{else if .Aggregate }}
+                <a href="#{{.Aggregate.Ref}}_definition">
+                    {{if eq .Category "Synonym"}}
+                        {{template "aliasIcon"}}
+                    {{else if eq .Category "Basistyp"}}
+                        {{template "baseIcon"}}
+                    {{else if eq .Category "Auswahltyp"}}
+                        {{template "choiceIcon"}}
+                    {{else}}
+                        {{template "dataIcon"}}
+                    {{end}}
+                </a>
+            {{end}}
             <div class="flex flex-col mb-2 ml-4 mt-1">
                 <div class="text-gray-600 font-semibold">{{.Name}}</div>
-                <div class="flex w-full mt-1">
-                    <div class="text-green-700 font-base text-xs mr-1 ">
-                        {{.Parent.Name}} > {{.Category}}
-                    </div>
+                <div class="flex w-full mt-1 text-green-700 text-xs">
+                    <p>
+                        {{if .Context}}
+                            <a class="text-green-700 text-xs" href="#{{.Context.Ref}}">
+                                {{.Context.Name}}
+                            </a>
+                            >
+                            {{.Category}}
+                        {{else if .Aggregate}}
+                            <a class="text-green-700 text-xs" href="#{{.Aggregate.Context.Ref}}">
+                                {{.Aggregate.Context.Name}}
+                            </a>
+                            >
+                            <a class="text-green-700 text-xs" href="#{{.Aggregate.Ref}}">
+                                {{.Aggregate.Name}}
+                            </a>
+                            >
+                            {{.Category}}
+                        {{end}}
+                    </p>
                 </div>
                 <div class="text-gray-600">
                     {{.Definition}}
                 </div>
             </div>
         </div>
-        <div class="pl-2 ">
+        <div class="pl-2">
             <div class="flex justify-center items-center">
                 {{.SVG}}
             </div>

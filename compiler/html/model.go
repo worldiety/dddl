@@ -35,12 +35,23 @@ type Context struct {
 	Name       string
 	ShortDef   template.HTML
 	Ref        string
+	Aggregates []*Aggregate
+	Types      []*Type
+	Definition template.HTML
+}
+
+type Aggregate struct {
+	Context    *Context `json:"-"`
+	Category   string
+	Name       string
+	Ref        string
 	Types      []*Type
 	Definition template.HTML
 }
 
 type Type struct {
-	Parent     *Context `json:"-"`
+	Aggregate  *Aggregate `json:"-"`
+	Context    *Context   `json:"-"`
 	Category   string
 	Name       string
 	Ref        string
