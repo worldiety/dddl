@@ -12,11 +12,11 @@
 
 {{define "ctxBox"}}
     <a href="#{{.Ref}}" class="bg-white shadow rounded-lg p-3">
-        <div class="flex items-start ">
+        <div class="flex items-start">
             {{template "ctxIcon"}}
 
             <div class="ml-4">
-                <h2 class="font-semibold">{{.Name}}</h2>
+                <h2 class="text-gray-600 font-semibold">{{.Name}}</h2>
                 {{if not .ShortDef}}
                     <p class="mt-2 text-sm text-gray-500">Noch keine Beschreibung vorhanden.</p>
                 {{else}}

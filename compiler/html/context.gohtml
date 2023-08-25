@@ -1,13 +1,12 @@
 {{define "context"}}
-
-
-    <div id="{{.Ref}}" class="bg-white shadow sticky top-0 mt-10 mb-10">
-        <div class="flex flex-row px-2 py-3 mx-3">
-            <a href="#top"> {{template "ctxIcon"}}</a>
-            <div class="flex flex-col mb-2 ml-4 mt-1">
-                <div class="text-gray-600 font-semibold">{{.Name}}</div>
+    <div id="{{.Ref}}" class="bg-white shadow my-10">
+        {{/* Header */}}
+        <div class="flex items-center bg-gray-200 h-fit p-2 sticky top-0 shadow z-10">
+            <a href="#top">{{template "ctxIcon"}}</a>
+            <div class="flex flex-col ml-4">
+                <a href="#top" class="text-gray-600 font-semibold">{{.Name}}</a>
                 <div class="flex w-full mt-1">
-                    <div class="text-green-700 font-base text-xs mr-1 ">
+                    <div class="text-green-700 font-base text-xs mr-1">
                         Bounded Context
                     </div>
                     <div class="text-gray-400 font-thin text-xs">
@@ -15,51 +14,273 @@
                     </div>
                 </div>
             </div>
-
-            <div class="pl-2">
-                {{range .Types}}
-                    <a href="#{{.Ref}}"
-                       class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded ">{{.Name}}</a>
-                {{end}}
-            </div>
         </div>
-
-        <div class="border-b border-white"></div>
-    </div>
-
-
-
-    <div class="text-gray-600 bg-white shadow rounded-b-lg mb-6 md:ml-20 -mt-10">
-
-
-        <div class="p-4 grid md:grid-cols-2 md:divide-x">
-            <div class="flex flex-row px-2 py-3 mx-3">
-                <div id="{{.Ref}}_definition" >{{template "quoteIcon"}}</div>
-                <div class="ml-4">
-                    <div class="font-semibold leading-relaxed">Definition</div>
-                    {{if .Definition}}
-                        <div class="leading-snug md:leading-normal">{{.Definition}}</div>
+        <div class="flex flex-1 bg-gray-100">
+            {{/* Sidebar */}}
+            <div class="flex flex-col basis-1/4 self-start w-full max-w-max bg-gray-100 sticky top-16" style="min-width: 175px; max-height: calc(100vh - 4rem);">
+                <div class="text-gray-600 bg-gray-100 sticky top-16 text-md font-semibold px-3 py-2 shadow">Inhalt</div>
+                <div class="flex flex-col overflow-y-auto overflow-x-hidden py-4 gap-2">
+                    <div class="text-gray-600 text-sm font-semibold ml-3 mr-2">Aggregate</div>
+                    {{if not .Aggregates}}
+                        <div class="text-gray-600 text-xs ml-4 mr-2">Keine Aggregate vorhanden</div>
                     {{else}}
-                        <div class="leading-snug md:leading-normal">Keine Definition vorhanden.</div>
+                        {{range .Aggregates}}
+                            <details class="ml-4 mr-2">
+                                <summary class="text-green-800 list-outside ml-4 mr-2 hover:cursor-pointer">
+                                    <a href="#{{.Ref}}" class="block overflow-hidden text-ellipsis">
+                                        <div class="inline bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+                                            <div class="inline text-green-800 text-xs font-medium">
+                                                {{.Name}}
+                                            </div>
+                                        </div>
+                                    </a>
+                                </summary>
+                                <div class="flex flex-col gap p-2 bg-gray-200 rounded mt-1">
+                                    <div class="text-gray-600 text-xs font-semibold mt-1">Datenverbundtypen</div>
+                                    {{$containsDataTypes := false}}
+                                    {{range .Types}}
+                                        {{if eq .Category "Datenverbundtyp"}}
+                                            <a href="#{{.Ref}}" class="mt-1">
+                                                <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+                                                    <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
+                                                        {{.Name}}
+                                                    </div>
+                                                </div>
+                                            </a>
+                                            {{$containsDataTypes = true}}
+                                        {{end}}
+                                    {{end}}
+                                    {{if not $containsDataTypes}}
+                                        <div class="text-gray-600 text-xs break-normal ml-5 mr-2 mt-1 overflow-hidden text-ellipsis">Keine Datenverbundtypen vorhanden</div>
+                                    {{end}}
+                                    <div class="text-gray-600 text-xs font-semibold mt-1">Auswahltypen</div>
+                                    {{$containsChoiceTypes := false}}
+                                    {{range .Types}}
+                                        {{if eq .Category "Auswahltyp"}}
+                                            <a href="#{{.Ref}}" class="mt-1">
+                                                <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+                                                    <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
+                                                        {{.Name}}
+                                                    </div>
+                                                </div>
+                                            </a>
+                                            {{$containsChoiceTypes = true}}
+                                        {{end}}
+                                    {{end}}
+                                    {{if not $containsChoiceTypes}}
+                                        <div class="text-gray-600 text-xs break-normal ml-5 mr-2 mt-1 overflow-hidden text-ellipsis">Keine Auswahltypen vorhanden</div>
+                                    {{end}}
+                                    <div class="text-gray-600 text-xs font-semibold mt-1">Basistypen</div>
+                                    {{$containsBaseTypes := false}}
+                                    {{range .Types}}
+                                        {{if eq .Category "Basistyp"}}
+                                            <a href="#{{.Ref}}" class="mt-1">
+                                                <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+                                                    <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
+                                                        {{.Name}}
+                                                    </div>
+                                                </div>
+                                            </a>
+                                            {{$containsBaseTypes = true}}
+                                        {{end}}
+                                    {{end}}
+                                    {{if not $containsBaseTypes}}
+                                        <div class="text-gray-600 text-xs break-normal ml-5 mr-2 mt-1 overflow-hidden text-ellipsis">Keine Basistypen vorhanden</div>
+                                    {{end}}
+                                    <div class="text-gray-600 text-xs font-semibold mt-1">Synonyme</div>
+                                    {{$containsSynonymTypes := false}}
+                                    {{range .Types}}
+                                        {{if eq .Category "Synonym"}}
+                                            <a href="#{{.Ref}}" class="mt-1">
+                                                <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+                                                    <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
+                                                        {{.Name}}
+                                                    </div>
+                                                </div>
+                                            </a>
+                                            {{$containsSynonymTypes = true}}
+                                        {{end}}
+                                    {{end}}
+                                    {{if not $containsSynonymTypes}}
+                                        <div class="text-gray-600 text-xs break-normal ml-5 mr-2 mt-1 overflow-hidden text-ellipsis">Keine Synonyme vorhanden</div>
+                                    {{end}}
+                                    <div class="text-gray-600 text-xs font-semibold mt-1">Aufgaben</div>
+                                    {{$containsTaskTypes := false}}
+                                    {{range .Types}}
+                                        {{if eq .Category "Aufgabe"}}
+                                            <a href="#{{.Ref}}" class="mt-1">
+                                                <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+                                                    <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
+                                                        {{.Name}}
+                                                    </div>
+                                                </div>
+                                            </a>
+                                            {{$containsTaskTypes = true}}
+                                        {{end}}
+                                    {{end}}
+                                    {{if not $containsTaskTypes}}
+                                        <div class="text-gray-600 text-xs break-normal ml-5 mr-2 mt-1 overflow-hidden text-ellipsis">Keine Aufgaben vorhanden</div>
+                                    {{end}}
+                                </div>
+                            </details>
+                        {{end}}
+                    {{end}}
+                    <div class="text-gray-600 text-sm font-semibold ml-3 mr-2">Typen</div>
+                    {{if not .Types}}
+                        <div class="text-gray-600 text-xs ml-4 mr-2">Keine Typen vorhanden</div>
+                    {{else}}
+                            <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Datenverbundtypen</div>
+                            {{$containsDataTypes := false}}
+                            {{range .Types }}
+                                {{if eq .Category "Datenverbundtyp"}}
+                                    <a href="#{{.Ref}}" class="ml-5 mr-2">
+                                        <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+                                            <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
+                                                {{.Name}}
+                                            </div>
+                                        </div>
+                                    </a>
+                                    {{$containsDataTypes = true}}
+                                {{end}}
+                            {{end}}
+                            {{if not $containsDataTypes}}
+                                <div class="text-gray-600 text-xs ml-5 mr-2">Keine Datenverbundtypen vorhanden</div>
+                            {{end}}
+                            <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Auswahltypen</div>
+                            {{$containsChoiceTypes := false}}
+                            {{range .Types}}
+                                {{if eq .Category "Auswahltyp"}}
+                                    <a href="#{{.Ref}}" class="ml-5 mr-2">
+                                        <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+                                            <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
+                                                {{.Name}}
+                                            </div>
+                                        </div>
+                                    </a>
+                                    {{$containsChoiceTypes = true}}
+                                {{end}}
+                            {{end}}
+                            {{if not $containsChoiceTypes}}
+                                <div class="text-gray-600 text-xs ml-5 mr-2">Keine Auswahltypen vorhanden</div>
+                            {{end}}
+                            <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Basistypen</div>
+                            {{$containsBaseTypes := false}}
+                            {{range .Types}}
+                                {{if eq .Category "Basistyp"}}
+                                    <a href="#{{.Ref}}" class="ml-5 mr-2">
+                                        <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+                                            <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
+                                                {{.Name}}
+                                            </div>
+                                        </div>
+                                    </a>
+                                    {{$containsBaseTypes = true}}
+                                {{end}}
+                            {{end}}
+                            {{if not $containsBaseTypes}}
+                                <div class="text-gray-600 text-xs ml-5 mr-2">Keine Basistypen vorhanden</div>
+                            {{end}}
+                            <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Synonyme</div>
+                            {{$containsSynonymTypes := false}}
+                            {{range .Types}}
+                                {{if eq .Category "Synonym"}}
+                                    <a href="#{{.Ref}}" class="ml-5 mr-2">
+                                        <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+                                            <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
+                                                {{.Name}}
+                                            </div>
+                                        </div>
+                                    </a>
+                                    {{$containsSynonymTypes = true}}
+                                {{end}}
+                            {{end}}
+                            {{if not $containsSynonymTypes}}
+                                <div class="text-gray-600 text-xs ml-5 mr-2">Keine Synonyme vorhanden</div>
+                            {{end}}
+                            <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Aufgaben</div>
+                            {{$containsTaskTypes := false}}
+                            {{range .Types}}
+                                {{if eq .Category "Aufgabe"}}
+                                    <a href="#{{.Ref}}" class="ml-5 mr-2">
+                                        <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+                                            <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
+                                                {{.Name}}
+                                            </div>
+                                        </div>
+                                    </a>
+                                    {{$containsTaskTypes = true}}
+                                {{end}}
+                            {{end}}
+                            {{if not $containsTaskTypes}}
+                                <div class="text-gray-600 text-xs ml-5 mr-2">Keine Aufgaben vorhanden</div>
+                            {{end}}
                     {{end}}
                 </div>
             </div>
+            {{/* Main */}}
+            <div class="flex flex-col basis-3/4 grow">
+                <div class="flex flex-1 flex-col bg-white">
+                    <div class="p-4 grid grid-cols-1 xl:grid-cols-2 xl:divide-x">
+                        <div class="flex flex-row px-2 py-3 ml-3 mr-2">
+                            <div id="{{.Ref}}_definition" class="scroll-mt-16">{{template "quoteIcon"}}</div>
+                            <div class="ml-4">
+                                <div class="text-gray-600 font-semibold leading-relaxed">Definition</div>
+                                {{if .Definition}}
+                                    <div class="text-gray-600 leading-snug md:leading-normal">{{.Definition}}</div>
+                                {{else}}
+                                    <div class="text-gray-600 leading-snug md:leading-normal">Keine Definition vorhanden.</div>
+                                {{end}}
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 pr-2 pl-2">
+                            {{if and (not .Aggregates) (not .Types)}}
+                                <div class="text-gray-600">Keine Aggregate und Typen vorhanden</div>
+                            {{else}}
+                                {{range .Aggregates}}
+                                    <a href="#{{.Ref}}">
+                                        <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+                                            <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
+                                                {{.Name}}
+                                            </div>
+                                        </div>
+                                    </a>
+                                {{end}}
+                                {{range .Types}}
+                                    <a href="#{{.Ref}}">
+                                        <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+                                            <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
+                                                {{.Name}}
+                                            </div>
+                                        </div>
+                                    </a>
+                                {{end}}
+                            {{end}}
+                        </div>
+                    </div>
+                    {{range .Aggregates}}
+                        {{template "aggregate" .}}
+                    {{end}}
+                    {{if .Types}}
+                        <div class="flex items-center bg-gray-300 h-fit p-2 sticky top-16 shadow">
+                            <a href="#{{.Ref}}_definition">{{template "aggregateIcon"}}</a>
+                            <div class="flex flex-col ml-4 mr-2">
+                                <a href="#top" class="text-gray-600 font-semibold">Ohne Aggregat</a>
+                                <div class="flex w-full mt-1">
+                                    <div class="text-green-700 font-base text-xs mr-1">
 
-            <div class="pr-2 pl-2">
-                {{range .Types}}
-                    <a href="#{{.Ref}}"
-                       class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded ">{{.Name}}</a>
-                {{end}}
+                                    </div>
+                                    <div class="text-gray-400 font-thin text-xs">
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {{range .Types}}
+                            {{template "type" .}}
+                        {{end}}
+                    {{end}}
+                </div>
             </div>
         </div>
-
-        {{range .Types}}
-            {{template "type" .}}
-        {{end}}
-
-
     </div>
-
-
-
 {{end}}

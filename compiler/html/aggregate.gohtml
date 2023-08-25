@@ -1,0 +1,55 @@
+{{define "aggregate"}}
+    <div class="border-b border-gray-100 ml-10 mr-10"></div>
+
+    <div id="{{.Ref}}" class="grid grid-cols-1 scroll-mt-16">
+        {{/* Header */}}
+        <div class="flex items-center bg-gray-300 h-fit p-2 sticky top-16 shadow">
+            <a href="#{{.Context.Ref}}_definition">{{template "aggregateIcon"}}</a>
+            <div class="flex flex-col ml-4">
+                <a href="#top" class="text-gray-600 font-semibold">{{.Name}}</a>
+                <div class="flex w-full mt-1">
+                    <div class="text-green-700 font-base text-xs mr-1">
+                        Aggregat
+                    </div>
+                    <div class="text-gray-400 font-thin text-xs">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{/* Main */}}
+        <div class="flex flex-col">
+            <div class="p-4 grid grid-cols-1 xl:grid-cols-2 xl:divide-x">
+                <div class="flex flex-row px-2 py-3 mx-3">
+                    <div id="{{.Ref}}_definition">{{template "quoteIcon"}}</div>
+                    <div class="ml-4">
+                        <div class="text-gray-600 font-semibold leading-relaxed">Definition</div>
+                        {{if .Definition}}
+                            <div class="text-gray-600 leading-snug md:leading-normal">{{.Definition}}</div>
+                        {{else}}
+                            <div class="text-gray-600 leading-snug md:leading-normal">Keine Definition vorhanden.</div>
+                        {{end}}
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2 pr-2 pl-2">
+                    {{if not .Types}}
+                        <div class="text-gray-600">Keine Typen vorhanden</div>
+                    {{else}}
+                        {{range .Types}}
+                            <a href="#{{.Ref}}">
+                                <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+                                    <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
+                                        {{.Name}}
+                                    </div>
+                                </div>
+                            </a>
+                        {{end}}
+                    {{end}}
+                </div>
+            </div>
+            {{range .Types}}
+                {{template "type" .}}
+            {{end}}
+        </div>
+    </div>
+{{end}}
