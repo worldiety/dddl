@@ -32,6 +32,15 @@ type QualifiedName struct {
 	Names []Name `@@ ("." @@)*`
 }
 
+// Name returns the last segment name or the empty string.
+func (n *QualifiedName) Name() string {
+	if len(n.Names) == 0 {
+		return ""
+	}
+
+	return n.Names[len(n.Names)].Value
+}
+
 func (n *QualifiedName) String() string {
 	if len(n.Names) == 1 {
 		return n.Names[0].Value

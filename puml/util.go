@@ -7,7 +7,7 @@ import (
 
 func TypeDeclToStr(decl *parser.TypeDeclaration) string {
 	qname := resolver.NewQualifiedNameFromLocalName(decl.Name)
-	tmp := qname.Name()
+	tmp := qname.Name() + optStr(decl)
 	if len(decl.Params) > 0 {
 		tmp += "["
 		for i, param := range decl.Params {
@@ -24,7 +24,7 @@ func TypeDeclToStr(decl *parser.TypeDeclaration) string {
 
 func typeDeclToLinkStr(r *resolver.Resolver, decl *parser.TypeDeclaration) string {
 	qname := resolver.NewQualifiedNameFromLocalName(decl.Name)
-	tmp := qname.Name()
+	tmp := qname.Name() + optStr(decl)
 	if len(decl.Params) > 0 {
 		tmp += "[ " // significant whitespace, otherwise plantuml will omit the link
 		for i, param := range decl.Params {
@@ -38,12 +38,20 @@ func typeDeclToLinkStr(r *resolver.Resolver, decl *parser.TypeDeclaration) strin
 		defs := r.Resolve(qname)
 		if len(defs) > 0 {
 			// TODO this does not work properly in vsc, see also https://github.com/doxygen/doxygen/issues/7421
-			tmp = "[[#" + qname.String() + " " + qname.Name() + "]]"
+			tmp = "[[#" + qname.String() + " " + qname.Name() + optStr(decl) + "]]"
 		}
 
 	}
 
 	return tmp
+}
+
+func optStr(decl *parser.TypeDeclaration) string {
+	if decl.Optional {
+		return "?"
+	}
+
+	return ""
 }
 
 func record2Str(data *parser.Struct) string {
@@ -53,7 +61,7 @@ func record2Str(data *parser.Struct) string {
 
 	tmp := data.Name.Value + " = \n"
 	for i, declaration := range data.Fields {
-		tmp += TypeDeclToStr(declaration)
+		tmp += TypeDeclToStr(declaration.TypeDecl)
 		if i < len(data.Fields)-1 {
 			tmp += "\nund "
 		}

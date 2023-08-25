@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.0.19
+New Preview Layout, allowing larger bounded contexts without hiding the entire view.
+Fixed SVG distorted images.
+New features:
+ * Supporting rendering of white space in type names 
+ * Added support for optional type declarations, like `Text?` which shall be interpreted as `choice OptText {Text or None}`
+ * Supporting `aggregate` grouping
+ * added optional field name support (`data UnparsedAddress { Text as UnparsedZip }`)
+
+
 ## 0.0.18
 Rendering UML trees only with a depth of 2, inserting more comments for base types.
 

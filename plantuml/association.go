@@ -19,9 +19,11 @@ type Association struct {
 
 func (a *Association) Render(wr io.Writer) error {
 	w := strWriter{Writer: wr}
+	w.Print(`"`)
 	w.Print(escapeP(a.Owner))
+	w.Print(`"`)
 	if a.OwnerCardinality != "" {
-		w.Print(`"`)
+		w.Print(` "`)
 		w.Print(a.OwnerCardinality)
 		w.Print(`" `)
 	}

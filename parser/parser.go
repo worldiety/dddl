@@ -170,6 +170,7 @@ func NewParser() *participle.Parser[Doc] {
 		{"Name", `([À-ž]|\w)+`},
 		{"Assign", `=`},
 		{"FnRet", "->"},
+		{"Option", `\?`},
 		{"Colon", `[:,><.|@]`},
 		{"Block", "[{}]"},
 		{"Generic", `[\[\]\(\)]`},

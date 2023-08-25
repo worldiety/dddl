@@ -19,7 +19,7 @@ func Record(r *resolver.Resolver, data *parser.Struct, flags RFlags) *plantuml.D
 	}
 
 	for _, field := range data.Fields {
-		defs := r.ResolveLocalQualifier(field.Name)
+		defs := r.ResolveLocalQualifier(field.TypeDecl.Name)
 		for _, def := range defs {
 			fields := RenderNamedType(r, def.Type, flags).Renderables
 			diag.Add(fields...)
@@ -31,7 +31,7 @@ func Record(r *resolver.Resolver, data *parser.Struct, flags RFlags) *plantuml.D
 			})
 		}
 
-		insertTypeParams(r, class.Name(), diag, field, flags)
+		insertTypeParams(r, class.Name(), diag, field.TypeDecl, flags)
 	}
 
 	return diag
@@ -69,11 +69,16 @@ func insertTypeParams(r *resolver.Resolver, ownername string, diag *plantuml.Dia
 
 func ClassFromRecord(r *resolver.Resolver, data *parser.Struct) *plantuml.Class {
 	c := plantuml.NewClass(data.Name.Value)
-	for _, declaration := range data.Fields {
+	for _, f := range data.Fields {
+		alias := ""
+		if f.Alias != nil {
+			alias = f.Alias.Value + ": "
+		}
 		c.AddAttrs(plantuml.Attr{
 			Visibility: plantuml.Public,
-			Name:       typeDeclToLinkStr(r, declaration),
+			Name:       alias + typeDeclToLinkStr(r, f.TypeDecl),
 		})
+
 	}
 
 	return c

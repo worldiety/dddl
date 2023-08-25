@@ -7,18 +7,21 @@ const ThemeCerulean = "https://raw.githubusercontent.com/bschwarz/puml-themes/ma
 type DefaultTextAlignment string
 
 const (
-	DTACenter = "skinparam defaulttextalignment center"
+	DTACenter           = "skinparam defaulttextalignment center"
+	PreserveAspectRatio = "skinparam preserveAspectRatio xMinYMid meet"
 )
 
 type Diagram struct {
 	includes             []string
 	Renderables          []Renderable
 	DefaultTextAlignment DefaultTextAlignment
+	SkinParams           []string
 	BackgroundColor      string
 }
 
 func NewDiagram() *Diagram {
 	d := &Diagram{}
+	d.SkinParams = append(d.SkinParams, PreserveAspectRatio)
 	return d
 }
 
@@ -53,6 +56,11 @@ func (d *Diagram) Render(wr io.Writer) error {
 
 	if d.DefaultTextAlignment != "" {
 		w.Print(string(d.DefaultTextAlignment))
+		w.Print("\n")
+	}
+
+	for _, param := range d.SkinParams {
+		w.Print(param)
 		w.Print("\n")
 	}
 

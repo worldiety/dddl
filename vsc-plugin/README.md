@@ -165,7 +165,7 @@ Kontext Scoring {
             }
         }
        
-       -> BerechnterAntrag
+       -> BerechneterAntrag
     } 
 }
 
@@ -174,3 +174,7 @@ Kontext Scoring {
 
 
 ```
+
+## Grammatik
+
+![dddl grammar](grammar.png)

@@ -5,11 +5,31 @@ type KeywordStruct struct {
 	Keyword string `@("data" | "Daten")`
 }
 
+type Field struct {
+	node
+	TypeDecl *TypeDeclaration `@@`
+	Alias    *Name            `(("als" | "as") @@)?`
+}
+
+// Name returns the fields name, which is either the last segment of the TypeDeclaration name or the optional field
+// Alias.
+func (n *Field) Name() string {
+	if n.Alias != nil {
+		return n.Alias.Value
+	}
+
+	return n.TypeDecl.Name.Name()
+}
+
+func (n *Field) Children() []Node {
+	return sliceOf(n.TypeDecl)
+}
+
 type Struct struct {
 	node
-	KeywordStruct *KeywordStruct     `@@`
-	Name          *Name              `@@`
-	Fields        []*TypeDeclaration `( "{" @@ (("," | "und" ) @@)* "}" )?`
+	KeywordStruct *KeywordStruct `@@`
+	Name          *Name          `@@`
+	Fields        []*Field       `( "{" @@ (("," | "und" ) @@)* "}" )?`
 }
 
 func (n *Struct) GetKeyword() string {

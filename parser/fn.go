@@ -75,7 +75,8 @@ type TypeDeclaration struct {
 	// Type parameters, like "Map[Key, Value]"
 	Params []*TypeDeclaration `("[" @@ ("," @@)* "]" )?`
 	// Choice is nil if "|TypeDecl" is following as a union, like "String | none". This allows anonymous choice types.
-	Choice *TypeDeclaration `("|" @@)?`
+	Choice   *TypeDeclaration `("|" @@)?`
+	Optional bool             `@"?"?`
 }
 
 func (n *TypeDeclaration) Children() []Node {
