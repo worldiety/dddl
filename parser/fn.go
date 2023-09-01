@@ -124,6 +124,19 @@ func (n *FnStmtIf) Children() []Node {
 
 func (*FnStmtIf) fnStmt() {}
 
+type FnStmtWhile struct {
+	node
+	KeywordWhile *KeywordWhile `@@`
+	Condition    *FnLitExpr    `@@`
+	Body         FnStmt        `@@`
+}
+
+func (n *FnStmtWhile) Children() []Node {
+	return sliceOf(n.KeywordWhile, n.Condition, n.Body)
+}
+
+func (*FnStmtWhile) fnStmt() {}
+
 type FnStmtBlock struct {
 	node
 	Stmts *FnStmts `"{" @@ "}"`

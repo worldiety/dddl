@@ -99,6 +99,16 @@ func newFunParam(r *resolver.Resolver, dec *parser.TypeDeclaration, resultParam 
 	} else {
 		ac.Name = bpmSym(bpmn_icon_receive) + "\n"
 		ac.Name += "//Ereignis eingetreten//\n" + eventName
+
+		typeDecl := r.Resolve(resolver.NewQualifiedNameFromLocalName(dec.Name))
+		if len(typeDecl) > 0 {
+			if _, ok := typeDecl[0].Type.(*parser.Function); ok {
+				ac.Name = bpmSym(bpmn_icon_subprocess_collapsed) + "\n"
+				ac.Name += "//erhält Abhängigkeit//\n" + eventName
+				ac.Color = ColorExtern
+			}
+		}
+
 	}
 
 	return ac
@@ -122,6 +132,20 @@ func fromIfStmt(r *resolver.Resolver, ifStmt *parser.FnStmtIf, flags RFlags) *pl
 
 	if ifStmt.Else != nil {
 		stmt.NegativeStmt = append(stmt.NegativeStmt, fromStmt(r, ifStmt.Else, flags).ActivityStatements()...)
+	}
+
+	return stmt
+}
+
+func fromWhileStmt(r *resolver.Resolver, wStmt *parser.FnStmtWhile, flags RFlags) *plantuml.ActWhileStmt {
+	stmt := &plantuml.ActWhileStmt{
+		Condition:    bpmSym(bpmn_icon_loop_marker) + "\\n" + wStmt.Condition.Name.String() + "?", // this is different than IF !?
+		PositiveText: "ja",
+		NegativeText: "nein",
+	}
+
+	if wStmt.Body != nil {
+		stmt.PositiveStmt = append(stmt.PositiveStmt, fromStmt(r, wStmt.Body, flags).ActivityStatements()...)
 	}
 
 	return stmt
@@ -156,6 +180,9 @@ func fromStmt(r *resolver.Resolver, stmt parser.FnStmt, flags RFlags) *plantuml.
 
 	case *parser.FnStmtIf:
 		return plantuml.NewDiagram().Add(fromIfStmt(r, t, flags))
+
+	case *parser.FnStmtWhile:
+		return plantuml.NewDiagram().Add(fromWhileStmt(r, t, flags))
 
 	case *parser.FuncTypeRet:
 		diag := plantuml.NewDiagram()

@@ -47,7 +47,7 @@ func (n *KeywordInput) EndPosition() lexer.Position {
 type KeywordWhile struct {
 	node
 	Tokens  []lexer.Token
-	Keyword string `@("while" | ("Wiederholung" "solange"))`
+	Keyword string `@("while" | "solange")`
 }
 
 func (n *KeywordWhile) EndPosition() lexer.Position {
@@ -111,16 +111,6 @@ type KeywordIf struct {
 }
 
 func (n *KeywordIf) EndPosition() lexer.Position {
-	return n.relocateEndPos(n.Tokens)
-}
-
-type KeywordThen struct {
-	node
-	Tokens  []lexer.Token
-	Keyword string `@("then" | "dann")`
-}
-
-func (n *KeywordThen) EndPosition() lexer.Position {
 	return n.relocateEndPos(n.Tokens)
 }
 

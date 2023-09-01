@@ -165,7 +165,7 @@ func (e *DocParserError) Unwrap() []error {
 func NewParser() *participle.Parser[Doc] {
 	var basicLexer = lexer.MustSimple([]lexer.SimpleRule{
 		{"comment", `//.*|/\*.*?\*/`},
-		{"Keyword", `(?i)\b(Auswahl|choice|Daten|data|Synonym|alias|type|Typ|task|Aufgabe)`},
+		{"Keyword", `(?i)\b(Auswahl|choice|Daten|data|Synonym|alias|type|Typ|task|Aufgabe|solange|while)`},
 		{"Text", `\"(\\.|[^"\\])*\"`},
 		{"Name", `([À-ž]|\w)+`},
 		{"Assign", `=`},
@@ -180,7 +180,7 @@ func NewParser() *participle.Parser[Doc] {
 	parser, err := participle.Build[Doc](
 		participle.Lexer(basicLexer),
 		participle.Unquote("Text"),
-		participle.Union[FnStmt](&FnStmtIf{}, &FnStmtBlock{}, &FuncTypeRet{}, &FnLitExpr{}),
+		participle.Union[FnStmt](&FnStmtIf{}, &FnStmtBlock{}, &FuncTypeRet{}, &FnLitExpr{}, &FnStmtWhile{}),
 		participle.Union[NamedType](&Function{}, &Choice{}, &Struct{}, &Type{}, &Alias{}, &Context{}, &Aggregate{}),
 	)
 

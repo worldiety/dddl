@@ -133,6 +133,41 @@ func (n *ActDetachStmt) Render(wr io.Writer) error {
 
 func (n *ActDetachStmt) acStmt() {}
 
+type ActWhileStmt struct {
+	Condition    string
+	PositiveText string
+	PositiveStmt ActStmts
+	NegativeText string
+	Body         *Stmt
+}
+
+func (n *ActWhileStmt) Render(wr io.Writer) error {
+	w := strWriter{Writer: wr}
+	w.Printf("while (%s) ", n.Condition)
+	if n.PositiveText != "" {
+		w.Printf("is (%s)", n.PositiveText)
+	}
+	w.Print("\n")
+
+	if len(n.PositiveStmt) != 0 {
+		_ = n.PositiveStmt.Render(w)
+	}
+
+	if n.Body != nil {
+		if err := n.Body.Render(wr); err != nil {
+			return err
+		}
+	}
+	w.Print("endwhile")
+	if n.PositiveText != "" {
+		w.Printf(" (%s)", n.NegativeText)
+	}
+	w.Print("\n")
+	return nil
+}
+
+func (n *ActWhileStmt) acStmt() {}
+
 type ActIfStmt struct {
 	Condition    string
 	PositiveText string

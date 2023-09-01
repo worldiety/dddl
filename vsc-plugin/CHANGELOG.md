@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.20
+Using functions as parameters renders as dependency instead of event.
+Added while-loop support.
+Added annotations with key and key-value notation.
+
 ## 0.0.19
 New Preview Layout, allowing larger bounded contexts without hiding the entire view.
 Fixed SVG distorted images.

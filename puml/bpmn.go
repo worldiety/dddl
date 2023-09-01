@@ -25,6 +25,7 @@ const (
 )
 
 const (
+	ColorExtern                    = "#f6d8ec"
 	ColorEvent                     = "#ff992a"
 	ColorErrorEvent                = "#ec4d4e"
 	ColorTask                      = "#3399fe"

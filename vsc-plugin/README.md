@@ -157,16 +157,25 @@ Kontext Scoring {
     Synonym Verbraucher = Kunde
     
     "Ganz kompliziert, geht aber auch ohne Body und ohne Parameter, um die Erkundung der Domäne zu vereinfachen."
-    Aufgabe ImmoFinanzScoringBerechnen(EingereichterAntrag) -> (BerechneterAntrag , Abgelehnt|BerechnungsFehler) {
+    Aufgabe ImmoFinanzScoringBerechnen(Speichern, EingereichterAntrag) -> (BerechneterAntrag , Abgelehnt|BerechnungsFehler) {
         wenn "eingereichter Antrag Basisscore < 5" -> Abgelehnt
         sonst {
             wenn "Sonne scheint" {
                 -> Berechnungsfehler
             }
         }
+        
+        solange "x > y"{
+            PrüfeErneut
+        }
+        
+        Speichern(EingereichterAntrag)
        
        -> BerechneterAntrag
     } 
+    
+    Aufgabe Speichern
+    
 }
 
 
@@ -175,6 +184,15 @@ Kontext Scoring {
 
 ```
 
+## Roadmap
+
+* Aufgaben returnen ist etwas anderes als Ereignisse zurückliefern: Bedeutung dokumentieren
+* Externe Ereignisse?
+* Event senden?
+* Annotationen
+    * Fehler
+    * Ereignis
+
 ## Grammatik
 
-![dddl grammar](grammar.png)
+![dddl grammar](/ebnf/grammar.png)
