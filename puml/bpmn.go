@@ -25,8 +25,10 @@ const (
 )
 
 const (
-	ColorExtern                    = "#f6d8ec"
+	ColorExternFunc                = "#f6d8ec"
+	ColorInternFunc                = "#d8f6f3"
 	ColorEvent                     = "#ff992a"
+	ColorData                      = "#f5e253"
 	ColorErrorEvent                = "#ec4d4e"
 	ColorTask                      = "#3399fe"
 	ColorTaskUndefined             = "#94c9ff"

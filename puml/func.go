@@ -5,7 +5,6 @@ import (
 	"github.com/worldiety/dddl/parser"
 	"github.com/worldiety/dddl/plantuml"
 	"github.com/worldiety/dddl/resolver"
-	"strings"
 )
 
 func Func(r *resolver.Resolver, fun *parser.Function, flags RFlags) *plantuml.Diagram {
@@ -45,6 +44,16 @@ func Func(r *resolver.Resolver, fun *parser.Function, flags RFlags) *plantuml.Di
 		ac.Name = bpmSym(bpmn_icon_task) + "\n"
 		ac.Name += "//Allgemeine Aufgabe//\n" + fun.Name.Value
 		diag.Add(ac)
+		if mainType {
+			extA, _ := parser.ParseExternalSystemAnnotation(fun.Parent().(*parser.TypeDefinition))
+			if extA != nil {
+				ac.Notes = append(ac.Notes, &plantuml.ActivityNote{
+					Text: "Implementierung ist nicht\nBestandteil der Fachlichkeit.\nLeistung wird durch\nFremdsystem erbracht.",
+				})
+				ac.Color = ColorExternFunc
+			}
+
+		}
 	} else {
 		// has a body, thus need a partition structuring
 		fn := &plantuml.ActPartitionStmt{Name: fun.Name.Value}
@@ -60,7 +69,7 @@ func Func(r *resolver.Resolver, fun *parser.Function, flags RFlags) *plantuml.Di
 
 		for _, param := range fun.Return.Params {
 			stmts := plantuml.ActStmts{}
-			stmts = append(stmts, &plantuml.ActGotoLabel{Name: param.Name.String()})
+			//stmts = append(stmts, &plantuml.ActGotoLabel{Name: param.Name.String()}) TODO broken for white space and visual
 			stmts = append(stmts, newFunParam(r, param, true, mainType))
 
 			if mainType {
@@ -77,16 +86,32 @@ func Func(r *resolver.Resolver, fun *parser.Function, flags RFlags) *plantuml.Di
 
 func newFunParam(r *resolver.Resolver, dec *parser.TypeDeclaration, resultParam bool, resultAsFinalEvent bool) *plantuml.ActLabelStmt {
 	eventName := typeDeclToLinkStr(r, dec)
-	ac := &plantuml.ActLabelStmt{Name: eventName}
-	ac.Color = ColorEvent
+	ac := &plantuml.ActLabelStmt{}
+	ac.Color = ColorData
 	if resultParam {
+		evtA := getEventAnnotation(r, dec)
+		if evtA != nil {
+			if evtA.Out {
+				ac.Name = bpmSym(bpmn_icon_end_event_message) + "\n"
+				ac.Name += "//Domänenereignis ausgehend//\n" + eventName
+				ac.Color = ColorEvent
+			}
+		}
 
-		ac.Name = bpmSym(bpmn_icon_end_event_message) + "\n"
-		ac.Name += "//Neues Zwischenereignis//\n" + eventName
+		if ac.Name == "" {
+			ac.Name = bpmSym(bpmn_icon_data_output) + "\n"
+			ac.Name += "//ausgehende Daten//\n" + eventName
+		}
 
 		if resultAsFinalEvent {
 			ac.Name = bpmSym(bpmn_icon_end_event_terminate) + "\n"
-			ac.Name += "//Endereignis//\n" + eventName
+			if evtA != nil {
+				ac.Name = bpmSym(bpmn_icon_end_event_message) + "\n"
+				ac.Name += "//Domänenereignis ausgehend//\n" + eventName
+				ac.Color = ColorEvent
+			} else {
+				ac.Name += "//Endergebnis//\n" + eventName
+			}
 		} else {
 			ac.Color = ColorIntermediateFnResultEvent
 		}
@@ -97,15 +122,32 @@ func newFunParam(r *resolver.Resolver, dec *parser.TypeDeclaration, resultParam 
 			ac.Name += "//Behandelter Fehler//\n" + eventName
 		}
 	} else {
-		ac.Name = bpmSym(bpmn_icon_receive) + "\n"
-		ac.Name += "//Ereignis eingetreten//\n" + eventName
+		evtA := getEventAnnotation(r, dec)
+		if evtA != nil {
+			if evtA.In {
+				ac.Name = bpmSym(bpmn_icon_receive) + "\n"
+				ac.Name += "//Domänenereignis eingehend//\n" + eventName
+				ac.Color = ColorEvent
+			}
+		}
+
+		if ac.Name == "" {
+			ac.Name = bpmSym(bpmn_icon_data_input) + "\n"
+			ac.Name += "//eingehende Daten//\n" + eventName
+		}
 
 		typeDecl := r.Resolve(resolver.NewQualifiedNameFromLocalName(dec.Name))
 		if len(typeDecl) > 0 {
 			if _, ok := typeDecl[0].Type.(*parser.Function); ok {
 				ac.Name = bpmSym(bpmn_icon_subprocess_collapsed) + "\n"
-				ac.Name += "//erhält Abhängigkeit//\n" + eventName
-				ac.Color = ColorExtern
+				if isExternalFunc(r, dec) {
+					ac.Name += "//Fremdsystem//\n" + eventName
+					ac.Color = ColorExternFunc
+				} else {
+					ac.Name += "//interne Abhängigkeit//\n" + eventName
+					ac.Color = ColorInternFunc
+				}
+
 			}
 		}
 
@@ -114,9 +156,40 @@ func newFunParam(r *resolver.Resolver, dec *parser.TypeDeclaration, resultParam 
 	return ac
 }
 
+func isExternalFunc(r *resolver.Resolver, dec *parser.TypeDeclaration) bool {
+	defs := r.ResolveLocalQualifier(dec.Name)
+	if len(defs) == 0 {
+		return false
+	}
+
+	if a, _ := parser.ParseExternalSystemAnnotation(defs[0]); a != nil {
+		return true
+	}
+
+	return false
+}
+
+func getEventAnnotation(r *resolver.Resolver, dec *parser.TypeDeclaration) *parser.EventAnnotation {
+	defs := r.ResolveLocalQualifier(dec.Name)
+	if len(defs) == 0 {
+		return nil
+	}
+
+	a, _ := parser.ParseEventAnnotation(defs[0])
+	return a
+}
+
 func looksLikeError(r *resolver.Resolver, dec *parser.TypeDeclaration) bool {
-	name := strings.ToLower(dec.Name.String())
-	return strings.Contains(name, "error") || strings.Contains(name, "fehler") || strings.Contains(name, "abbruch") || strings.Contains(name, "ausnahme")
+	defs := r.ResolveLocalQualifier(dec.Name)
+	if len(defs) == 0 {
+		return false
+	}
+
+	if a, _ := parser.ParseErrorAnnotation(defs[0]); a != nil {
+		return true
+	}
+
+	return false
 }
 
 func fromIfStmt(r *resolver.Resolver, ifStmt *parser.FnStmtIf, flags RFlags) *plantuml.ActIfStmt {

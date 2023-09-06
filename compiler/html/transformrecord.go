@@ -41,6 +41,7 @@ func newTypeFromRecordInContext(context *Context, r *resolver.Resolver, record *
 	}
 
 	data.SVG = template.HTML(svg)
+	data.Usages = newUsages(r, record)
 
 	return data
 }

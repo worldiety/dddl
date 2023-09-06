@@ -41,6 +41,7 @@ func newTypeFromAliasInContext(context *Context, r *resolver.Resolver, typ *pars
 	}
 
 	data.SVG = template.HTML(svg)
+	data.Usages = newUsages(r, typ)
 
 	return data
 }
@@ -78,4 +79,16 @@ func newTypeFromAliasInAggregate(aggregate *Aggregate, r *resolver.Resolver, typ
 	data.SVG = template.HTML(svg)
 
 	return data
+}
+
+func newUsages(r *resolver.Resolver, namedType parser.NamedType) []Usage {
+	var res []Usage
+	for _, usage := range r.FindUsages(resolver.NewQualifiedNameFromNamedType(namedType)) {
+		res = append(res, Usage{
+			Name: usage.Name.Name(),
+			Ref:  usage.Name.String(),
+		})
+	}
+
+	return res
 }

@@ -1,5 +1,7 @@
 # dddl
 
+For more information and example, visit the [Marketplace](https://marketplace.visualstudio.com/items?itemName=worldiety.dddl).
+
 ## dddc
 You can install the dddl standalone compiler as follows. 
 

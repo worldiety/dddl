@@ -51,6 +51,11 @@ type Function struct {
 	Body *FnStmtBlock `( @@ )?`
 }
 
+func (n *Function) IsExternalSystem() bool {
+	a, _ := ParseExternalSystemAnnotation(n.Parent().(*TypeDefinition))
+	return a != nil
+}
+
 func (n *Function) GetKeyword() string {
 	return n.KeywordFn.Keyword
 }

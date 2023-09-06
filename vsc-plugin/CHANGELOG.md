@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.0.21
+Official support for the following annotations:
+* @event(incoming,outgoing)|@Ereignis(eingehend,ausgehend)
+* @external|@Fremdsystem
+* @error|@Fehler
+
+Various bugfixes, more spec and tutorial content.
+
 ## 0.0.20
 Using functions as parameters renders as dependency instead of event.
 Added while-loop support.

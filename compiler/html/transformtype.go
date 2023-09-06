@@ -41,6 +41,7 @@ func newTypeFromTypeInContext(context *Context, r *resolver.Resolver, typ *parse
 	}
 
 	data.SVG = template.HTML(svg)
+	data.Usages = newUsages(r, typ)
 
 	return data
 }

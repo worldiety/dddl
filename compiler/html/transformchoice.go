@@ -41,6 +41,7 @@ func newTypeFromChoiceInContext(context *Context, r *resolver.Resolver, choice *
 	}
 
 	data.SVG = template.HTML(svg)
+	data.Usages = newUsages(r, choice)
 
 	return data
 }

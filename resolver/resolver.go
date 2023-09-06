@@ -37,6 +37,62 @@ func (r *Resolver) initTypeDefLookup() {
 	})
 }
 
+type Usage struct {
+	Name FullQualifiedName
+	Type *parser.TypeDeclaration
+}
+
+func (r *Resolver) FindUsages(name FullQualifiedName) []Usage {
+	var res []Usage
+	for _, definitions := range r.typeDefs {
+		for _, definition := range definitions {
+			switch t := definition.Type.(type) {
+			case *parser.Type:
+				if t.Basetype == nil {
+					break
+				}
+				if memberName := NewQualifiedNameFromLocalName(t.Basetype.Name); memberName == name {
+					res = append(res, Usage{
+						Name: memberName,
+						Type: t.Basetype,
+					})
+				}
+			case *parser.Alias:
+				if t.BaseType == nil {
+					break
+				}
+				if memberName := NewQualifiedNameFromLocalName(t.BaseType.Name); memberName == name {
+					res = append(res, Usage{
+						Name: memberName,
+						Type: t.BaseType,
+					})
+				}
+
+			case *parser.Struct:
+				for _, field := range t.Fields {
+					if memberName := NewQualifiedNameFromLocalName(field.TypeDecl.Name); memberName == name {
+						res = append(res, Usage{
+							Name: memberName,
+							Type: field.TypeDecl,
+						})
+					}
+				}
+			case *parser.Choice:
+				for _, choice := range t.Choices {
+					if memberName := NewQualifiedNameFromLocalName(choice.Choice.Name); memberName == name {
+						res = append(res, Usage{
+							Name: memberName,
+							Type: choice.Choice,
+						})
+					}
+				}
+			}
+		}
+	}
+
+	return res
+}
+
 func (r *Resolver) ResolveLocalQualifier(name *parser.QualifiedName) []*parser.TypeDefinition {
 	qname := NewQualifiedNameFromLocalName(name)
 	return r.typeDefs[qname]

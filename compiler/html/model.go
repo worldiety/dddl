@@ -57,6 +57,12 @@ type Type struct {
 	Ref        string
 	Definition template.HTML
 	SVG        template.HTML
+	Usages     []Usage
+}
+
+type Usage struct {
+	Name string
+	Ref  string
 }
 
 type Workflow struct {

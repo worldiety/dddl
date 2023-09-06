@@ -1,9 +1,9 @@
 Daten Kunde {
-    Privatkunde oder Firmenkunde
+    Privatkunde und Firmenkunde
 }
 
 Kontext Rechnungsstellung {
-    Daten Kunde {
+    Auswahl Kunde {
         Guter oder Schlechter
     }
 }

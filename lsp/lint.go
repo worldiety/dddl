@@ -21,6 +21,9 @@ var help_nocontext string
 //go:embed tips/help_undefined.md
 var help_undefined string
 
+//go:embed tips/help_invalidannotation.md
+var help_invalidAnnotation string
+
 func newDiag(n parser.Node, msg string) protocol.Diagnostic {
 	pos := n.Position()
 	end := n.EndPosition()
@@ -91,6 +94,11 @@ func renderLintTexts(matchFile protocol.DocumentURI, hints []linter.Hint) []prot
 			typeName := h.TypeDef.Type.GetName().Value
 			if matches(h.TypeDef) {
 				res = append(res, newDiag(h.TypeDef.Type.GetName(), fmt.Sprintf(help_nocontext, keyword, typeName)))
+			}
+		case *linter.InvalidAnnotation:
+			typeName := h.TypeDef.Type.GetName().Value
+			if matches(h.TypeDef) {
+				res = append(res, newDiag(h.TypeDef.Type.GetName(), fmt.Sprintf(help_invalidAnnotation, typeName, h.Error.Error())))
 			}
 		default:
 			panic(fmt.Sprintf("implement lint support: %T", h))

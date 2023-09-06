@@ -24,6 +24,7 @@ type Attr struct {
 
 type Class struct {
 	typeName            string
+	Stereotypes         []string
 	name                string
 	attrs               []Attr
 	notes               map[string][]*Note
@@ -56,7 +57,16 @@ func (d *Class) Render(wr io.Writer) error {
 	w.Print(d.typeName)
 	w.Print(" \"")
 	w.Print(escapeP(d.name))
-	w.Print("\" {\n")
+
+	w.Print("\"")
+
+	for _, stereotype := range d.Stereotypes {
+		w.Print(" << ")
+		w.Print(stereotype)
+		w.Print(" >>")
+	}
+
+	w.Print(" {\n")
 	for _, attr := range d.attrs {
 		if attr.Abstract {
 			w.Print("{abstract} ")

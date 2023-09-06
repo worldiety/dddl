@@ -32,6 +32,21 @@ type Struct struct {
 	Fields        []*Field       `( "{" @@ (("," | "und" ) @@)* "}" )?`
 }
 
+func (n *Struct) IsOutgoingEvent() bool {
+	a, _ := ParseEventAnnotation(n.Parent().(*TypeDefinition))
+	return a != nil && a.Out
+}
+
+func (n *Struct) IsIncomingEvent() bool {
+	a, _ := ParseEventAnnotation(n.Parent().(*TypeDefinition))
+	return a != nil && a.In
+}
+
+func (n *Struct) IsError() bool {
+	a, _ := ParseErrorAnnotation(n.Parent().(*TypeDefinition))
+	return a != nil
+}
+
 func (n *Struct) GetKeyword() string {
 	return n.KeywordStruct.Keyword
 }

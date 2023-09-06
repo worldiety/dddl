@@ -62,6 +62,14 @@
                 {{.SVG}}
             </div>
         </div>
+        {{if .Usages}}
+            Siehe auch
+            {{range .Usages}}
+                <a class="text-green-700 text-xs" href="#{{.Ref}}">
+                    {{.Name}}
+                </a>
+            {{end}}
+        {{end}}
     </div>
 
 

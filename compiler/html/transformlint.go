@@ -50,6 +50,9 @@ func transformLintHints(r *resolver.Resolver, hints []linter.Hint, model Preview
 		case *linter.DeclaredWithoutContext:
 			typeDefName := CategoryName(h.TypeDef.Type)
 			entry = fmt.Sprintf(`%s %s ist fachlich nicht zugeordnet und muss in einem Bounded Context definiert werden.`, typeDefName, href(r, h.TypeDef.Type))
+		case *linter.InvalidAnnotation:
+			typeDefName := CategoryName(h.TypeDef.Type)
+			entry = fmt.Sprintf(`%s %s hat eine ungültige Annotation (%s).`, typeDefName, href(r, h.TypeDef.Type), h.Error.Error())
 		default:
 			entry = fmt.Sprintf("implement: %T", hint)
 		}
