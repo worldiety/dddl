@@ -3,6 +3,7 @@ package resolver
 import (
 	"github.com/worldiety/dddl/parser"
 	"golang.org/x/exp/slices"
+	"log"
 	"strings"
 )
 
@@ -90,6 +91,12 @@ func (r *Resolver) FindUsages(name FullQualifiedName) []Usage {
 		}
 	}
 
+	if len(res) > 0 {
+		log.Println(name.String(), ":")
+		for _, re := range res {
+			log.Println(" <-" + re.Name.String())
+		}
+	}
 	return res
 }
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.22
+Fixed crashes in various context assignee conditions.
+
+
 ## 0.0.21
 Official support for the following annotations:
 * @event(incoming,outgoing)|@Ereignis(eingehend,ausgehend)

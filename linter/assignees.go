@@ -68,16 +68,20 @@ func CheckAssignees(r *resolver.Resolver) []Hint {
 
 		for _, fragment := range context.Fragments {
 
-			ctxFragmentTypeDef := fragment.Parent().(*parser.TypeDefinition)
-			for _, task := range ParseAssignees(ctxFragmentTypeDef.Description.Value) {
-				tmp := getter(task)
-				typename := fmt.Sprintf("%T", ctxFragmentTypeDef.Type)
-				list := tmp.Categories[typename]
-				list = append(list, AssignedDefinition{
-					Task: task,
-					Def:  ctxFragmentTypeDef,
-				})
-				tmp.Categories[typename] = list
+			if ctxFragmentTypeDef, ok := fragment.Parent().(*parser.TypeDefinition); ok {
+				if ctxFragmentTypeDef.Description != nil {
+
+					for _, task := range ParseAssignees(ctxFragmentTypeDef.Description.Value) {
+						tmp := getter(task)
+						typename := fmt.Sprintf("%T", ctxFragmentTypeDef.Type)
+						list := tmp.Categories[typename]
+						list = append(list, AssignedDefinition{
+							Task: task,
+							Def:  ctxFragmentTypeDef,
+						})
+						tmp.Categories[typename] = list
+					}
+				}
 			}
 
 			for _, definition := range fragment.Definitions {
