@@ -10,16 +10,16 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-func newTypesFromChoiceInContext(context *Context, r *resolver.Resolver, choices []*parser.Choice) []*Type {
+func newTypesFromChoice(parent any, r *resolver.Resolver, choices []*parser.Choice) []*Type {
 	var res []*Type
 	for _, choice := range choices {
-		res = append(res, newTypeFromChoiceInContext(context, r, choice))
+		res = append(res, newTypeFromChoice(parent, r, choice))
 	}
 
 	return res
 }
 
-func newTypeFromChoiceInContext(context *Context, r *resolver.Resolver, choice *parser.Choice) *Type {
+func newTypeFromChoice(parent any, r *resolver.Resolver, choice *parser.Choice) *Type {
 	typeDef := parser.TypeDefinitionFrom(choice)
 	var def template.HTML
 	if typeDef.Description != nil {
@@ -27,7 +27,8 @@ func newTypeFromChoiceInContext(context *Context, r *resolver.Resolver, choice *
 	}
 
 	data := &Type{
-		Context:    context,
+		Node:       choice,
+		Parent:     parent,
 		Category:   "Auswahltyp",
 		Name:       choice.Name.Value,
 		Ref:        resolver.NewQualifiedNameFromNamedType(choice).String(),
@@ -42,41 +43,6 @@ func newTypeFromChoiceInContext(context *Context, r *resolver.Resolver, choice *
 
 	data.SVG = template.HTML(svg)
 	data.Usages = newUsages(r, choice)
-
-	return data
-}
-
-func newTypesFromChoiceInAggregate(aggregate *Aggregate, r *resolver.Resolver, choices []*parser.Choice) []*Type {
-	var res []*Type
-	for _, choice := range choices {
-		res = append(res, newTypeFromChoiceInAggregate(aggregate, r, choice))
-	}
-
-	return res
-}
-
-func newTypeFromChoiceInAggregate(aggregate *Aggregate, r *resolver.Resolver, choice *parser.Choice) *Type {
-	typeDef := parser.TypeDefinitionFrom(choice)
-	var def template.HTML
-	if typeDef.Description != nil {
-		def = markdown(typeDef.Description.Value)
-	}
-
-	data := &Type{
-		Aggregate:  aggregate,
-		Category:   "Auswahltyp",
-		Name:       choice.Name.Value,
-		Ref:        resolver.NewQualifiedNameFromNamedType(choice).String(),
-		Definition: def,
-		SVG:        "",
-	}
-
-	svg, err := plantuml.RenderLocal("svg", puml.RenderNamedType(r, choice, puml.NewRFlags(choice)))
-	if err != nil {
-		slog.Error("failed to convert choice to puml", slog.Any("err", err))
-	}
-
-	data.SVG = template.HTML(svg)
 
 	return data
 }

@@ -4,8 +4,8 @@
 
     <div id="{{.Ref}}" class="p-4 grid grid-cols-1 xl:grid-cols-2 xl:divide-x hover:bg-green-50 scroll-mt-32">
         <div class="flex flex-row px-2 py-3 mx-3">
-            {{if .Context }}
-                <a href="#{{.Context.Ref}}_definition">
+            {{if .Parent }}
+                <a href="#{{.Parent.Ref}}_definition">
                     {{if eq .Category "Synonym"}}
                         {{template "aliasIcon"}}
                     {{else if eq .Category "Basistyp"}}
@@ -16,36 +16,26 @@
                         {{template "dataIcon"}}
                     {{end}}
                 </a>
-            {{else if .Aggregate }}
-                <a href="#{{.Aggregate.Ref}}_definition">
-                    {{if eq .Category "Synonym"}}
-                        {{template "aliasIcon"}}
-                    {{else if eq .Category "Basistyp"}}
-                        {{template "baseIcon"}}
-                    {{else if eq .Category "Auswahltyp"}}
-                        {{template "choiceIcon"}}
-                    {{else}}
-                        {{template "dataIcon"}}
-                    {{end}}
-                </a>
+
             {{end}}
             <div class="flex flex-col mb-2 ml-4 mt-1">
                 <div class="text-gray-600 font-semibold">{{.Name}}</div>
                 <div class="flex w-full mt-1 text-green-700 text-xs">
                     <p>
-                        {{if .Context}}
-                            <a class="text-green-700 text-xs" href="#{{.Context.Ref}}">
-                                {{.Context.Name}}
+                        {{if .Parent.IsContext}}
+                            <a class="text-green-700 text-xs" href="#{{.Parent.Ref}}">
+                                {{.Parent.Name}}
                             </a>
                             >
                             {{.Category}}
-                        {{else if .Aggregate}}
-                            <a class="text-green-700 text-xs" href="#{{.Aggregate.Context.Ref}}">
-                                {{.Aggregate.Context.Name}}
+                            {{/* isAggregate*/}}
+                        {{ else  }}
+                            <a class="text-green-700 text-xs" href="#{{.Parent.Context.Ref}}">
+                                {{.Parent.Context.Name}}
                             </a>
                             >
-                            <a class="text-green-700 text-xs" href="#{{.Aggregate.Ref}}">
-                                {{.Aggregate.Name}}
+                            <a class="text-green-700 text-xs" href="#{{.Parent.Ref}}">
+                                {{.Parent.Name}}
                             </a>
                             >
                             {{.Category}}

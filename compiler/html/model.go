@@ -1,6 +1,7 @@
 package html
 
 import (
+	"github.com/worldiety/dddl/parser"
 	"html/template"
 )
 
@@ -40,6 +41,25 @@ type Context struct {
 	Definition template.HTML
 }
 
+func (c *Context) IsContext() bool {
+	return true
+}
+
+func (c *Context) GroupTypesByCategory(cat string) []*Type {
+	return FilterByCategory(c.Types, cat)
+}
+
+func FilterByCategory(types []*Type, cat string) []*Type {
+	var res []*Type
+	for _, t := range types {
+		if t.Category == cat {
+			res = append(res, t)
+		}
+	}
+
+	return res
+}
+
 type Aggregate struct {
 	Context    *Context `json:"-"`
 	Category   string
@@ -49,9 +69,17 @@ type Aggregate struct {
 	Definition template.HTML
 }
 
+func (c *Aggregate) GroupTypesByCategory(cat string) []*Type {
+	return FilterByCategory(c.Types, cat)
+}
+
+func (c *Aggregate) IsContext() bool {
+	return false
+}
+
 type Type struct {
-	Aggregate  *Aggregate `json:"-"`
-	Context    *Context   `json:"-"`
+	Node       parser.NamedType `json:"-"` // e.g. *parser.Struct, *parser.Choice, *parser.Function etc.
+	Parent     any              `json:"-"` // either Context or Aggregate
 	Category   string
 	Name       string
 	Ref        string

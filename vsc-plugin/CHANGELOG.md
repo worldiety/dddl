@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.24
+Fixed usage views (removed contexts and multiple nested usages).
+Added side menu entries for external, errors and events.
+Unified rendering of Aggregates and Contexts in sidemenu.
+
 ## 0.0.23
 Fixed crashes in resolver.
 Added exact direct usages for types.

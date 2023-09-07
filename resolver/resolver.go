@@ -46,6 +46,9 @@ func (r *Resolver) FindUsages(name FullQualifiedName) []Usage {
 	var res []Usage
 	for _, definitions := range r.typeDefs {
 		for _, definition := range definitions {
+			if _, isCtx := definition.Type.(*parser.Context); isCtx {
+				continue
+			}
 			parser.MustWalk(definition.Type, func(node parser.Node) error {
 				if typDecl, ok := node.(*parser.TypeDeclaration); ok {
 					if memberName := NewQualifiedNameFromLocalName(typDecl.Name); memberName == name {
@@ -59,65 +62,15 @@ func (r *Resolver) FindUsages(name FullQualifiedName) []Usage {
 				return nil
 			})
 
-			/*switch t := definition.Type.(type) {
-			case *parser.Type:
-				if t.Basetype == nil {
-					break
-				}
-				if memberName := NewQualifiedNameFromLocalName(t.Basetype.Name); memberName == name {
-					res = append(res, Usage{
-						Name: NewQualifiedNameFromNamedType(t),
-						Type: t,
-					})
-				}
-			case *parser.Alias:
-				if t.BaseType == nil {
-					break
-				}
-				if memberName := NewQualifiedNameFromLocalName(t.BaseType.Name); memberName == name {
-					res = append(res, Usage{
-						Name: NewQualifiedNameFromNamedType(t),
-						Type: t,
-					})
-				}
-
-			case *parser.Struct:
-				for _, field := range t.Fields {
-					if memberName := NewQualifiedNameFromLocalName(field.TypeDecl.Name); memberName == name {
-						res = append(res, Usage{
-							Name: NewQualifiedNameFromNamedType(t),
-							Type: t,
-						})
-					}
-				}
-			case *parser.Choice:
-				for _, choice := range t.Choices {
-					if memberName := NewQualifiedNameFromLocalName(choice.Name); memberName == name {
-						res = append(res, Usage{
-							Name: NewQualifiedNameFromNamedType(t),
-							Type: t,
-						})
-					}
-				}
-
-			case *parser.Function:
-				for _, node := range t.Children() {
-					if typDecl, ok := node.(*parser.TypeDeclaration); ok {
-						if memberName := NewQualifiedNameFromLocalName(typDecl.Name); memberName == name {
-							res = append(res, Usage{
-								Name: NewQualifiedNameFromNamedType(t),
-								Type: t,
-							})
-						}
-					}
-				}
-			}*/
-
 		}
 	}
 
 	slices.SortFunc(res, func(a, b Usage) bool {
 		return a.Name.Name() < b.Name.Name()
+	})
+
+	res = slices.CompactFunc(res, func(a Usage, b Usage) bool {
+		return a.Name == b.Name
 	})
 	return res
 }

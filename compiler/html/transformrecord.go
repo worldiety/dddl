@@ -10,16 +10,16 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-func newTypesFromRecordsInContext(context *Context, r *resolver.Resolver, records []*parser.Struct) []*Type {
+func newTypesFromRecords(parent any, r *resolver.Resolver, records []*parser.Struct) []*Type {
 	var res []*Type
 	for _, record := range records {
-		res = append(res, newTypeFromRecordInContext(context, r, record))
+		res = append(res, newTypeFromRecord(parent, r, record))
 	}
 
 	return res
 }
 
-func newTypeFromRecordInContext(context *Context, r *resolver.Resolver, record *parser.Struct) *Type {
+func newTypeFromRecord(parent any, r *resolver.Resolver, record *parser.Struct) *Type {
 	typeDef := parser.TypeDefinitionFrom(record)
 	var def template.HTML
 	if typeDef.Description != nil {
@@ -27,7 +27,8 @@ func newTypeFromRecordInContext(context *Context, r *resolver.Resolver, record *
 	}
 
 	data := &Type{
-		Context:    context,
+		Node:       record,
+		Parent:     parent,
 		Category:   "Datenverbundtyp",
 		Name:       record.Name.Value,
 		Ref:        resolver.NewQualifiedNameFromNamedType(record).String(),
@@ -42,41 +43,6 @@ func newTypeFromRecordInContext(context *Context, r *resolver.Resolver, record *
 
 	data.SVG = template.HTML(svg)
 	data.Usages = newUsages(r, record)
-
-	return data
-}
-
-func newTypesFromRecordsInAggregate(aggregate *Aggregate, r *resolver.Resolver, records []*parser.Struct) []*Type {
-	var res []*Type
-	for _, record := range records {
-		res = append(res, newTypeFromRecordsInAggregate(aggregate, r, record))
-	}
-
-	return res
-}
-
-func newTypeFromRecordsInAggregate(aggregate *Aggregate, r *resolver.Resolver, record *parser.Struct) *Type {
-	typeDef := parser.TypeDefinitionFrom(record)
-	var def template.HTML
-	if typeDef.Description != nil {
-		def = markdown(typeDef.Description.Value)
-	}
-
-	data := &Type{
-		Aggregate:  aggregate,
-		Category:   "Datenverbundtyp",
-		Name:       record.Name.Value,
-		Ref:        resolver.NewQualifiedNameFromNamedType(record).String(),
-		Definition: def,
-		SVG:        "",
-	}
-
-	svg, err := plantuml.RenderLocal("svg", puml.RenderNamedType(r, record, puml.NewRFlags(record)))
-	if err != nil {
-		slog.Error("failed to convert data to puml", slog.Any("err", err))
-	}
-
-	data.SVG = template.HTML(svg)
 
 	return data
 }

@@ -10,16 +10,16 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-func newTypesFromTypesInContext(context *Context, r *resolver.Resolver, types []*parser.Type) []*Type {
+func newTypesFromTypes(parent any, r *resolver.Resolver, types []*parser.Type) []*Type {
 	var res []*Type
 	for _, typ := range types {
-		res = append(res, newTypeFromTypeInContext(context, r, typ))
+		res = append(res, newTypeFromType(parent, r, typ))
 	}
 
 	return res
 }
 
-func newTypeFromTypeInContext(context *Context, r *resolver.Resolver, typ *parser.Type) *Type {
+func newTypeFromType(parent any, r *resolver.Resolver, typ *parser.Type) *Type {
 	typeDef := parser.TypeDefinitionFrom(typ)
 	var def template.HTML
 	if typeDef.Description != nil {
@@ -27,7 +27,8 @@ func newTypeFromTypeInContext(context *Context, r *resolver.Resolver, typ *parse
 	}
 
 	data := &Type{
-		Context:    context,
+		Node:       typ,
+		Parent:     parent,
 		Category:   "Basistyp",
 		Name:       typ.Name.Value,
 		Ref:        resolver.NewQualifiedNameFromNamedType(typ).String(),
@@ -42,41 +43,6 @@ func newTypeFromTypeInContext(context *Context, r *resolver.Resolver, typ *parse
 
 	data.SVG = template.HTML(svg)
 	data.Usages = newUsages(r, typ)
-
-	return data
-}
-
-func newTypesFromTypesInAggregate(aggregate *Aggregate, r *resolver.Resolver, types []*parser.Type) []*Type {
-	var res []*Type
-	for _, typ := range types {
-		res = append(res, newTypeFromTypeInAggregate(aggregate, r, typ))
-	}
-
-	return res
-}
-
-func newTypeFromTypeInAggregate(aggregate *Aggregate, r *resolver.Resolver, typ *parser.Type) *Type {
-	typeDef := parser.TypeDefinitionFrom(typ)
-	var def template.HTML
-	if typeDef.Description != nil {
-		def = markdown(typeDef.Description.Value)
-	}
-
-	data := &Type{
-		Aggregate:  aggregate,
-		Category:   "Basistyp",
-		Name:       typ.Name.Value,
-		Ref:        resolver.NewQualifiedNameFromNamedType(typ).String(),
-		Definition: def,
-		SVG:        "",
-	}
-
-	svg, err := plantuml.RenderLocal("svg", puml.RenderNamedType(r, typ, puml.NewRFlags(typ)))
-	if err != nil {
-		slog.Error("failed to convert type to puml", slog.Any("err", err))
-	}
-
-	data.SVG = template.HTML(svg)
 
 	return data
 }

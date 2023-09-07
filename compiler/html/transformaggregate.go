@@ -10,7 +10,9 @@ import (
 func newTypesFromAggregateInContext(context *Context, r *resolver.Resolver, aggregates []*parser.Aggregate, rCtx *resolver.Context) []*Aggregate {
 	var res []*Aggregate
 	for _, aggregate := range aggregates {
-		res = append(res, newTypeFromAggregateInContext(context, r, aggregate, rCtx))
+		a := newTypeFromAggregateInContext(context, r, aggregate, rCtx)
+		postCategorizeByAnnotations(a.Types)
+		res = append(res, a)
 	}
 
 	return res
@@ -31,11 +33,11 @@ func newTypeFromAggregateInContext(context *Context, r *resolver.Resolver, aggre
 		Definition: def,
 	}
 
-	data.Types = append(data.Types, newTypesFromRecordsInAggregate(data, r, resolver.CollectFromAggregate[*parser.Struct](aggregate))...)
-	data.Types = append(data.Types, newTypesFromChoiceInAggregate(data, r, resolver.CollectFromAggregate[*parser.Choice](aggregate))...)
-	data.Types = append(data.Types, newTypesFromTypesInAggregate(data, r, resolver.CollectFromAggregate[*parser.Type](aggregate))...)
-	data.Types = append(data.Types, newTypesFromAliasInAggregate(data, r, resolver.CollectFromAggregate[*parser.Alias](aggregate))...)
-	data.Types = append(data.Types, newTypesFromFuncsInAggregate(data, r, resolver.CollectFromAggregate[*parser.Function](aggregate))...)
+	data.Types = append(data.Types, newTypesFromRecords(data, r, resolver.CollectFromAggregate[*parser.Struct](aggregate))...)
+	data.Types = append(data.Types, newTypesFromChoice(data, r, resolver.CollectFromAggregate[*parser.Choice](aggregate))...)
+	data.Types = append(data.Types, newTypesFromTypes(data, r, resolver.CollectFromAggregate[*parser.Type](aggregate))...)
+	data.Types = append(data.Types, newTypesFromAlias(data, r, resolver.CollectFromAggregate[*parser.Alias](aggregate))...)
+	data.Types = append(data.Types, newTypesFromFuncs(data, r, resolver.CollectFromAggregate[*parser.Function](aggregate))...)
 
 	return data
 }

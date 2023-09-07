@@ -17,7 +17,8 @@
         </div>
         <div class="flex flex-1 bg-gray-100">
             {{/* Sidebar */}}
-            <div class="flex flex-col basis-1/4 self-start w-full max-w-max bg-gray-100 sticky top-16" style="min-width: 175px; max-height: calc(100vh - 4rem);">
+            <div class="flex flex-col basis-1/4 self-start w-full max-w-max bg-gray-100 sticky top-16"
+                 style="min-width: 175px; max-height: calc(100vh - 4rem);">
                 <div class="text-gray-600 bg-gray-100 sticky top-16 text-md font-semibold px-3 py-2 shadow">Inhalt</div>
                 <div class="flex flex-col overflow-y-auto overflow-x-hidden py-4 gap-2">
                     <div class="text-gray-600 text-sm font-semibold ml-3 mr-2">Aggregate</div>
@@ -35,92 +36,8 @@
                                         </div>
                                     </a>
                                 </summary>
-                                <div class="flex flex-col gap p-2 bg-gray-200 rounded mt-1">
-                                    <div class="text-gray-600 text-xs font-semibold mt-1">Datenverbundtypen</div>
-                                    {{$containsDataTypes := false}}
-                                    {{range .Types}}
-                                        {{if eq .Category "Datenverbundtyp"}}
-                                            <a href="#{{.Ref}}" class="mt-1">
-                                                <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
-                                                    <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
-                                                        {{.Name}}
-                                                    </div>
-                                                </div>
-                                            </a>
-                                            {{$containsDataTypes = true}}
-                                        {{end}}
-                                    {{end}}
-                                    {{if not $containsDataTypes}}
-                                        <div class="text-gray-600 text-xs break-normal ml-5 mr-2 mt-1 overflow-hidden text-ellipsis">Keine Datenverbundtypen vorhanden</div>
-                                    {{end}}
-                                    <div class="text-gray-600 text-xs font-semibold mt-1">Auswahltypen</div>
-                                    {{$containsChoiceTypes := false}}
-                                    {{range .Types}}
-                                        {{if eq .Category "Auswahltyp"}}
-                                            <a href="#{{.Ref}}" class="mt-1">
-                                                <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
-                                                    <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
-                                                        {{.Name}}
-                                                    </div>
-                                                </div>
-                                            </a>
-                                            {{$containsChoiceTypes = true}}
-                                        {{end}}
-                                    {{end}}
-                                    {{if not $containsChoiceTypes}}
-                                        <div class="text-gray-600 text-xs break-normal ml-5 mr-2 mt-1 overflow-hidden text-ellipsis">Keine Auswahltypen vorhanden</div>
-                                    {{end}}
-                                    <div class="text-gray-600 text-xs font-semibold mt-1">Basistypen</div>
-                                    {{$containsBaseTypes := false}}
-                                    {{range .Types}}
-                                        {{if eq .Category "Basistyp"}}
-                                            <a href="#{{.Ref}}" class="mt-1">
-                                                <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
-                                                    <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
-                                                        {{.Name}}
-                                                    </div>
-                                                </div>
-                                            </a>
-                                            {{$containsBaseTypes = true}}
-                                        {{end}}
-                                    {{end}}
-                                    {{if not $containsBaseTypes}}
-                                        <div class="text-gray-600 text-xs break-normal ml-5 mr-2 mt-1 overflow-hidden text-ellipsis">Keine Basistypen vorhanden</div>
-                                    {{end}}
-                                    <div class="text-gray-600 text-xs font-semibold mt-1">Synonyme</div>
-                                    {{$containsSynonymTypes := false}}
-                                    {{range .Types}}
-                                        {{if eq .Category "Synonym"}}
-                                            <a href="#{{.Ref}}" class="mt-1">
-                                                <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
-                                                    <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
-                                                        {{.Name}}
-                                                    </div>
-                                                </div>
-                                            </a>
-                                            {{$containsSynonymTypes = true}}
-                                        {{end}}
-                                    {{end}}
-                                    {{if not $containsSynonymTypes}}
-                                        <div class="text-gray-600 text-xs break-normal ml-5 mr-2 mt-1 overflow-hidden text-ellipsis">Keine Synonyme vorhanden</div>
-                                    {{end}}
-                                    <div class="text-gray-600 text-xs font-semibold mt-1">Aufgaben</div>
-                                    {{$containsTaskTypes := false}}
-                                    {{range .Types}}
-                                        {{if eq .Category "Aufgabe"}}
-                                            <a href="#{{.Ref}}" class="mt-1">
-                                                <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
-                                                    <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
-                                                        {{.Name}}
-                                                    </div>
-                                                </div>
-                                            </a>
-                                            {{$containsTaskTypes = true}}
-                                        {{end}}
-                                    {{end}}
-                                    {{if not $containsTaskTypes}}
-                                        <div class="text-gray-600 text-xs break-normal ml-5 mr-2 mt-1 overflow-hidden text-ellipsis">Keine Aufgaben vorhanden</div>
-                                    {{end}}
+                                <div class="flex flex-col gap-1 p-2 bg-gray-200 rounded mt-1">
+                                    {{template "sidebarcategories" .}}
                                 </div>
                             </details>
                         {{end}}
@@ -129,91 +46,9 @@
                     {{if not .Types}}
                         <div class="text-gray-600 text-xs ml-4 mr-2">Keine Typen vorhanden</div>
                     {{else}}
-                            <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Datenverbundtypen</div>
-                            {{$containsDataTypes := false}}
-                            {{range .Types }}
-                                {{if eq .Category "Datenverbundtyp"}}
-                                    <a href="#{{.Ref}}" class="ml-5 mr-2">
-                                        <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
-                                            <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
-                                                {{.Name}}
-                                            </div>
-                                        </div>
-                                    </a>
-                                    {{$containsDataTypes = true}}
-                                {{end}}
-                            {{end}}
-                            {{if not $containsDataTypes}}
-                                <div class="text-gray-600 text-xs ml-5 mr-2">Keine Datenverbundtypen vorhanden</div>
-                            {{end}}
-                            <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Auswahltypen</div>
-                            {{$containsChoiceTypes := false}}
-                            {{range .Types}}
-                                {{if eq .Category "Auswahltyp"}}
-                                    <a href="#{{.Ref}}" class="ml-5 mr-2">
-                                        <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
-                                            <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
-                                                {{.Name}}
-                                            </div>
-                                        </div>
-                                    </a>
-                                    {{$containsChoiceTypes = true}}
-                                {{end}}
-                            {{end}}
-                            {{if not $containsChoiceTypes}}
-                                <div class="text-gray-600 text-xs ml-5 mr-2">Keine Auswahltypen vorhanden</div>
-                            {{end}}
-                            <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Basistypen</div>
-                            {{$containsBaseTypes := false}}
-                            {{range .Types}}
-                                {{if eq .Category "Basistyp"}}
-                                    <a href="#{{.Ref}}" class="ml-5 mr-2">
-                                        <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
-                                            <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
-                                                {{.Name}}
-                                            </div>
-                                        </div>
-                                    </a>
-                                    {{$containsBaseTypes = true}}
-                                {{end}}
-                            {{end}}
-                            {{if not $containsBaseTypes}}
-                                <div class="text-gray-600 text-xs ml-5 mr-2">Keine Basistypen vorhanden</div>
-                            {{end}}
-                            <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Synonyme</div>
-                            {{$containsSynonymTypes := false}}
-                            {{range .Types}}
-                                {{if eq .Category "Synonym"}}
-                                    <a href="#{{.Ref}}" class="ml-5 mr-2">
-                                        <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
-                                            <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
-                                                {{.Name}}
-                                            </div>
-                                        </div>
-                                    </a>
-                                    {{$containsSynonymTypes = true}}
-                                {{end}}
-                            {{end}}
-                            {{if not $containsSynonymTypes}}
-                                <div class="text-gray-600 text-xs ml-5 mr-2">Keine Synonyme vorhanden</div>
-                            {{end}}
-                            <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Aufgaben</div>
-                            {{$containsTaskTypes := false}}
-                            {{range .Types}}
-                                {{if eq .Category "Aufgabe"}}
-                                    <a href="#{{.Ref}}" class="ml-5 mr-2">
-                                        <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
-                                            <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
-                                                {{.Name}}
-                                            </div>
-                                        </div>
-                                    </a>
-                                    {{$containsTaskTypes = true}}
-                                {{end}}
-                            {{end}}
-                            {{if not $containsTaskTypes}}
-                                <div class="text-gray-600 text-xs ml-5 mr-2">Keine Aufgaben vorhanden</div>
-                            {{end}}
+                        {{template "sidebarcategories" .}}
+
+
                     {{end}}
                 </div>
             </div>
@@ -228,7 +63,9 @@
                                 {{if .Definition}}
                                     <div class="text-gray-600 leading-snug md:leading-normal">{{.Definition}}</div>
                                 {{else}}
-                                    <div class="text-gray-600 leading-snug md:leading-normal">Keine Definition vorhanden.</div>
+                                    <div class="text-gray-600 leading-snug md:leading-normal">Keine Definition
+                                        vorhanden.
+                                    </div>
                                 {{end}}
                             </div>
                         </div>
@@ -283,4 +120,69 @@
             </div>
         </div>
     </div>
+{{end}}
+
+{{define "sidebarlink"}}
+<a href="#{{.Ref}}" class="ml-5 mr-2">
+    <div class="bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+        <div class="text-green-800 text-xs font-medium overflow-hidden text-ellipsis">
+            {{.Name}}
+        </div>
+    </div>
+</a>
+{{end}}
+
+
+{{define "sidebarcategories"}}
+    {{if .GroupTypesByCategory "Datenverbundtyp"}}
+        <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Datenverbundtypen</div>
+        {{range .GroupTypesByCategory "Datenverbundtyp"}}
+            {{template "sidebarlink" .}}
+        {{end}}
+    {{end}}
+    {{if .GroupTypesByCategory "Auswahltyp"}}
+        <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Auswahltypen</div>
+        {{range .GroupTypesByCategory "Auswahltyp"}}
+            {{template "sidebarlink" .}}
+        {{end}}
+    {{end}}
+    {{if .GroupTypesByCategory "Basistyp"}}
+        <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Basistypen</div>
+        {{range .GroupTypesByCategory "Basistyp"}}
+            {{template "sidebarlink" .}}
+        {{end}}
+    {{end}}
+    {{if .GroupTypesByCategory "Synonym"}}
+        <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Synonyme</div>
+        {{range .GroupTypesByCategory "Synonym"}}
+            {{template "sidebarlink" .}}
+        {{end}}
+    {{end}}
+    {{if .GroupTypesByCategory "Aufgabe"}}
+        <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Prozesse & Aufgaben</div>
+        {{range .GroupTypesByCategory "Aufgabe"}}
+            {{template "sidebarlink" .}}
+        {{end}}
+    {{end}}
+
+    {{if .GroupTypesByCategory "Ereignis"}}
+        <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Domänenereignisse</div>
+        {{range .GroupTypesByCategory "Ereignis"}}
+            {{template "sidebarlink" .}}
+        {{end}}
+    {{end}}
+
+    {{if .GroupTypesByCategory "Fehler"}}
+        <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Fehler</div>
+        {{range .GroupTypesByCategory "Fehler"}}
+            {{template "sidebarlink" .}}
+        {{end}}
+    {{end}}
+
+    {{if .GroupTypesByCategory "Fremdsystem"}}
+        <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Fremdsysteme</div>
+        {{range .GroupTypesByCategory "Fremdsystem"}}
+            {{template "sidebarlink" .}}
+        {{end}}
+    {{end}}
 {{end}}
