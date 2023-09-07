@@ -3,7 +3,6 @@ package resolver
 import (
 	"github.com/worldiety/dddl/parser"
 	"golang.org/x/exp/slices"
-	"log"
 	"strings"
 )
 
@@ -40,22 +39,35 @@ func (r *Resolver) initTypeDefLookup() {
 
 type Usage struct {
 	Name FullQualifiedName
-	Type *parser.TypeDeclaration
+	Type parser.NamedType
 }
 
 func (r *Resolver) FindUsages(name FullQualifiedName) []Usage {
 	var res []Usage
 	for _, definitions := range r.typeDefs {
 		for _, definition := range definitions {
-			switch t := definition.Type.(type) {
+			parser.MustWalk(definition.Type, func(node parser.Node) error {
+				if typDecl, ok := node.(*parser.TypeDeclaration); ok {
+					if memberName := NewQualifiedNameFromLocalName(typDecl.Name); memberName == name {
+						res = append(res, Usage{
+							Name: NewQualifiedNameFromNamedType(definition.Type),
+							Type: definition.Type,
+						})
+					}
+				}
+
+				return nil
+			})
+
+			/*switch t := definition.Type.(type) {
 			case *parser.Type:
 				if t.Basetype == nil {
 					break
 				}
 				if memberName := NewQualifiedNameFromLocalName(t.Basetype.Name); memberName == name {
 					res = append(res, Usage{
-						Name: memberName,
-						Type: t.Basetype,
+						Name: NewQualifiedNameFromNamedType(t),
+						Type: t,
 					})
 				}
 			case *parser.Alias:
@@ -64,8 +76,8 @@ func (r *Resolver) FindUsages(name FullQualifiedName) []Usage {
 				}
 				if memberName := NewQualifiedNameFromLocalName(t.BaseType.Name); memberName == name {
 					res = append(res, Usage{
-						Name: memberName,
-						Type: t.BaseType,
+						Name: NewQualifiedNameFromNamedType(t),
+						Type: t,
 					})
 				}
 
@@ -73,30 +85,40 @@ func (r *Resolver) FindUsages(name FullQualifiedName) []Usage {
 				for _, field := range t.Fields {
 					if memberName := NewQualifiedNameFromLocalName(field.TypeDecl.Name); memberName == name {
 						res = append(res, Usage{
-							Name: memberName,
-							Type: field.TypeDecl,
+							Name: NewQualifiedNameFromNamedType(t),
+							Type: t,
 						})
 					}
 				}
 			case *parser.Choice:
 				for _, choice := range t.Choices {
-					if memberName := NewQualifiedNameFromLocalName(choice.Choice.Name); memberName == name {
+					if memberName := NewQualifiedNameFromLocalName(choice.Name); memberName == name {
 						res = append(res, Usage{
-							Name: memberName,
-							Type: choice.Choice,
+							Name: NewQualifiedNameFromNamedType(t),
+							Type: t,
 						})
 					}
 				}
-			}
+
+			case *parser.Function:
+				for _, node := range t.Children() {
+					if typDecl, ok := node.(*parser.TypeDeclaration); ok {
+						if memberName := NewQualifiedNameFromLocalName(typDecl.Name); memberName == name {
+							res = append(res, Usage{
+								Name: NewQualifiedNameFromNamedType(t),
+								Type: t,
+							})
+						}
+					}
+				}
+			}*/
+
 		}
 	}
 
-	if len(res) > 0 {
-		log.Println(name.String(), ":")
-		for _, re := range res {
-			log.Println(" <-" + re.Name.String())
-		}
-	}
+	slices.SortFunc(res, func(a, b Usage) bool {
+		return a.Name.Name() < b.Name.Name()
+	})
 	return res
 }
 

@@ -9,7 +9,7 @@ type Choice struct {
 	node
 	KeywordChoice *KeywordChoice     `@@`
 	Name          *Name              `@@`
-	Choices       []*TypeDeclaration `("{" @@ ((","|"or"|"oder") @@)+ "}" )?`
+	Choices       []*TypeDeclaration `( "{" @@ (("," | "oder" ) @@)* "}" )?`
 }
 
 func (n *Choice) GetKeyword() string {

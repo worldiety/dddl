@@ -29,7 +29,7 @@ func ParseEventAnnotation(definition *TypeDefinition) (*EventAnnotation, error) 
 		return nil, fmt.Errorf("annotation %s is not allowed on type %s", annotation.Name.Value, definition.Type.GetName())
 	}
 
-	if err := annotation.ExpectKeysOf("eingehend", "ausgehen", "incoming", "outgoing"); err != nil {
+	if err := annotation.ExpectKeysOf("eingehend", "ausgehend", "incoming", "outgoing"); err != nil {
 		return nil, err
 	}
 

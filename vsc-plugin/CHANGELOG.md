@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.23
+Fixed crashes in resolver.
+Added exact direct usages for types.
+Allowing single choice enumeration.
+Fixed event typo.
+
+
 ## 0.0.22
 Fixed crashes in various context assignee conditions.
 
