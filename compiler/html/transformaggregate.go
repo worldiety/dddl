@@ -7,10 +7,10 @@ import (
 	"github.com/worldiety/dddl/resolver"
 )
 
-func newTypesFromAggregateInContext(context *Context, r *resolver.Resolver, aggregates []*parser.Aggregate, rCtx *resolver.Context) []*Aggregate {
+func newTypesFromAggregate(context *Context, r *resolver.Resolver, aggregates []*parser.Aggregate, rCtx *resolver.Context) []*Aggregate {
 	var res []*Aggregate
 	for _, aggregate := range aggregates {
-		a := newTypeFromAggregateInContext(context, r, aggregate, rCtx)
+		a := newTypeFromAggregate(context, r, aggregate, rCtx)
 		postCategorizeByAnnotations(a.Types)
 		res = append(res, a)
 	}
@@ -18,7 +18,7 @@ func newTypesFromAggregateInContext(context *Context, r *resolver.Resolver, aggr
 	return res
 }
 
-func newTypeFromAggregateInContext(context *Context, r *resolver.Resolver, aggregate *parser.Aggregate, rCtx *resolver.Context) *Aggregate {
+func newTypeFromAggregate(context *Context, r *resolver.Resolver, aggregate *parser.Aggregate, rCtx *resolver.Context) *Aggregate {
 	typeDef := parser.TypeDefinitionFrom(aggregate)
 	var def template.HTML
 	if typeDef.Description != nil {
