@@ -12,7 +12,7 @@ func transform(rslv *resolver.Resolver) *Doc {
 		ctx := &Context{Name: rCtx.Name}
 		ctx.ShortDef = markdown(rCtx.ShortString())
 		ctx.Ref = resolver.NewQualifiedNameFromNamedType(rCtx.Fragments[0]).String()
-		ctx.Aggregates = append(ctx.Aggregates, newTypesFromAggregateInContext(ctx, rslv, resolver.CollectFromContext[*parser.Aggregate](rCtx), rCtx)...)
+		ctx.Aggregates = append(ctx.Aggregates, newTypesFromAggregate(ctx, rslv, resolver.CollectFromContext[*parser.Aggregate](rCtx), rCtx)...)
 		ctx.Types = append(ctx.Types, newTypesFromRecords(ctx, rslv, resolver.CollectFromContext[*parser.Struct](rCtx))...)
 		ctx.Types = append(ctx.Types, newTypesFromChoice(ctx, rslv, resolver.CollectFromContext[*parser.Choice](rCtx))...)
 		ctx.Types = append(ctx.Types, newTypesFromTypes(ctx, rslv, resolver.CollectFromContext[*parser.Type](rCtx))...)
