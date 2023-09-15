@@ -17,8 +17,8 @@
         </div>
         <div class="flex flex-1 bg-gray-100">
             {{/* Sidebar */}}
-            <div class="flex flex-col basis-1/4 self-start w-full max-w-max bg-gray-100 sticky top-16"
-                 style="min-width: 175px; max-height: calc(100vh - 4rem);">
+            <div class="flex flex-col basis-1/4 self-start w-full max-w-max bg-gray-100 sticky top-16 print:hidden"
+                style="min-width: 175px; max-height: calc(100vh - 4rem);">
                 <div class="text-gray-600 bg-gray-100 sticky top-16 text-md font-semibold px-3 py-2 shadow">Inhalt</div>
                 <div class="flex flex-col overflow-y-auto overflow-x-hidden py-4 gap-2">
                     <div class="text-gray-600 text-sm font-semibold ml-3 mr-2">Aggregate</div>
@@ -98,23 +98,25 @@
                         {{template "aggregate" .}}
                     {{end}}
                     {{if .Types}}
-                        <div class="flex items-center bg-gray-300 h-fit p-2 sticky top-16 shadow">
-                            <a href="#{{.Ref}}_definition">{{template "aggregateIcon"}}</a>
-                            <div class="flex flex-col ml-4 mr-2">
-                                <a href="#top" class="text-gray-600 font-semibold">Ohne Aggregat</a>
-                                <div class="flex w-full mt-1">
-                                    <div class="text-green-700 font-base text-xs mr-1">
+                        <div class="break-inside-avoid-page">
+                            <div class="flex items-center bg-gray-300 h-fit p-2 sticky top-16 shadow">
+                                <a href="#{{.Ref}}_definition">{{template "aggregateIcon"}}</a>
+                                <div class="flex flex-col ml-4 mr-2">
+                                    <a href="#top" class="text-gray-600 font-semibold">Ohne Aggregat</a>
+                                    <div class="flex w-full mt-1">
+                                        <div class="text-green-700 font-base text-xs mr-1">
 
-                                    </div>
-                                    <div class="text-gray-400 font-thin text-xs">
+                                        </div>
+                                        <div class="text-gray-400 font-thin text-xs">
 
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                            {{range .Types}}
+                                {{template "type" .}}
+                            {{end}}
                         </div>
-                        {{range .Types}}
-                            {{template "type" .}}
-                        {{end}}
                     {{end}}
                 </div>
             </div>
