@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-var regexAssignee = regexp.MustCompile(`@\S+:?\s[^.?!\n]+`)
+var regexAssignee = regexp.MustCompile(`@\S+:?\s[^\n]+`)
 var regexName = regexp.MustCompile(`@\S+:?`)
 
 type AssignedTask struct {

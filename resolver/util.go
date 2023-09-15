@@ -76,14 +76,20 @@ func NewQualifiedNameFromLocalName(n *parser.QualifiedName) FullQualifiedName {
 		return FullQualifiedName(name)
 	}
 
-	nextNamedType := parser.ContextOf(n)
-	if nextNamedType == nil {
-		// we must be at the anonymous level
-		// outside of any context
-		return FullQualifiedName(name)
+	fqn := FullQualifiedName(name)
+	child := n.Parent()
+
+	for child.Parent() != nil {
+		switch child.Parent().(type) {
+		case *parser.Context, *parser.Aggregate:
+			namedType := child.Parent().(parser.NamedType)
+			fqn = FullQualifiedName(namedType.GetName().Value) + "." + fqn
+		}
+
+		child = child.Parent()
 	}
 
-	return NewQualifiedNameFromNamedType(nextNamedType) + "." + FullQualifiedName(name)
+	return fqn
 }
 
 func secureSegment(s string) string {

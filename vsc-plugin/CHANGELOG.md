@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.25
+Improved preview for xl screens.
+Fixed resolver to also resolve local types within aggregates properly.
+Assigned tasks now match until new line, instead of end of sentence. 
+
 ## 0.0.24
 Fixed usage views (removed contexts and multiple nested usages).
 Added side menu entries for external, errors and events.
