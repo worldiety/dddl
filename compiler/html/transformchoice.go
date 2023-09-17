@@ -10,20 +10,20 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-func newTypesFromChoice(parent any, r *resolver.Resolver, choices []*parser.Choice) []*Type {
+func newTypesFromChoice(parent any, r *resolver.Resolver, model PreviewModel, choices []*parser.Choice) []*Type {
 	var res []*Type
 	for _, choice := range choices {
-		res = append(res, newTypeFromChoice(parent, r, choice))
+		res = append(res, newTypeFromChoice(parent, r, model, choice))
 	}
 
 	return res
 }
 
-func newTypeFromChoice(parent any, r *resolver.Resolver, choice *parser.Choice) *Type {
+func newTypeFromChoice(parent any, r *resolver.Resolver, model PreviewModel, choice *parser.Choice) *Type {
 	typeDef := parser.TypeDefinitionFrom(choice)
 	var def template.HTML
 	if typeDef.Description != nil {
-		def = markdown(typeDef.Description.Value)
+		def = markdown(typeDef.Description.Value, model)
 	}
 
 	data := &Type{

@@ -11,15 +11,16 @@ type Head struct {
 }
 
 type PreviewModel struct {
-	DevMode    bool `json:"-"`
-	Title      string
-	Doc        *Doc
-	Hints      []template.HTML
-	NamedTasks []NamedTasks
-	EditorText string
-	Error      string
-	LastSaved  string
-	Head       Head
+	DevMode              bool `json:"-"`
+	Title                string
+	Doc                  *Doc
+	Hints                []template.HTML
+	NamedTasks           []NamedTasks
+	EditorText           string
+	Error                string
+	LastSaved            string
+	Head                 Head
+	LocalWorkspacePrefix string
 }
 
 type NamedTasks struct {

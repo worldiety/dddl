@@ -40,6 +40,9 @@ func RenderNamedType(r *resolver.Resolver, namedType parser.NamedType, flags RFl
 		diag.Add(Record(r, t, flags).Renderables...)
 	case *parser.Choice:
 		diag.Add(Choice(r, t, flags).Renderables...)
+		if len(t.Choices) > 5 {
+			diag.SkinParams = append(diag.SkinParams, "left to right direction")
+		}
 	case *parser.Type:
 		diag.Add(Type(r, t, flags).Renderables...)
 	case *parser.Alias:

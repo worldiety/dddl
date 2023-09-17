@@ -10,20 +10,20 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-func newTypesFromAlias(parent any, r *resolver.Resolver, aliases []*parser.Alias) []*Type {
+func newTypesFromAlias(parent any, r *resolver.Resolver, model PreviewModel, aliases []*parser.Alias) []*Type {
 	var res []*Type
 	for _, alias := range aliases {
-		res = append(res, newTypeFromAlias(parent, r, alias))
+		res = append(res, newTypeFromAlias(parent, r, model, alias))
 	}
 
 	return res
 }
 
-func newTypeFromAlias(parent any, r *resolver.Resolver, typ *parser.Alias) *Type {
+func newTypeFromAlias(parent any, r *resolver.Resolver, model PreviewModel, typ *parser.Alias) *Type {
 	typeDef := parser.TypeDefinitionFrom(typ)
 	var def template.HTML
 	if typeDef.Description != nil {
-		def = markdown(typeDef.Description.Value)
+		def = markdown(typeDef.Description.Value, model)
 	}
 
 	data := &Type{

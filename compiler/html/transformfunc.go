@@ -10,20 +10,20 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-func newTypesFromFuncs(parent any, r *resolver.Resolver, funcs []*parser.Function) []*Type {
+func newTypesFromFuncs(parent any, r *resolver.Resolver, model PreviewModel, funcs []*parser.Function) []*Type {
 	var res []*Type
 	for _, f := range funcs {
-		res = append(res, newTypeFromFunc(parent, r, f))
+		res = append(res, newTypeFromFunc(parent, r, model, f))
 	}
 
 	return res
 }
 
-func newTypeFromFunc(parent any, r *resolver.Resolver, typ *parser.Function) *Type {
+func newTypeFromFunc(parent any, r *resolver.Resolver, model PreviewModel, typ *parser.Function) *Type {
 	typeDef := parser.TypeDefinitionFrom(typ)
 	var def template.HTML
 	if typeDef.Description != nil {
-		def = markdown(typeDef.Description.Value)
+		def = markdown(typeDef.Description.Value, model)
 	}
 
 	data := &Type{

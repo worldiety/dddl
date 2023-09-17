@@ -1,4 +1,9 @@
 # Changelog
+## 0.0.26
+Supporting markdown images.
+Fixed soft-hard line break behavior.
+Choicetypes larger than 5 choices, render from left to right for better readability.
+Listing of assignees works also on aggregate types.
 
 ## 0.0.25
 Improved preview for xl screens.

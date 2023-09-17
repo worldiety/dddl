@@ -5,22 +5,22 @@ import (
 	"github.com/worldiety/dddl/resolver"
 )
 
-func transform(rslv *resolver.Resolver) *Doc {
+func transform(rslv *resolver.Resolver, model PreviewModel) *Doc {
 
 	doc := &Doc{}
 	for _, rCtx := range rslv.Contexts() {
 		ctx := &Context{Name: rCtx.Name}
-		ctx.ShortDef = markdown(rCtx.ShortString())
+		ctx.ShortDef = markdown(rCtx.ShortString(), model)
 		ctx.Ref = resolver.NewQualifiedNameFromNamedType(rCtx.Fragments[0]).String()
-		ctx.Aggregates = append(ctx.Aggregates, newTypesFromAggregate(ctx, rslv, resolver.CollectFromContext[*parser.Aggregate](rCtx), rCtx)...)
-		ctx.Types = append(ctx.Types, newTypesFromRecords(ctx, rslv, resolver.CollectFromContext[*parser.Struct](rCtx))...)
-		ctx.Types = append(ctx.Types, newTypesFromChoice(ctx, rslv, resolver.CollectFromContext[*parser.Choice](rCtx))...)
-		ctx.Types = append(ctx.Types, newTypesFromTypes(ctx, rslv, resolver.CollectFromContext[*parser.Type](rCtx))...)
-		ctx.Types = append(ctx.Types, newTypesFromAlias(ctx, rslv, resolver.CollectFromContext[*parser.Alias](rCtx))...)
-		ctx.Types = append(ctx.Types, newTypesFromFuncs(ctx, rslv, resolver.CollectFromContext[*parser.Function](rCtx))...)
+		ctx.Aggregates = append(ctx.Aggregates, newTypesFromAggregate(ctx, rslv, model, resolver.CollectFromContext[*parser.Aggregate](rCtx))...)
+		ctx.Types = append(ctx.Types, newTypesFromRecords(ctx, rslv, model, resolver.CollectFromContext[*parser.Struct](rCtx))...)
+		ctx.Types = append(ctx.Types, newTypesFromChoice(ctx, rslv, model, resolver.CollectFromContext[*parser.Choice](rCtx))...)
+		ctx.Types = append(ctx.Types, newTypesFromTypes(ctx, rslv, model, resolver.CollectFromContext[*parser.Type](rCtx))...)
+		ctx.Types = append(ctx.Types, newTypesFromAlias(ctx, rslv, model, resolver.CollectFromContext[*parser.Alias](rCtx))...)
+		ctx.Types = append(ctx.Types, newTypesFromFuncs(ctx, rslv, model, resolver.CollectFromContext[*parser.Function](rCtx))...)
 
 		postCategorizeByAnnotations(ctx.Types)
-		ctx.Definition = markdown(rCtx.Description)
+		ctx.Definition = markdown(rCtx.Description, model)
 
 		doc.Contexts = append(doc.Contexts, ctx)
 

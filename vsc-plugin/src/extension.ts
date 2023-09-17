@@ -88,7 +88,8 @@ export async function activate(context: vscode.ExtensionContext) {
             if (PreviewPanel.currentPanel != null) {
                 if (resp==="lastPreviewParams missing"){
                     let tailwindUri = PreviewPanel.currentPanel?._tailwindUri;
-                    client.sendRequest("custom/webViewParams", {TailwindUri: tailwindUri?.toString()}).catch(e => console.log(e))
+                    let webviewPrefix =  PreviewPanel.currentPanel?._webviewPrefixUri;
+                    client.sendRequest("custom/webViewParams", {WebviewWorkspacePrefix:webviewPrefix?.toString(),TailwindUri: tailwindUri?.toString()}).catch(e => console.log(e))
 
                 }
 
@@ -168,15 +169,23 @@ export function deactivate(): Thenable<void> | undefined {
 
 
 function getWebviewOptions(extensionUri: vscode.Uri): vscode.WebviewOptions {
+    let localWorkspaceUri = vscode.Uri.file("");
+
+    if(vscode.workspace.workspaceFolders !== undefined) {
+        localWorkspaceUri = vscode.workspace.workspaceFolders[0].uri;
+    }
+    
+
     return {
         // Enable javascript in the webview
         enableScripts: true,
 
         // And restrict the webview to only loading content from our extension's `media` directory.
         //localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media')]
-        localResourceRoots: [
-            extensionUri
-        ]
+
+
+       
+        
     };
 }
 
@@ -194,6 +203,8 @@ class PreviewPanel {
     private readonly _panel: vscode.WebviewPanel;
     private readonly _extensionUri: vscode.Uri;
     public readonly _tailwindUri: vscode.Uri;
+    public readonly _webviewPrefixUri:vscode.Uri;
+
     public _html: string;
     private _disposables: vscode.Disposable[] = [];
 
@@ -224,7 +235,8 @@ class PreviewPanel {
         //PreviewPanel.createOrShow(extensionUri, "<p>Einen Moment bitte...</p>");
 
         let tailwindUri = PreviewPanel.currentPanel?._tailwindUri;
-        client.sendRequest("custom/webViewParams", {TailwindUri: tailwindUri?.toString()}).catch(e => console.log(e))
+        let webviewPrefix =  PreviewPanel.currentPanel?._webviewPrefixUri;
+        client.sendRequest("custom/webViewParams", {WebviewWorkspacePrefix:webviewPrefix?.toString(),TailwindUri: tailwindUri?.toString()}).catch(e => console.log(e))
 
     }
 
@@ -234,6 +246,13 @@ class PreviewPanel {
         this._html = html;
 
         this._tailwindUri = panel.webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'tailwind.js'));
+        if(vscode.workspace.workspaceFolders !== undefined) {
+            this._webviewPrefixUri = panel.webview.asWebviewUri(vscode.workspace.workspaceFolders[0].uri);
+        }else{
+            this._webviewPrefixUri=vscode.Uri.file("")
+        }
+        
+        
 
         // Set the webview's initial html content
         this._update();

@@ -28,7 +28,7 @@ func init() {
 
 func RenderViewHtml(ws *parser.Workspace, model PreviewModel) string {
 	rslv := resolver.NewResolver(ws)
-	model.Doc = transform(rslv)
+	model.Doc = transform(rslv, model)
 	lintHints := linter.Lint(rslv)
 	model = transformLintHints(rslv, lintHints, model)
 
