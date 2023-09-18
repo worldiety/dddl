@@ -1,7 +1,7 @@
 {{define "aggregate"}}
     <div class="border-b border-gray-100 ml-10 mr-10"></div>
 
-    <div id="{{.Ref}}" class="grid grid-cols-1 scroll-mt-16">
+    <div id="{{.Ref}}" class="grid grid-cols-1 scroll-mt-16 break-inside-avoid-page">
         {{/* Header */}}
         <div class="flex items-center bg-gray-300 h-fit p-2 sticky top-16 shadow">
             <a href="#{{.Context.Ref}}_definition">{{template "aggregateIcon"}}</a>

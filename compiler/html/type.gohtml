@@ -1,7 +1,7 @@
 {{define "type"}}
     <div class="border-b border-gray-100 ml-10 mr-10"></div>
 
-    <div id="{{.Ref}}" class="p-4 grid grid-cols-1 xl:grid-cols-2 xl:divide-x hover:bg-green-50 scroll-mt-32">
+    <div id="{{.Ref}}" class="p-4 grid grid-cols-1 xl:grid-cols-2 xl:divide-x hover:bg-green-50 scroll-mt-32 break-inside-avoid-page">
         <div class="flex flex-row px-2 py-3 mx-3">
             {{if .Parent }}
                 <a href="#{{.Parent.Ref}}_definition">
