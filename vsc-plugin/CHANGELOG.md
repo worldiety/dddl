@@ -1,4 +1,9 @@
 # Changelog
+
+## 0.0.27
+Optimized print css.
+
+
 ## 0.0.26
 Supporting markdown images.
 Fixed soft-hard line break behavior.

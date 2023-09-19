@@ -2,7 +2,12 @@ package parser
 
 import "fmt"
 
+func parseAnnotations(definition *TypeDefinition) []TypedAnnotation {
+	panic("todo")
+}
+
 type EventAnnotation struct {
+	TypedAnnotation
 	In  bool
 	Out bool
 }
