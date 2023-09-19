@@ -21,13 +21,14 @@
     "onCommand:wdyspec.encodeXML",
     "onCommand:wdyspec.previewHTML",
     "onCommand:ddd.ExportHTML",
+    "onCommand:ddd.ExportPDF",
     "onCommand:ddd.GenerateGo"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "configurationDefaults": {
       "[ddd]": {
-         "editor.semanticHighlighting.enabled": true
+        "editor.semanticHighlighting.enabled": true
       }
     },
     "languages": [
@@ -66,6 +67,11 @@
         "category": "wdy"
       },
       {
+        "command": "ddd.ExportPDF",
+        "title": "als PDF exportieren",
+        "category": "wdy"
+      },
+      {
         "command": "ddd.GenerateGo",
         "title": "generiere Go Code (in module-root/internal/<Kontext>)",
         "category": "wdy"
@@ -81,6 +87,7 @@
     "test": "node ./out/test/runTest.js"
   },
   "dependencies": {
+    "selenium-webdriver": "^4.12.0",
     "vscode-languageclient": "8.1.0",
     "vscode-languageserver-protocol": "3.17.0"
   },
@@ -88,6 +95,7 @@
     "@types/glob": "8.1.0",
     "@types/mocha": "10.0.1",
     "@types/node": "20.3.1",
+    "@types/selenium-webdriver": "^4.1.16",
     "@types/vscode": "^1.55.0",
     "@typescript-eslint/eslint-plugin": "5.60.0",
     "@typescript-eslint/parser": "5.60.0",

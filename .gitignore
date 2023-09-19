@@ -1,0 +1,7 @@
+# generated files
+node_modules/
+out/
+
+# editors
+.idea/
+.vscode/
