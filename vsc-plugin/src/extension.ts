@@ -3,7 +3,9 @@
 import * as vscode from "vscode";
 import * as os from "os";
 import * as fs from "fs";
-import {LanguageClient, LanguageClientOptions, ServerOptions, TransportKind} from "vscode-languageclient/node";
+import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient/node";
+import { Builder } from 'selenium-webdriver';
+import * as chrome from 'selenium-webdriver/chrome';
 
 let client: LanguageClient;
 
@@ -60,15 +62,37 @@ export async function activate(context: vscode.ExtensionContext) {
 
 
     context.subscriptions.push(vscode.commands.registerCommand("ddd.ExportHTML", () => {
-
-            client.sendRequest("custom/ExportHTML", null).then((resp) => {
-                vscode.workspace.openTextDocument({
-                    content: String(resp),
-                    language: "html"
-                }).then((document) => {
-                    vscode.window.showTextDocument(document);
-                });
+        client.sendRequest("custom/ExportHTML", null).then((resp) => {
+            vscode.workspace.openTextDocument({
+                content: String(resp),
+                language: "html"
+            }).then((document) => {
+                vscode.window.showTextDocument(document);
             });
+        });
+    }));
+
+    context.subscriptions.push(vscode.commands.registerCommand("ddd.ExportPDF", async () => {
+        const filePath = vscode.window.activeTextEditor?.document.uri.fsPath;
+        let doc = "file://" + filePath;
+        if (doc) {
+            const options = new chrome.Options();
+            // options.addArguments('--headless');
+            options.addArguments('--kiosk-printing');
+    
+            const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
+    
+            try {
+                await driver.get(doc);
+                await driver.executeScript('window.print();');
+            } catch (error) {
+                console.log(error);
+                vscode.window.showErrorMessage('PDF could not be generated')
+            } finally {
+                driver.quit();
+            }
+            vscode.window.showInformationMessage(`PDF was generated in your default downloads folder`)
+        }
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand("ddd.GenerateGo", () => {
