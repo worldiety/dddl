@@ -1,9 +1,9 @@
 {{define "aggregate"}}
     <div class="border-b border-gray-100 ml-10 mr-10"></div>
 
-    <div id="{{.Ref}}" class="grid grid-cols-1 scroll-mt-16 break-inside-avoid-page">
+    <div id="{{.Ref}}" class="grid grid-cols-1 scroll-mt-16">
         {{/* Header */}}
-        <div class="flex items-center bg-gray-300 h-fit p-2 sticky top-16 shadow">
+        <div class="flex items-center bg-gray-300 h-fit p-2 sticky top-16 shadow print:static print:top-0">
             <a href="#{{.Context.Ref}}_definition">{{template "aggregateIcon"}}</a>
             <div class="flex flex-col ml-4">
                 <a href="#top" class="text-gray-600 font-semibold">{{.Name}}</a>

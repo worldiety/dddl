@@ -1,7 +1,7 @@
 {{define "context"}}
     <div id="{{.Ref}}" class="bg-white shadow my-10">
         {{/* Header */}}
-        <div class="flex items-center bg-gray-200 h-fit p-2 sticky top-0 shadow z-10">
+        <div class="flex items-center bg-gray-200 h-fit p-2 sticky top-0 shadow z-10 print:static">
             <a href="#top">{{template "ctxIcon"}}</a>
             <div class="flex flex-col ml-4">
                 <a href="#top" class="text-gray-600 font-semibold">{{.Name}}</a>
@@ -15,7 +15,7 @@
                 </div>
             </div>
         </div>
-        <div class="flex flex-1 bg-gray-100">
+        <div class="flex flex-1 bg-gray-100 print:block">
             {{/* Sidebar */}}
             <div class="flex flex-col basis-1/4 self-start w-full max-w-max bg-gray-100 sticky top-16 print:hidden"
                 style="min-width: 175px; max-height: calc(100vh - 4rem);">
@@ -98,22 +98,21 @@
                         {{template "aggregate" .}}
                     {{end}}
                     {{if .Types}}
-                        <div class="break-inside-avoid-page">
-                            <div class="flex items-center bg-gray-300 h-fit p-2 sticky top-16 shadow">
-                                <a href="#{{.Ref}}_definition">{{template "aggregateIcon"}}</a>
-                                <div class="flex flex-col ml-4 mr-2">
-                                    <a href="#top" class="text-gray-600 font-semibold">Ohne Aggregat</a>
-                                    <div class="flex w-full mt-1">
-                                        <div class="text-green-700 font-base text-xs mr-1">
+                        <div class="flex items-center bg-gray-300 h-fit p-2 sticky top-16 shadow print:static print:top-0">
+                            <a href="#{{.Ref}}_definition">{{template "aggregateIcon"}}</a>
+                            <div class="flex flex-col ml-4 mr-2">
+                                <a href="#top" class="text-gray-600 font-semibold">Ohne Aggregat</a>
+                                <div class="flex w-full mt-1">
+                                    <div class="text-green-700 font-base text-xs mr-1">
 
-                                        </div>
-                                        <div class="text-gray-400 font-thin text-xs">
+                                    </div>
+                                    <div class="text-gray-400 font-thin text-xs">
 
-                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            {{range .Types}}
+                        </div>
+                        {{range .Types}}
                                 {{template "type" .}}
                             {{end}}
                         </div>

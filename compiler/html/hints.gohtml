@@ -2,7 +2,7 @@
 
 
     {{if .Hints}}
-        <div id="_Aufgaben" class="bg-white shadow sticky top-0 mt-10 mb-10">
+        <div id="_Aufgaben" class="bg-white shadow sticky top-0 mt-10 mb-10 break-before-page print:static">
             <div class="flex flex-row px-2 py-3 mx-3">
                 <a href="#top"> {{template "ctxIcon"}}</a>
                 <div class="flex flex-col mb-2 ml-4 mt-1">
@@ -41,7 +41,7 @@
 
     {{if .NamedTasks}}
         {{range .NamedTasks}}
-            <div id="_Aufgaben_{{.Name}}" class="bg-white shadow sticky top-0 mt-10 mb-10">
+            <div id="_Aufgaben_{{.Name}}" class="bg-white shadow sticky top-0 mt-10 mb-10 print:static">
                 <div class="flex flex-row px-2 py-3 mx-3">
                     <a href="#top"> {{template "ctxIcon"}}</a>
                     <div class="flex flex-col mb-2 ml-4 mt-1">
