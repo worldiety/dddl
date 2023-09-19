@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-var regexAssignee = regexp.MustCompile(`@\S+:?\s[^.?!\n]+`)
+var regexAssignee = regexp.MustCompile(`@\S+:?\s[^\n]+`)
 var regexName = regexp.MustCompile(`@\S+:?`)
 
 type AssignedTask struct {
@@ -64,43 +64,58 @@ func CheckAssignees(r *resolver.Resolver) []Hint {
 		return tmp
 	}
 
-	for _, context := range r.Contexts() {
-
-		for _, fragment := range context.Fragments {
-
-			if ctxFragmentTypeDef, ok := fragment.Parent().(*parser.TypeDefinition); ok {
-				if ctxFragmentTypeDef.Description != nil {
-
-					for _, task := range ParseAssignees(ctxFragmentTypeDef.Description.Value) {
-						tmp := getter(task)
-						typename := fmt.Sprintf("%T", ctxFragmentTypeDef.Type)
-						list := tmp.Categories[typename]
-						list = append(list, AssignedDefinition{
-							Task: task,
-							Def:  ctxFragmentTypeDef,
-						})
-						tmp.Categories[typename] = list
-					}
+	for _, doc := range r.Workspace().Documents {
+		parser.MustWalk(doc, func(n parser.Node) error {
+			if typeDef, ok := n.(*parser.TypeDefinition); ok && typeDef.Description != nil {
+				for _, task := range ParseAssignees(typeDef.Description.Value) {
+					tmp := getter(task)
+					typename := fmt.Sprintf("%T", typeDef.Type)
+					list := tmp.Categories[typename]
+					list = append(list, AssignedDefinition{
+						Task: task,
+						Def:  typeDef,
+					})
+					tmp.Categories[typename] = list
 				}
 			}
 
-			for _, definition := range fragment.Definitions {
-				if definition.Description != nil {
-					for _, task := range ParseAssignees(definition.Description.Value) {
-						tmp := getter(task)
-						typename := fmt.Sprintf("%T", definition.Type)
-						list := tmp.Categories[typename]
-						list = append(list, AssignedDefinition{
-							Task: task,
-							Def:  definition,
-						})
-						tmp.Categories[typename] = list
+			return nil
+		})
+		/*
+				if ctxFragmentTypeDef, ok := fragment.Parent().(*parser.TypeDefinition); ok {
+					if ctxFragmentTypeDef.Description != nil {
+
+						for _, task := range ParseAssignees(ctxFragmentTypeDef.Description.Value) {
+							tmp := getter(task)
+							typename := fmt.Sprintf("%T", ctxFragmentTypeDef.Type)
+							list := tmp.Categories[typename]
+							list = append(list, AssignedDefinition{
+								Task: task,
+								Def:  ctxFragmentTypeDef,
+							})
+							tmp.Categories[typename] = list
+						}
+					}
+				}
+
+
+				for _, definition := range fragment.Definitions {
+					if definition.Description != nil {
+						for _, task := range ParseAssignees(definition.Description.Value) {
+							tmp := getter(task)
+							typename := fmt.Sprintf("%T", definition.Type)
+							list := tmp.Categories[typename]
+							list = append(list, AssignedDefinition{
+								Task: task,
+								Def:  definition,
+							})
+							tmp.Categories[typename] = list
+						}
+
 					}
 
 				}
-
-			}
-		}
+		}*/
 	}
 
 	keys := maps.Keys(clustered)

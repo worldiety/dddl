@@ -300,8 +300,9 @@ func (s *Server) sendDiagnostics() {
 }
 
 type PreviewHtmlParams struct {
-	Doc         protocol.DocumentURI
-	TailwindUri protocol.DocumentURI
+	Doc                    protocol.DocumentURI
+	TailwindUri            protocol.DocumentURI
+	WebviewWorkspacePrefix protocol.DocumentURI
 }
 
 func (s *Server) parseWorkspace() (*parser.Workspace, error) {
@@ -319,6 +320,7 @@ func (s *Server) RenderPreviewHtml(params PreviewHtmlParams) string {
 
 	var model html.PreviewModel
 	model.Head.ScriptUris = append(model.Head.ScriptUris, string(s.lastPreviewParams.TailwindUri))
+	model.LocalWorkspacePrefix = string(s.lastPreviewParams.WebviewWorkspacePrefix)
 
 	ws, err := s.parseWorkspace()
 	if ws == nil {

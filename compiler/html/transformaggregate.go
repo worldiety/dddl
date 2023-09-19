@@ -7,10 +7,10 @@ import (
 	"github.com/worldiety/dddl/resolver"
 )
 
-func newTypesFromAggregateInContext(context *Context, r *resolver.Resolver, aggregates []*parser.Aggregate, rCtx *resolver.Context) []*Aggregate {
+func newTypesFromAggregate(context *Context, r *resolver.Resolver, model PreviewModel, aggregates []*parser.Aggregate) []*Aggregate {
 	var res []*Aggregate
 	for _, aggregate := range aggregates {
-		a := newTypeFromAggregateInContext(context, r, aggregate, rCtx)
+		a := newTypeFromAggregate(context, r, model, aggregate)
 		postCategorizeByAnnotations(a.Types)
 		res = append(res, a)
 	}
@@ -18,11 +18,11 @@ func newTypesFromAggregateInContext(context *Context, r *resolver.Resolver, aggr
 	return res
 }
 
-func newTypeFromAggregateInContext(context *Context, r *resolver.Resolver, aggregate *parser.Aggregate, rCtx *resolver.Context) *Aggregate {
+func newTypeFromAggregate(context *Context, r *resolver.Resolver, model PreviewModel, aggregate *parser.Aggregate) *Aggregate {
 	typeDef := parser.TypeDefinitionFrom(aggregate)
 	var def template.HTML
 	if typeDef.Description != nil {
-		def = markdown(typeDef.Description.Value)
+		def = markdown(typeDef.Description.Value, model)
 	}
 
 	data := &Aggregate{
@@ -33,11 +33,11 @@ func newTypeFromAggregateInContext(context *Context, r *resolver.Resolver, aggre
 		Definition: def,
 	}
 
-	data.Types = append(data.Types, newTypesFromRecords(data, r, resolver.CollectFromAggregate[*parser.Struct](aggregate))...)
-	data.Types = append(data.Types, newTypesFromChoice(data, r, resolver.CollectFromAggregate[*parser.Choice](aggregate))...)
-	data.Types = append(data.Types, newTypesFromTypes(data, r, resolver.CollectFromAggregate[*parser.Type](aggregate))...)
-	data.Types = append(data.Types, newTypesFromAlias(data, r, resolver.CollectFromAggregate[*parser.Alias](aggregate))...)
-	data.Types = append(data.Types, newTypesFromFuncs(data, r, resolver.CollectFromAggregate[*parser.Function](aggregate))...)
+	data.Types = append(data.Types, newTypesFromRecords(data, r, model, resolver.CollectFromAggregate[*parser.Struct](aggregate))...)
+	data.Types = append(data.Types, newTypesFromChoice(data, r, model, resolver.CollectFromAggregate[*parser.Choice](aggregate))...)
+	data.Types = append(data.Types, newTypesFromTypes(data, r, model, resolver.CollectFromAggregate[*parser.Type](aggregate))...)
+	data.Types = append(data.Types, newTypesFromAlias(data, r, model, resolver.CollectFromAggregate[*parser.Alias](aggregate))...)
+	data.Types = append(data.Types, newTypesFromFuncs(data, r, model, resolver.CollectFromAggregate[*parser.Function](aggregate))...)
 
 	return data
 }

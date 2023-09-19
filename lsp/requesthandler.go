@@ -113,10 +113,11 @@ func HandleRequests(ctx context.Context, server *Server, reader *bufio.Reader) {
 			var params PreviewHtmlParams
 			if err := json.Unmarshal(request["params"], &params); err != nil {
 				log.Println(err)
+				log.Println(string(request["params"]))
 				continue
 			}
 			server.lastPreviewParams = &params
-			log.Println("updated webview params", params)
+			log.Printf("updated webview params: %#v", params)
 
 			server.sendPreviewHtml()
 

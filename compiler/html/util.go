@@ -11,9 +11,11 @@ import (
 	"github.com/yuin/goldmark/text"
 	"github.com/yuin/goldmark/util"
 	"html/template"
+	"path/filepath"
+	"strings"
 )
 
-func markdown(text string) template.HTML {
+func markdown(text string, model PreviewModel) template.HTML {
 	text = parser.TextOf(text)
 	if text == "" {
 		return ""
@@ -23,10 +25,10 @@ func markdown(text string) template.HTML {
 		goldmark.WithExtensions(extension.GFM),
 		goldmark.WithParserOptions(
 			mdparser.WithAutoHeadingID(),
-			mdparser.WithASTTransformers(util.PrioritizedValue{Value: &tailwindTransformer{}}),
+			mdparser.WithASTTransformers(util.PrioritizedValue{Value: &tailwindTransformer{model}}),
 		),
 		goldmark.WithRendererOptions(
-			html.WithHardWraps(),
+			//html.WithHardWraps(),
 			html.WithXHTML(),
 		),
 	)
@@ -40,6 +42,7 @@ func markdown(text string) template.HTML {
 }
 
 type tailwindTransformer struct {
+	model PreviewModel
 }
 
 func (t *tailwindTransformer) Transform(node *ast.Document, reader text.Reader, pc mdparser.Context) {
@@ -59,6 +62,16 @@ func (t *tailwindTransformer) Transform(node *ast.Document, reader text.Reader, 
 
 		if node, ok := n.(*ast.Heading); ok {
 			node.SetAttributeString("class", []byte("font-medium"))
+		}
+
+		if node, ok := n.(*ast.Image); ok {
+			if t.model.LocalWorkspacePrefix != "" {
+				url := string(node.Destination)
+				if !strings.HasPrefix(url, "http") {
+					node.Destination = []byte(filepath.Join(t.model.LocalWorkspacePrefix, string(node.Destination)))
+				}
+			}
+			node.SetAttributeString("onclick", "window.open('"+string(node.Destination)+"', '_blank');")
 		}
 
 		return ast.WalkContinue, nil

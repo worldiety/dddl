@@ -1,5 +1,4 @@
 {{define "type"}}
-
     <div class="border-b border-gray-100 ml-10 mr-10"></div>
 
     <div id="{{.Ref}}" class="p-4 grid grid-cols-1 xl:grid-cols-2 xl:divide-x hover:bg-green-50 scroll-mt-32 break-inside-avoid-page">
@@ -16,7 +15,6 @@
                         {{template "dataIcon"}}
                     {{end}}
                 </a>
-
             {{end}}
             <div class="flex flex-col mb-2 ml-4 mt-1">
                 <div class="text-gray-600 font-semibold">{{.Name}}</div>
@@ -53,7 +51,7 @@
         </div>
         {{if .Usages}}
             direkt verwendet von
-            <div>
+            <div class="xl:px-2">
                 {{range .Usages}}
                     <a class="text-green-700 text-xs" href="#{{.Ref}}">
                         {{.Name}}
@@ -62,9 +60,4 @@
             </div>
         {{end}}
     </div>
-
-
-
-
-
 {{end}}
