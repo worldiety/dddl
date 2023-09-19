@@ -4,15 +4,33 @@
         <div class="flex items-center bg-gray-200 h-fit p-2 sticky top-0 shadow z-10 print:static">
             <a href="#top">{{template "ctxIcon"}}</a>
             <div class="flex flex-col ml-4">
-                <a href="#top" class="text-gray-600 font-semibold">{{.Name}}</a>
+                <a href="#top" class="text-gray-600 font-semibold">{{.Name}}{{if .WorkPackageDuration}}
+                        (Aufwand {{.WorkPackageDuration}})
+                    {{end}}</a>
                 <div class="flex w-full mt-1">
                     <div class="text-green-700 font-base text-xs mr-1">
                         Bounded Context
                     </div>
                     <div class="text-gray-400 font-thin text-xs">
+                        {{if .WorkPackageName}}
+                            <div class="h-8 inline bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+                                <div class="inline text-green-800 text-xs font-medium">
+                                    {{.WorkPackageName}}
 
+                                </div>
+                            </div>
+                        {{end}}
                     </div>
+
                 </div>
+                {{if .WorkPackageRequires}}
+                    <div class="text-gray-600 text-xs font-small">
+                        hängt ab von
+                        {{range .WorkPackageRequires}}
+                            {{.}}
+                        {{end}}
+                    </div>
+                {{end}}
             </div>
         </div>
         <div class="flex flex-1 bg-gray-100 print:block">
@@ -183,6 +201,13 @@
     {{if .GroupTypesByCategory "Fremdsystem"}}
         <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Fremdsysteme</div>
         {{range .GroupTypesByCategory "Fremdsystem"}}
+            {{template "sidebarlink" .}}
+        {{end}}
+    {{end}}
+
+    {{if .GroupTypesByCategory "Rolle"}}
+        <div class="text-gray-600 text-xs font-semibold ml-4 mr-2">Rollen</div>
+        {{range .GroupTypesByCategory "Rolle"}}
             {{template "sidebarlink" .}}
         {{end}}
     {{end}}

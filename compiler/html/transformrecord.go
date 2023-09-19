@@ -27,13 +27,16 @@ func newTypeFromRecord(parent any, r *resolver.Resolver, model PreviewModel, rec
 	}
 
 	data := &Type{
-		Node:       record,
-		Parent:     parent,
-		Category:   "Datenverbundtyp",
-		Name:       record.Name.Value,
-		Ref:        resolver.NewQualifiedNameFromNamedType(record).String(),
-		Definition: def,
-		SVG:        "",
+		Node:                record,
+		Parent:              parent,
+		Category:            "Datenverbundtyp",
+		Name:                record.Name.Value,
+		Ref:                 resolver.NewQualifiedNameFromNamedType(record).String(),
+		Definition:          def,
+		SVG:                 "",
+		WorkPackageName:     parser.FindAnnotation[*parser.WorkPackageAnnotation](record).GetName(),
+		WorkPackageRequires: parser.FindAnnotation[*parser.WorkPackageAnnotation](record).GetRequires(),
+		WorkPackageDuration: parser.FindAnnotation[*parser.WorkPackageAnnotation](record).GetDuration(),
 	}
 
 	svg, err := plantuml.RenderLocal("svg", puml.RenderNamedType(r, record, puml.NewRFlags(record)))

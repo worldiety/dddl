@@ -22,6 +22,9 @@ func transform(rslv *resolver.Resolver, model PreviewModel) *Doc {
 		postCategorizeByAnnotations(ctx.Types)
 		ctx.Definition = markdown(rCtx.Description, model)
 
+		ctx.WorkPackageName = parser.FindAnnotation[*parser.WorkPackageAnnotation](rCtx.Fragments[0]).GetName()
+		ctx.WorkPackageRequires = parser.FindAnnotation[*parser.WorkPackageAnnotation](rCtx.Fragments[0]).GetRequires()
+		ctx.WorkPackageDuration = parser.FindAnnotation[*parser.WorkPackageAnnotation](rCtx.Fragments[0]).GetDuration()
 		doc.Contexts = append(doc.Contexts, ctx)
 
 	}
@@ -33,19 +36,24 @@ func postCategorizeByAnnotations(types []*Type) {
 	// post-process annotations
 	for i := range types {
 		typeDef := types[i].Node.Parent().(*parser.TypeDefinition)
-		evtA, _ := parser.ParseEventAnnotation(typeDef)
+		evtA := parser.FindAnnotation[*parser.EventAnnotation](typeDef)
 		if evtA != nil {
 			types[i].Category = "Ereignis"
 		}
 
-		errA, _ := parser.ParseErrorAnnotation(typeDef)
+		errA := parser.FindAnnotation[*parser.ErrorAnnotation](typeDef)
 		if errA != nil {
 			types[i].Category = "Fehler"
 		}
 
-		extA, _ := parser.ParseExternalSystemAnnotation(typeDef)
+		extA := parser.FindAnnotation[*parser.ExternalSystemAnnotation](typeDef)
 		if extA != nil {
 			types[i].Category = "Fremdsystem"
+		}
+
+		roleA := parser.FindAnnotation[*parser.RoleAnnotation](typeDef)
+		if roleA != nil {
+			types[i].Category = "Rolle"
 		}
 	}
 }

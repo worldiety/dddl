@@ -52,8 +52,7 @@ type Function struct {
 }
 
 func (n *Function) IsExternalSystem() bool {
-	a, _ := ParseExternalSystemAnnotation(n.Parent().(*TypeDefinition))
-	return a != nil
+	return FindAnnotation[*ExternalSystemAnnotation](n) != nil
 }
 
 func (n *Function) GetKeyword() string {

@@ -33,17 +33,17 @@ type Struct struct {
 }
 
 func (n *Struct) IsOutgoingEvent() bool {
-	a, _ := ParseEventAnnotation(n.Parent().(*TypeDefinition))
+	a := FindAnnotation[*EventAnnotation](n)
 	return a != nil && a.Out
 }
 
 func (n *Struct) IsIncomingEvent() bool {
-	a, _ := ParseEventAnnotation(n.Parent().(*TypeDefinition))
+	a := FindAnnotation[*EventAnnotation](n)
 	return a != nil && a.In
 }
 
 func (n *Struct) IsError() bool {
-	a, _ := ParseErrorAnnotation(n.Parent().(*TypeDefinition))
+	a := FindAnnotation[*ErrorAnnotation](n)
 	return a != nil
 }
 

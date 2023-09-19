@@ -5,6 +5,36 @@
         {{end}}
 
 
+        {{if .Hints}}
+            <a href="#_Aufgaben" class="bg-white shadow rounded-lg p-3">
+                <div class="flex items-start">
+                    {{template "taskList"}}
+
+                    <div class="ml-4">
+                        <h2 class="text-gray-600 font-semibold">Aufgaben</h2>
+                            <p class="mt-2 text-sm text-gray-500">{{len .Hints}} offene Aufgaben</p>
+
+                    </div>
+                </div>
+
+            </a>
+        {{end}}
+
+        {{if .ProjectPlan}}
+            <a href="#_ProjectPlan" class="bg-white shadow rounded-lg p-3">
+                <div class="flex items-start">
+                    {{template "projectPlanIcon"}}
+
+                    <div class="ml-4">
+                        <h2 class="text-gray-600 font-semibold">Projektplan</h2>
+                        <p class="mt-2 text-sm text-gray-500">{{len .ProjectPlan.Tasks}} Meilensteine oder Arbeitspakete
+                        </p>
+
+                    </div>
+                </div>
+
+            </a>
+        {{end}}
     </div>
 {{end}}
 

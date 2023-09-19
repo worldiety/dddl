@@ -1,8 +1,18 @@
 # Changelog
 
+## 0.0.28
+Rendering annotations like:
+* @Arbeitspaket(Name="Version 1.1", Aufwand="0.5d", benötigt="Version 1.0")
+* @workpackage(name="Milestone 5", duration="30m", depends="Version 1.0")
+* Rendering annotations like @Akteur("Mitarbeiter") for tasks.
+* Rendering annotations like @Rolle for typ, data or choice.
+
+1d has 8 hours and 1y has 365 days. 
+
+Added Gantt Chart based on work packages and added overview boxes for tasks and plan.
+
 ## 0.0.27
 Optimized print css.
-
 
 ## 0.0.26
 Supporting markdown images.

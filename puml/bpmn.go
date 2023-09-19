@@ -22,6 +22,7 @@ const (
 	bpmn_icon_manual_task                     = "e840"
 	bpmn_icon_subprocess_collapsed BpmnSymbol = "e81f"
 	bpmn_icon_loop_marker          BpmnSymbol = "e809"
+	bpmn_icon_user                 BpmnSymbol = "e844"
 )
 
 const (
@@ -33,6 +34,7 @@ const (
 	ColorTask                      = "#3399fe"
 	ColorTaskUndefined             = "#94c9ff"
 	ColorIntermediateFnResultEvent = "#fccd9a"
+	ColorUser                      = "#FFd42d"
 )
 
 func bpmSym(symbol BpmnSymbol) string {

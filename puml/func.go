@@ -5,6 +5,7 @@ import (
 	"github.com/worldiety/dddl/parser"
 	"github.com/worldiety/dddl/plantuml"
 	"github.com/worldiety/dddl/resolver"
+	"strings"
 )
 
 func Func(r *resolver.Resolver, fun *parser.Function, flags RFlags) *plantuml.Diagram {
@@ -27,6 +28,12 @@ func Func(r *resolver.Resolver, fun *parser.Function, flags RFlags) *plantuml.Di
 	mainType := flags.MainType == fun
 	if mainType {
 		diag.Add(&plantuml.ActStartStmt{})
+		if a := parser.FindAnnotation[*parser.TaskActors](fun); a != nil {
+			diag.Add(&plantuml.ActivityNote{
+				Text:  bpmSym(bpmn_icon_user) + "\n" + strings.Join(a.Roles, " oder "),
+				Color: ColorUser,
+			})
+		}
 	}
 
 	// in
@@ -45,7 +52,7 @@ func Func(r *resolver.Resolver, fun *parser.Function, flags RFlags) *plantuml.Di
 		ac.Name += "//Allgemeine Aufgabe//\n" + fun.Name.Value
 		diag.Add(ac)
 		if mainType {
-			extA, _ := parser.ParseExternalSystemAnnotation(fun.Parent().(*parser.TypeDefinition))
+			extA := parser.FindAnnotation[*parser.ExternalSystemAnnotation](fun)
 			if extA != nil {
 				ac.Notes = append(ac.Notes, &plantuml.ActivityNote{
 					Text: "Implementierung ist nicht\nBestandteil der Fachlichkeit.\nLeistung wird durch\nFremdsystem erbracht.",
@@ -162,7 +169,7 @@ func isExternalFunc(r *resolver.Resolver, dec *parser.TypeDeclaration) bool {
 		return false
 	}
 
-	if a, _ := parser.ParseExternalSystemAnnotation(defs[0]); a != nil {
+	if a := parser.FindAnnotation[*parser.ExternalSystemAnnotation](defs[0]); a != nil {
 		return true
 	}
 
@@ -175,7 +182,7 @@ func getEventAnnotation(r *resolver.Resolver, dec *parser.TypeDeclaration) *pars
 		return nil
 	}
 
-	a, _ := parser.ParseEventAnnotation(defs[0])
+	a := parser.FindAnnotation[*parser.EventAnnotation](defs[0])
 	return a
 }
 
@@ -185,7 +192,7 @@ func looksLikeError(r *resolver.Resolver, dec *parser.TypeDeclaration) bool {
 		return false
 	}
 
-	if a, _ := parser.ParseErrorAnnotation(defs[0]); a != nil {
+	if a := parser.FindAnnotation[*parser.ErrorAnnotation](defs[0]); a != nil {
 		return true
 	}
 

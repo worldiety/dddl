@@ -31,6 +31,7 @@ func RenderViewHtml(ws *parser.Workspace, model PreviewModel) string {
 	model.Doc = transform(rslv, model)
 	lintHints := linter.Lint(rslv)
 	model = transformLintHints(rslv, lintHints, model)
+	model.ProjectPlan = newProjectPlan(rslv, model)
 
 	w := httptest.NewRecorder()
 

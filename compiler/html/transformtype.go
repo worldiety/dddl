@@ -27,13 +27,16 @@ func newTypeFromType(parent any, r *resolver.Resolver, model PreviewModel, typ *
 	}
 
 	data := &Type{
-		Node:       typ,
-		Parent:     parent,
-		Category:   "Basistyp",
-		Name:       typ.Name.Value,
-		Ref:        resolver.NewQualifiedNameFromNamedType(typ).String(),
-		Definition: def,
-		SVG:        "",
+		Node:                typ,
+		Parent:              parent,
+		Category:            "Basistyp",
+		Name:                typ.Name.Value,
+		Ref:                 resolver.NewQualifiedNameFromNamedType(typ).String(),
+		Definition:          def,
+		SVG:                 "",
+		WorkPackageName:     parser.FindAnnotation[*parser.WorkPackageAnnotation](typ).GetName(),
+		WorkPackageRequires: parser.FindAnnotation[*parser.WorkPackageAnnotation](typ).GetRequires(),
+		WorkPackageDuration: parser.FindAnnotation[*parser.WorkPackageAnnotation](typ).GetDuration(),
 	}
 
 	svg, err := plantuml.RenderLocal("svg", puml.RenderNamedType(r, typ, puml.NewRFlags(typ)))

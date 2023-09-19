@@ -27,13 +27,16 @@ func newTypeFromChoice(parent any, r *resolver.Resolver, model PreviewModel, cho
 	}
 
 	data := &Type{
-		Node:       choice,
-		Parent:     parent,
-		Category:   "Auswahltyp",
-		Name:       choice.Name.Value,
-		Ref:        resolver.NewQualifiedNameFromNamedType(choice).String(),
-		Definition: def,
-		SVG:        "",
+		Node:                choice,
+		Parent:              parent,
+		Category:            "Auswahltyp",
+		Name:                choice.Name.Value,
+		Ref:                 resolver.NewQualifiedNameFromNamedType(choice).String(),
+		Definition:          def,
+		SVG:                 "",
+		WorkPackageName:     parser.FindAnnotation[*parser.WorkPackageAnnotation](choice).GetName(),
+		WorkPackageRequires: parser.FindAnnotation[*parser.WorkPackageAnnotation](choice).GetRequires(),
+		WorkPackageDuration: parser.FindAnnotation[*parser.WorkPackageAnnotation](choice).GetDuration(),
 	}
 
 	svg, err := plantuml.RenderLocal("svg", puml.RenderNamedType(r, choice, puml.NewRFlags(choice)))

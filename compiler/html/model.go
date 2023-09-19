@@ -3,6 +3,7 @@ package html
 import (
 	"github.com/worldiety/dddl/parser"
 	"html/template"
+	"time"
 )
 
 type Head struct {
@@ -21,6 +22,19 @@ type PreviewModel struct {
 	LastSaved            string
 	Head                 Head
 	LocalWorkspacePrefix string
+	ProjectPlan          *ProjectPlan
+}
+
+type ProjectPlan struct {
+	GanttChartSVG template.HTML
+	Tasks         []*ProjectTask
+}
+
+type ProjectTask struct {
+	Name     string
+	Refs     []string
+	Duration time.Duration
+	Requires []string
 }
 
 type NamedTasks struct {
@@ -34,12 +48,15 @@ type Doc struct {
 }
 
 type Context struct {
-	Name       string
-	ShortDef   template.HTML
-	Ref        string
-	Aggregates []*Aggregate
-	Types      []*Type
-	Definition template.HTML
+	Name                string
+	ShortDef            template.HTML
+	Ref                 string
+	Aggregates          []*Aggregate
+	Types               []*Type
+	Definition          template.HTML
+	WorkPackageName     string
+	WorkPackageRequires []string
+	WorkPackageDuration string
 }
 
 func (c *Context) IsContext() bool {
@@ -62,12 +79,15 @@ func FilterByCategory(types []*Type, cat string) []*Type {
 }
 
 type Aggregate struct {
-	Context    *Context `json:"-"`
-	Category   string
-	Name       string
-	Ref        string
-	Types      []*Type
-	Definition template.HTML
+	Context             *Context `json:"-"`
+	Category            string
+	Name                string
+	Ref                 string
+	Types               []*Type
+	Definition          template.HTML
+	WorkPackageName     string
+	WorkPackageRequires []string
+	WorkPackageDuration string
 }
 
 func (c *Aggregate) GroupTypesByCategory(cat string) []*Type {
@@ -79,14 +99,17 @@ func (c *Aggregate) IsContext() bool {
 }
 
 type Type struct {
-	Node       parser.NamedType `json:"-"` // e.g. *parser.Struct, *parser.Choice, *parser.Function etc.
-	Parent     any              `json:"-"` // either Context or Aggregate
-	Category   string
-	Name       string
-	Ref        string
-	Definition template.HTML
-	SVG        template.HTML
-	Usages     []Usage
+	Node                parser.NamedType `json:"-"` // e.g. *parser.Struct, *parser.Choice, *parser.Function etc.
+	Parent              any              `json:"-"` // either Context or Aggregate
+	Category            string
+	Name                string
+	Ref                 string
+	Definition          template.HTML
+	SVG                 template.HTML
+	Usages              []Usage
+	WorkPackageName     string
+	WorkPackageRequires []string
+	WorkPackageDuration string
 }
 
 type Usage struct {

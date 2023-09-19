@@ -6,15 +6,38 @@
         <div class="flex items-center bg-gray-300 h-fit p-2 sticky top-16 shadow print:static print:top-0">
             <a href="#{{.Context.Ref}}_definition">{{template "aggregateIcon"}}</a>
             <div class="flex flex-col ml-4">
-                <a href="#top" class="text-gray-600 font-semibold">{{.Name}}</a>
+                <a href="#top" class="text-gray-600 font-semibold">{{.Name}}{{if .WorkPackageDuration}}
+                        (Aufwand {{.WorkPackageDuration}})
+                    {{end}}</a>
+
                 <div class="flex w-full mt-1">
                     <div class="text-green-700 font-base text-xs mr-1">
                         Aggregat
                     </div>
                     <div class="text-gray-400 font-thin text-xs">
+                        {{if .WorkPackageName}}
+                            <div class="h-8 inline bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+                                <div class="inline text-green-800 text-xs font-medium">
+                                    {{.WorkPackageName}}
+
+                                </div>
+                            </div>
+                        {{end}}
+
+
+
 
                     </div>
+
                 </div>
+                {{if .WorkPackageRequires}}
+                    <div class="text-gray-600 text-xs font-small">
+                        hängt ab von
+                        {{range .WorkPackageRequires}}
+                            {{.}}
+                        {{end}}
+                    </div>
+                {{end}}
             </div>
         </div>
         {{/* Main */}}

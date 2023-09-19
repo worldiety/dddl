@@ -1,7 +1,8 @@
 {{define "type"}}
     <div class="border-b border-gray-100 ml-10 mr-10"></div>
 
-    <div id="{{.Ref}}" class="p-4 grid grid-cols-1 xl:grid-cols-2 xl:divide-x hover:bg-green-50 scroll-mt-32 break-inside-avoid-page">
+    <div id="{{.Ref}}"
+         class="p-4 grid grid-cols-1 xl:grid-cols-2 xl:divide-x hover:bg-green-50 scroll-mt-32 break-inside-avoid-page">
         <div class="flex flex-row px-2 py-3 mx-3">
             {{if .Parent }}
                 <a href="#{{.Parent.Ref}}_definition">
@@ -17,7 +18,31 @@
                 </a>
             {{end}}
             <div class="flex flex-col mb-2 ml-4 mt-1">
-                <div class="text-gray-600 font-semibold">{{.Name}}</div>
+                <div class="text-gray-600 font-semibold">{{.Name}}
+                    {{if .WorkPackageDuration}}
+                        (Aufwand {{.WorkPackageDuration}})
+                    {{end}}
+                </div>
+                {{if .WorkPackageName}}
+                    <div class="h-8 inline bg-green-100 max-w-fit px-2.5 py-0.5 rounded">
+                        <div class="inline text-green-800 text-xs font-medium">
+                            {{.WorkPackageName}}
+
+                        </div>
+                    </div>
+                {{end}}
+
+
+
+                {{if .WorkPackageRequires}}
+                    <div class="text-gray-600 text-xs font-small">
+                        hängt ab von
+                        {{range .WorkPackageRequires}}
+                            {{.}}
+                        {{end}}
+                    </div>
+                {{end}}
+
                 <div class="flex w-full mt-1 text-green-700 text-xs">
                     <p>
                         {{if .Parent.IsContext}}
@@ -37,6 +62,8 @@
                             >
                             {{.Category}}
                         {{end}}
+
+
                     </p>
                 </div>
                 <div class="text-gray-600">

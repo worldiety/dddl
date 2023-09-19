@@ -26,11 +26,14 @@ func newTypeFromAggregate(context *Context, r *resolver.Resolver, model PreviewM
 	}
 
 	data := &Aggregate{
-		Context:    context,
-		Category:   "Aggregattyp",
-		Name:       aggregate.Name.Value,
-		Ref:        resolver.NewQualifiedNameFromNamedType(aggregate).String(),
-		Definition: def,
+		Context:             context,
+		Category:            "Aggregattyp",
+		Name:                aggregate.Name.Value,
+		Ref:                 resolver.NewQualifiedNameFromNamedType(aggregate).String(),
+		Definition:          def,
+		WorkPackageName:     parser.FindAnnotation[*parser.WorkPackageAnnotation](aggregate).GetName(),
+		WorkPackageRequires: parser.FindAnnotation[*parser.WorkPackageAnnotation](aggregate).GetRequires(),
+		WorkPackageDuration: parser.FindAnnotation[*parser.WorkPackageAnnotation](aggregate).GetDuration(),
 	}
 
 	data.Types = append(data.Types, newTypesFromRecords(data, r, model, resolver.CollectFromAggregate[*parser.Struct](aggregate))...)

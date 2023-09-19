@@ -70,7 +70,7 @@ func insertTypeParams(r *resolver.Resolver, ownername string, diag *plantuml.Dia
 func ClassFromRecord(r *resolver.Resolver, data *parser.Struct) *plantuml.Class {
 	c := plantuml.NewClass(data.Name.Value)
 
-	evtA, _ := parser.ParseEventAnnotation(data.Parent().(*parser.TypeDefinition))
+	evtA := parser.FindAnnotation[*parser.EventAnnotation](data.Parent().(*parser.TypeDefinition))
 	if evtA != nil {
 		c.Stereotypes = append(c.Stereotypes, "Domänenereignis")
 		if evtA.In {
@@ -82,7 +82,11 @@ func ClassFromRecord(r *resolver.Resolver, data *parser.Struct) *plantuml.Class 
 		}
 	}
 
-	evtErr, _ := parser.ParseErrorAnnotation(data.Parent().(*parser.TypeDefinition))
+	if a := parser.FindAnnotation[*parser.RoleAnnotation](data); a != nil {
+		c.Stereotypes = append(c.Stereotypes, "Nutzer-Rolle")
+	}
+
+	evtErr := parser.FindAnnotation[*parser.ErrorAnnotation](data.Parent().(*parser.TypeDefinition))
 	if evtErr != nil {
 		c.Stereotypes = append(c.Stereotypes, "Fehler")
 	}
