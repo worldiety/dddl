@@ -4,8 +4,7 @@ import * as vscode from "vscode";
 import * as os from "os";
 import * as fs from "fs";
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient/node";
-import { Builder } from 'selenium-webdriver';
-import * as chrome from 'selenium-webdriver/chrome';
+import puppeteer, { FrameAddScriptTagOptions, PDFOptions } from "puppeteer";
 
 let client: LanguageClient;
 
@@ -73,26 +72,52 @@ export async function activate(context: vscode.ExtensionContext) {
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand("ddd.ExportPDF", async () => {
-        const filePath = vscode.window.activeTextEditor?.document.uri.fsPath;
-        let doc = "file://" + filePath;
-        if (doc) {
-            const options = new chrome.Options();
-            // options.addArguments('--headless');
-            options.addArguments('--kiosk-printing');
-    
-            const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
-    
-            try {
-                await driver.get(doc);
-                await driver.executeScript('window.print();');
-            } catch (error) {
-                console.log(error);
-                vscode.window.showErrorMessage('PDF could not be generated')
-            } finally {
-                driver.quit();
+        // initialize puppeteer browser
+        const browser = await puppeteer.launch({ headless: 'new' });
+        const page = await browser.newPage();
+
+        // set output path for the generated pdf
+        const outputFolderPath = vscode.workspace.workspaceFolders !== undefined ?
+            vscode.workspace.workspaceFolders[0].uri :
+            vscode.Uri.file("");
+
+        let isCreated = true;
+        try {
+            // get styled html file
+            const html = String(await client.sendRequest("custom/ExportHTML", null));
+
+            await page.setContent(html);
+
+            // styling for header and footer templates
+            const cssb = [];
+            cssb.push('<style>');
+            cssb.push('span { font-size:10px; margin: 0px 5px; }');
+            cssb.push('</style>');
+            const css = cssb.join('');
+
+            // print pdf with options
+            const options: PDFOptions = {
+                path: vscode.Uri.joinPath(outputFolderPath, "index.pdf").fsPath,
+                margin: {
+                    top: '50px',
+                    bottom: '50px',
+                },
+                displayHeaderFooter: true,
+                headerTemplate: `${css}<span class="date" style="margin-left: 5%;"></span>`,
+                footerTemplate: `${css}<span style="display: flex; justify-content: flex-end; width: 95%;">Seite <span class="pageNumber"></span> von <span class="totalPages"></span></span>`,
+                printBackground: true,
             }
-            vscode.window.showInformationMessage(`PDF was generated in your default downloads folder`)
+            await page.pdf(options);
+        } catch (error) {
+            console.log(error);
+            isCreated = false;
+        } finally {
+            await browser.close();
         }
+
+        isCreated ?
+            vscode.window.showInformationMessage("wdy: PDF erfolgreich erstellt") :
+            vscode.window.showErrorMessage("wdy: PDF konnte nicht erstellt werden");
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand("ddd.GenerateGo", () => {
@@ -227,7 +252,7 @@ class PreviewPanel {
     private readonly _panel: vscode.WebviewPanel;
     private readonly _extensionUri: vscode.Uri;
     public readonly _tailwindUri: vscode.Uri;
-    public readonly _webviewPrefixUri:vscode.Uri;
+    public readonly _webviewPrefixUri: vscode.Uri;
 
     public _html: string;
     private _disposables: vscode.Disposable[] = [];
@@ -270,10 +295,10 @@ class PreviewPanel {
         this._html = html;
 
         this._tailwindUri = panel.webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'tailwind.js'));
-        if(vscode.workspace.workspaceFolders !== undefined) {
+        if (vscode.workspace.workspaceFolders !== undefined) {
             this._webviewPrefixUri = panel.webview.asWebviewUri(vscode.workspace.workspaceFolders[0].uri);
-        }else{
-            this._webviewPrefixUri=vscode.Uri.file("")
+        } else {
+            this._webviewPrefixUri = vscode.Uri.file("");
         }
         
         

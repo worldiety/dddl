@@ -2,7 +2,7 @@
 
 
     {{if .Hints}}
-        <div id="_Aufgaben" class="bg-white shadow sticky top-0 mt-10 mb-10 break-before-page print:static">
+        <div id="_Aufgaben" class="bg-white shadow sticky top-0 mt-10 mb-10 break-before-page print:static print:shadow-none">
             <div class="flex flex-row px-2 py-3 mx-3">
                 <a href="#top"> {{template "taskList"}}</a>
                 <div class="flex flex-col mb-2 ml-4 mt-1">
@@ -26,7 +26,7 @@
         </div>
 
 
-        <div class="text-gray-600 bg-white shadow rounded-b-lg mb-6 md:ml-20 -mt-10">
+        <div class="text-gray-600 bg-white shadow rounded-b-lg mb-6 md:ml-20 -mt-10 print:shadow-none">
             <ol class="list-decimal pl-12 py-4 pr-8">
                 {{range .Hints}}
                     <li>{{.}}</li>
@@ -41,7 +41,7 @@
 
     {{if .NamedTasks}}
         {{range .NamedTasks}}
-            <div id="_Aufgaben_{{.Name}}" class="bg-white shadow sticky top-0 mt-10 mb-10 print:static">
+            <div id="_Aufgaben_{{.Name}}" class="bg-white shadow sticky top-0 mt-10 mb-10 print:static print:shadow-none">
                 <div class="flex flex-row px-2 py-3 mx-3">
                     <a href="#top"> {{template "ctxIcon"}}</a>
                     <div class="flex flex-col mb-2 ml-4 mt-1">
@@ -65,7 +65,7 @@
             </div>
 
 
-            <div class="text-gray-600 bg-white shadow rounded-b-lg mb-6 md:ml-20 -mt-10">
+            <div class="text-gray-600 bg-white shadow rounded-b-lg mb-6 md:ml-20 -mt-10 print:shadow-none">
                 <ol class="list-decimal pl-12 py-4 pr-8">
                     {{range .Tasks}}
                         <li>{{.}}</li>
