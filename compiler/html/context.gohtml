@@ -1,7 +1,7 @@
 {{define "context"}}
-    <div id="{{.Ref}}" class="bg-white shadow my-10">
+    <div id="{{.Ref}}" class="bg-white shadow my-10 print:shadow-none">
         {{/* Header */}}
-        <div class="flex items-center bg-gray-200 h-fit p-2 sticky top-0 shadow z-10 print:static">
+        <div class="flex items-center bg-gray-200 h-fit p-2 sticky top-0 shadow z-10 print:static print:shadow-none">
             <a href="#top">{{template "ctxIcon"}}</a>
             <div class="flex flex-col ml-4">
                 <a href="#top" class="text-gray-600 font-semibold">{{.Name}}{{if .WorkPackageDuration}}
@@ -116,7 +116,7 @@
                         {{template "aggregate" .}}
                     {{end}}
                     {{if .Types}}
-                        <div class="flex items-center bg-gray-300 h-fit p-2 sticky top-16 shadow print:static print:top-0">
+                        <div class="flex items-center bg-gray-300 h-fit p-2 sticky top-16 shadow print:static print:top-0 print:shadow-none">
                             <a href="#{{.Ref}}_definition">{{template "aggregateIcon"}}</a>
                             <div class="flex flex-col ml-4 mr-2">
                                 <a href="#top" class="text-gray-600 font-semibold">Ohne Aggregat</a>

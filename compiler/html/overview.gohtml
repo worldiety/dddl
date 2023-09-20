@@ -6,7 +6,7 @@
 
 
         {{if .Hints}}
-            <a href="#_Aufgaben" class="bg-white shadow rounded-lg p-3">
+            <a href="#_Aufgaben" class="bg-white shadow rounded-lg p-3 print:shadow-none">
                 <div class="flex items-start">
                     {{template "taskList"}}
 
@@ -21,7 +21,7 @@
         {{end}}
 
         {{if .ProjectPlan}}
-            <a href="#_ProjectPlan" class="bg-white shadow rounded-lg p-3">
+            <a href="#_ProjectPlan" class="bg-white shadow rounded-lg p-3 print:shadow-none">
                 <div class="flex items-start">
                     {{template "projectPlanIcon"}}
 
@@ -41,7 +41,7 @@
 
 
 {{define "ctxBox"}}
-    <a href="#{{.Ref}}" class="bg-white shadow rounded-lg p-3">
+    <a href="#{{.Ref}}" class="bg-white shadow rounded-lg p-3 print:shadow-none">
         <div class="flex items-start">
             {{template "ctxIcon"}}
 
