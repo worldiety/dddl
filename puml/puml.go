@@ -4,6 +4,7 @@ import (
 	"github.com/worldiety/dddl/parser"
 	"github.com/worldiety/dddl/plantuml"
 	"github.com/worldiety/dddl/resolver"
+	"math"
 )
 
 type RFlags struct {
@@ -18,6 +19,11 @@ func NewRFlags(mainType parser.NamedType) RFlags {
 		Visited:  map[parser.NamedType]bool{},
 		Depth:    2,
 	}
+}
+
+func (r RFlags) WithMaxDepth() RFlags {
+	r.Depth = math.MaxInt
+	return r
 }
 
 func RenderNamedType(r *resolver.Resolver, namedType parser.NamedType, flags RFlags) *plantuml.Diagram {

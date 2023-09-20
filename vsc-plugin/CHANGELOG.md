@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.29
+* Added "als PDF exportieren" command.
+* Improved plantuml rendering speed by > 5x by using a concurrent preflight rendering step.
+* Added in-depth uml rendering (if it makes sense) and added a switch button to toggle 
+
 ## 0.0.28
 Rendering annotations like:
 * @Arbeitspaket(Name="Version 1.1", Aufwand="0.5d", benötigt="Version 1.0")
