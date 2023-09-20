@@ -89,10 +89,11 @@ export async function activate(context: vscode.ExtensionContext) {
             await page.setContent(html);
 
             // styling for header and footer templates
-            const cssb = [];
-            cssb.push('<style>');
-            cssb.push('span { font-size:10px; margin: 0px 5px; }');
-            cssb.push('</style>');
+            const cssb = [
+                '<style>',
+                'span { font-size:10px; margin: 0px 5px; }',
+                '</style>'
+            ];
             const css = cssb.join('');
 
             // print pdf with options
