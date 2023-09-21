@@ -4,7 +4,8 @@ import * as vscode from "vscode";
 import * as os from "os";
 import * as fs from "fs";
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient/node";
-import puppeteer, { FrameAddScriptTagOptions, PDFOptions } from "puppeteer";
+import puppeteer, { PDFOptions } from "puppeteer";
+import express = require('express');
 
 let client: LanguageClient;
 
@@ -81,19 +82,24 @@ export async function activate(context: vscode.ExtensionContext) {
             vscode.workspace.workspaceFolders[0].uri :
             vscode.Uri.file("");
 
+        // start server to serve markdown images
+        const app = express();
+        const port = 3000;
+        app.use(express.static(outputFolderPath.fsPath));
+        var server = app.listen(port, function(){
+            console.log(`Webserver listening at http://localhost:${port}`);
+        });
+        await page.goto(`http://localhost:${port}`);
+
         let isCreated = true;
         try {
             // get styled html file
             const html = String(await client.sendRequest("custom/ExportHTML", null));
 
-            await page.setContent(html);
+            await page.setContent(html, {waitUntil: 'networkidle0'});
 
             // styling for header and footer templates
-            const cssb = [];
-            cssb.push('<style>');
-            cssb.push('span { font-size:10px; margin: 0px 5px; }');
-            cssb.push('</style>');
-            const css = cssb.join('');
+            const css = '<style>span { font-size:10px; margin: 0px 5px; }</style>';
 
             // print pdf with options
             const options: PDFOptions = {
@@ -113,6 +119,9 @@ export async function activate(context: vscode.ExtensionContext) {
             isCreated = false;
         } finally {
             await browser.close();
+            server.close(function() {
+                console.log('Stopping webserver.')
+            });
         }
 
         isCreated ?
@@ -230,11 +239,7 @@ function getWebviewOptions(extensionUri: vscode.Uri): vscode.WebviewOptions {
         enableScripts: true,
 
         // And restrict the webview to only loading content from our extension's `media` directory.
-        //localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media')]
-
-
-       
-        
+        localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media'), localWorkspaceUri]
     };
 }
 
