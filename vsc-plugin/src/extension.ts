@@ -5,7 +5,7 @@ import * as os from "os";
 import * as fs from "fs";
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient/node";
 import puppeteer, { PDFOptions } from "puppeteer";
-import * as express from 'express';
+import * as express from "express";
 
 let client: LanguageClient;
 
@@ -96,31 +96,47 @@ export async function activate(context: vscode.ExtensionContext) {
             // get styled html file
             const html = String(await client.sendRequest("custom/ExportHTML", null));
 
-            await page.setContent(html, {waitUntil: 'networkidle0'});
+            await page.setContent(html, {waitUntil: "networkidle0"});
 
             // styling for header and footer templates
-            const css = '<style>span { font-size:10px; margin: 0px 5px; }</style>';
+            const css = "<style>span { font-size:10px; margin: 0px 5px; }</style>";
 
             // print pdf with options
             const options: PDFOptions = {
                 path: vscode.Uri.joinPath(outputFolderPath, "index.pdf").fsPath,
                 margin: {
-                    top: '50px',
-                    bottom: '50px',
+                    top: "50px",
+                    bottom: "50px",
                 },
                 displayHeaderFooter: true,
                 headerTemplate: `${css}<span class="date" style="margin-left: 5%;"></span>`,
                 footerTemplate: `${css}<span style="display: flex; justify-content: flex-end; width: 95%;">Seite <span class="pageNumber"></span> von <span class="totalPages"></span></span>`,
                 printBackground: true,
+                timeout: 300000,
             }
-            await page.pdf(options);
+            const ProgressOptions: vscode.ProgressOptions = {
+                location: vscode.ProgressLocation.Notification
+            }
+            const task = (progress: vscode.Progress<{
+                message?: string | undefined;
+                increment?: number | undefined;
+            }>, token: vscode.CancellationToken) => {
+                progress.report({
+                    message: "PDF wird generiert",
+                });
+                token.onCancellationRequested(async () => {
+                    console.log("PDF printing cancelled");
+                });
+                return page.pdf(options);
+            };
+            await vscode.window.withProgress(ProgressOptions, task)
         } catch (error) {
             console.log(error);
             isCreated = false;
         } finally {
             await browser.close();
             server.close(function() {
-                console.log('Stopping webserver.')
+                console.log("Stopping webserver.")
             });
         }
 
@@ -227,19 +243,20 @@ export function deactivate(): Thenable<void> | undefined {
 
 
 function getWebviewOptions(extensionUri: vscode.Uri): vscode.WebviewOptions {
-    let localWorkspaceUri = vscode.Uri.file("");
+    // let localWorkspaceUri = vscode.Uri.file("");
 
-    if(vscode.workspace.workspaceFolders !== undefined) {
-        localWorkspaceUri = vscode.workspace.workspaceFolders[0].uri;
-    }
-    
+    // if(vscode.workspace.workspaceFolders !== undefined) {
+    //     localWorkspaceUri = vscode.workspace.workspaceFolders[0].uri;
+    // }
+
+    console.log(extensionUri)
 
     return {
         // Enable javascript in the webview
         enableScripts: true,
 
         // And restrict the webview to only loading content from our extension's `media` directory.
-        localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media'), localWorkspaceUri]
+        // localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media'), localWorkspaceUri]
     };
 }
 
