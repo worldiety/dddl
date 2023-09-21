@@ -1,10 +1,11 @@
 package plantuml
 
 import (
+	"github.com/golangee/concurrent"
 	"log"
 	"os"
 	"os/exec"
-	"sync"
+	"runtime"
 	"time"
 )
 
@@ -26,50 +27,45 @@ func (c *PreflightContext) Render() error {
 		log.Printf("concurrent plantuml preflight took %v for %d diagrams\n", time.Now().Sub(start), len(c.jobs))
 	}()
 
-	var wg sync.WaitGroup
-	for _, job := range c.jobs {
-		job := job
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			start := time.Now()
-			defer func() {
-				log.Printf("plantuml took %v\n", time.Now().Sub(start))
-			}()
+	log.Printf("plantuml requires %d diagrams\n", len(c.jobs))
 
-			cmd := exec.Command("plantuml", "-t"+job.fileType, "-p")
-			cmd.Env = os.Environ()
-
-			w, err := cmd.StdinPipe()
-			if err != nil {
-				job.resultErr = err
-				return
-			}
-
-			if _, err := w.Write([]byte(job.pumlDiag)); err != nil {
-				job.resultErr = err
-				return
-			}
-
-			if err := w.Close(); err != nil {
-				job.resultErr = err
-				return
-			}
-
-			buf, err := cmd.Output()
-			if err != nil {
-
-				job.resultBuf = buf
-				job.resultErr = err
-				return
-			}
-
-			writeFileCache(job.fileType, job.pumlDiag, buf)
-
+	_ = concurrent.Execute(runtime.NumCPU()*2, len(c.jobs), &concurrent.AtomicBool{}, func(idx int) error {
+		job := c.jobs[idx]
+		start := time.Now()
+		defer func() {
+			log.Printf("plantuml took %v\n", time.Now().Sub(start))
 		}()
-	}
 
-	wg.Wait()
+		cmd := exec.Command("plantuml", "-t"+job.fileType, "-p")
+		cmd.Env = os.Environ()
+
+		w, err := cmd.StdinPipe()
+		if err != nil {
+			job.resultErr = err
+			return nil
+		}
+
+		if _, err := w.Write([]byte(job.pumlDiag)); err != nil {
+			job.resultErr = err
+			return nil
+		}
+
+		if err := w.Close(); err != nil {
+			job.resultErr = err
+			return nil
+		}
+
+		buf, err := cmd.Output()
+		if err != nil {
+
+			job.resultBuf = buf
+			job.resultErr = err
+			return nil
+		}
+
+		writeFileCache(job.fileType, job.pumlDiag, buf)
+		return nil
+	})
 
 	for _, job := range c.jobs {
 		if job.resultErr != nil {

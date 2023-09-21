@@ -5,7 +5,7 @@ import * as os from "os";
 import * as fs from "fs";
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient/node";
 import puppeteer, { PDFOptions } from "puppeteer";
-import express = require('express');
+import * as express from 'express';
 
 let client: LanguageClient;
 

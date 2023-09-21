@@ -73,40 +73,41 @@
         </div>
         <div class="pl-2">
             {{if .SVGExtended}}
-            <div id="svg_x_{{.Ref}}" class="hidden flex flex-col">
+                <div id="svg_x_{{.Ref}}" class="hidden flex flex-col">
 
 
-                <div class="flex justify-center items-center">
-                    {{.SVGExtended}}
+                    <div class="flex justify-center items-center">
+                        {{.SVGExtended}}
 
+                    </div>
+                    <button class="m-4 print:hidden bg-transparent hover:bg-green-500 text-green-700 font-semibold hover:text-white py-2 px-4 border border-green-500 hover:border-transparent rounded"
+                            onclick="(function(){
+                                    document.getElementById('svg_x_{{.Ref}}').classList.add('hidden');
+                                    document.getElementById('svg_n_{{.Ref}}').classList.remove('hidden');
+                                    })();">Kompakte Version zeigen
+                    </button>
                 </div>
-                <button class="m-4 print:hidden bg-transparent hover:bg-green-500 text-green-700 font-semibold hover:text-white py-2 px-4 border border-green-500 hover:border-transparent rounded"
-                        onclick="(function(){
-                                document.getElementById('svg_x_{{.Ref}}').classList.add('hidden');
-                                document.getElementById('svg_n_{{.Ref}}').classList.remove('hidden');
-                                })();">Kompakte Version zeigen
-                </button>
-            </div>
-            <div id="svg_n_{{.Ref}}" class="flex flex-col">
+                <div id="svg_n_{{.Ref}}" class="flex flex-col">
+                    <div class="flex justify-center items-center">
+                        {{.SVG}}
+
+                    </div>
+                    <button class="m-4 print:hidden  bg-transparent hover:bg-green-500 text-green-700 font-semibold hover:text-white py-2 px-4 border border-green-500 hover:border-transparent rounded"
+                            onclick="(function(){
+                                    document.getElementById('svg_n_{{.Ref}}').classList.add('hidden');
+                                    document.getElementById('svg_x_{{.Ref}}').classList.remove('hidden');
+                                    })();">Erweiterte Version zeigen
+                    </button>
+                </div>
+
+
+            {{else}}
                 <div class="flex justify-center items-center">
                     {{.SVG}}
 
                 </div>
-                <button class="m-4 print:hidden  bg-transparent hover:bg-green-500 text-green-700 font-semibold hover:text-white py-2 px-4 border border-green-500 hover:border-transparent rounded"
-                        onclick="(function(){
-                                document.getElementById('svg_n_{{.Ref}}').classList.add('hidden');
-                                document.getElementById('svg_x_{{.Ref}}').classList.remove('hidden');
-                                })();">Erweiterte Version zeigen
-                </button>
-            </div>
-
+            {{end}}
         </div>
-        {{else}}
-            <div class="flex justify-center items-center">
-                {{.SVG}}
-
-            </div>
-        {{end}}
 
         {{if .Usages}}
             direkt verwendet von

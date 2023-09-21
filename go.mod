@@ -12,4 +12,7 @@ require (
 
 require github.com/yuin/goldmark v1.5.4
 
-require github.com/worldiety/hg v0.0.0-20230712155952-4faf6355bff6 // indirect
+require (
+	github.com/golangee/concurrent v0.0.0-20210519122040-c107d1616e71 // indirect
+	github.com/worldiety/hg v0.0.0-20230712155952-4faf6355bff6 // indirect
+)
