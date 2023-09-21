@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.30
+Limited concurrent plantuml render instances to cpu*2 so that host does not grind to halt.
+Fixed nested render issue.
+
 ## 0.0.29
 * Added "als PDF exportieren" command.
 * Improved plantuml rendering speed by > 5x by using a concurrent preflight rendering step.
