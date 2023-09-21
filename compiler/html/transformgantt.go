@@ -12,7 +12,7 @@ import (
 	"math"
 )
 
-func newProjectPlan(r *resolver.Resolver, model PreviewModel) *ProjectPlan {
+func newProjectPlan(ctx *plantuml.PreflightContext, r *resolver.Resolver, model PreviewModel) *ProjectPlan {
 	pp := &ProjectPlan{}
 	tmp := map[string]ProjectTask{}
 	parser.MustWalk(r.Workspace(), func(n parser.Node) error {
@@ -67,7 +67,7 @@ func newProjectPlan(r *resolver.Resolver, model PreviewModel) *ProjectPlan {
 		pp.Tasks = append(pp.Tasks, &task)
 	}
 
-	svg, err := plantuml.RenderLocal("svg", RenderGantt(pp))
+	svg, err := plantuml.RenderLocalWithPreflight(ctx, "svg", RenderGantt(pp))
 	if err != nil {
 		slog.Error("failed to convert choice to puml", slog.Any("err", err))
 	}

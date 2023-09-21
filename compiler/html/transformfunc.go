@@ -10,16 +10,16 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-func newTypesFromFuncs(parent any, r *resolver.Resolver, model PreviewModel, funcs []*parser.Function) []*Type {
+func newTypesFromFuncs(ctx *plantuml.PreflightContext, parent any, r *resolver.Resolver, model PreviewModel, funcs []*parser.Function) []*Type {
 	var res []*Type
 	for _, f := range funcs {
-		res = append(res, newTypeFromFunc(parent, r, model, f))
+		res = append(res, newTypeFromFunc(ctx, parent, r, model, f))
 	}
 
 	return res
 }
 
-func newTypeFromFunc(parent any, r *resolver.Resolver, model PreviewModel, typ *parser.Function) *Type {
+func newTypeFromFunc(ctx *plantuml.PreflightContext, parent any, r *resolver.Resolver, model PreviewModel, typ *parser.Function) *Type {
 	typeDef := parser.TypeDefinitionFrom(typ)
 	var def template.HTML
 	if typeDef.Description != nil {
@@ -39,7 +39,7 @@ func newTypeFromFunc(parent any, r *resolver.Resolver, model PreviewModel, typ *
 		WorkPackageDuration: parser.FindAnnotation[*parser.WorkPackageAnnotation](typ).GetDuration(),
 	}
 
-	svg, err := plantuml.RenderLocal("svg", puml.RenderNamedType(r, typ, puml.NewRFlags(typ)))
+	svg, err := plantuml.RenderLocalWithPreflight(ctx, "svg", puml.RenderNamedType(r, typ, puml.NewRFlags(typ)))
 	if err != nil {
 		slog.Error("failed to convert func to puml", slog.Any("err", err))
 	}

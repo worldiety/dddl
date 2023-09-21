@@ -106,6 +106,7 @@ type Type struct {
 	Ref                 string
 	Definition          template.HTML
 	SVG                 template.HTML
+	SVGExtended         template.HTML
 	Usages              []Usage
 	WorkPackageName     string
 	WorkPackageRequires []string

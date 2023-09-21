@@ -10,16 +10,16 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-func newTypesFromChoice(parent any, r *resolver.Resolver, model PreviewModel, choices []*parser.Choice) []*Type {
+func newTypesFromChoice(ctx *plantuml.PreflightContext, parent any, r *resolver.Resolver, model PreviewModel, choices []*parser.Choice) []*Type {
 	var res []*Type
 	for _, choice := range choices {
-		res = append(res, newTypeFromChoice(parent, r, model, choice))
+		res = append(res, newTypeFromChoice(ctx, parent, r, model, choice))
 	}
 
 	return res
 }
 
-func newTypeFromChoice(parent any, r *resolver.Resolver, model PreviewModel, choice *parser.Choice) *Type {
+func newTypeFromChoice(ctx *plantuml.PreflightContext, parent any, r *resolver.Resolver, model PreviewModel, choice *parser.Choice) *Type {
 	typeDef := parser.TypeDefinitionFrom(choice)
 	var def template.HTML
 	if typeDef.Description != nil {
@@ -39,12 +39,22 @@ func newTypeFromChoice(parent any, r *resolver.Resolver, model PreviewModel, cho
 		WorkPackageDuration: parser.FindAnnotation[*parser.WorkPackageAnnotation](choice).GetDuration(),
 	}
 
-	svg, err := plantuml.RenderLocal("svg", puml.RenderNamedType(r, choice, puml.NewRFlags(choice)))
+	svg, err := plantuml.RenderLocalWithPreflight(ctx, "svg", puml.RenderNamedType(r, choice, puml.NewRFlags(choice)))
 	if err != nil {
 		slog.Error("failed to convert choice to puml", slog.Any("err", err))
 	}
 
+	svgX, err := plantuml.RenderLocalWithPreflight(ctx, "svg", puml.RenderNamedType(r, choice, puml.NewRFlags(choice).WithMaxDepth()))
+	if err != nil {
+		slog.Error("failed to convert alias to puml", slog.Any("err", err))
+	}
+
+	data.SVGExtended = template.HTML(svgX)
 	data.SVG = template.HTML(svg)
+	if data.SVGExtended == data.SVG {
+		data.SVGExtended = ""
+	}
+
 	data.Usages = newUsages(r, choice)
 
 	return data

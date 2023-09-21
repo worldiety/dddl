@@ -4,8 +4,10 @@ import (
 	"embed"
 	"github.com/worldiety/dddl/linter"
 	"github.com/worldiety/dddl/parser"
+	"github.com/worldiety/dddl/plantuml"
 	"github.com/worldiety/dddl/resolver"
 	"github.com/worldiety/hg"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -28,10 +30,21 @@ func init() {
 
 func RenderViewHtml(ws *parser.Workspace, model PreviewModel) string {
 	rslv := resolver.NewResolver(ws)
-	model.Doc = transform(rslv, model)
+	preflight := &plantuml.PreflightContext{}
+	model.Doc = transform(preflight, rslv, model)
+	model.ProjectPlan = newProjectPlan(preflight, rslv, model)
+	if preflight.RequiresRendering() {
+		if err := preflight.Render(); err != nil {
+			log.Println(err)
+		}
+
+		// once more, we are now complete
+		model.Doc = transform(preflight, rslv, model)
+		model.ProjectPlan = newProjectPlan(preflight, rslv, model)
+	}
+
 	lintHints := linter.Lint(rslv)
 	model = transformLintHints(rslv, lintHints, model)
-	model.ProjectPlan = newProjectPlan(rslv, model)
 
 	w := httptest.NewRecorder()
 

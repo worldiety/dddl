@@ -151,7 +151,12 @@ func RenderLocal(fileType string, renderable Renderable) ([]byte, error) {
 }
 
 func fileCacheDir() string {
-	myTmpDir := filepath.Join(os.TempDir(), "plantuml-cache")
+	dir, err := os.UserHomeDir()
+	if err != nil {
+		dir = os.TempDir()
+	}
+
+	myTmpDir := filepath.Join(dir, ".plantuml-cache")
 	if err := os.MkdirAll(myTmpDir, os.ModePerm); err != nil {
 		log.Println("cannot access plantuml-cache tmp dir", err, myTmpDir)
 	}
