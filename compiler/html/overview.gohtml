@@ -12,8 +12,7 @@
 
                     <div class="ml-4">
                         <h2 class="text-gray-600 font-semibold">Aufgaben</h2>
-                            <p class="mt-2 text-sm text-gray-500">{{len .Hints}} offene Aufgaben</p>
-
+                            <p class="mt-2 text-sm text-gray-500">{{len .Hints}} offene Aufgabe{{if not (eq (len .Hints) 1)}}n{{end}}</p>
                     </div>
                 </div>
 
