@@ -5,13 +5,13 @@ import * as os from "os";
 import * as fs from "fs";
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient/node";
 import puppeteer, { PDFOptions } from "puppeteer";
-import * as express from 'express';
+import * as express from "express";
 
 let client: LanguageClient;
 
-async function sleep(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+// async function sleep(ms: number) {
+//     return new Promise(resolve => setTimeout(resolve, ms));
+// }
 
 export async function activate(context: vscode.ExtensionContext) {
 
@@ -21,17 +21,17 @@ export async function activate(context: vscode.ExtensionContext) {
         // Workaround while we cannot build native binary on github actions.
         platform = "darwin-x64";
     }
-    let binPath = context.asAbsolutePath(`out/bin/dddlsp-${platform}`);
+    const binPath = context.asAbsolutePath(`out/bin/dddlsp-${platform}`);
     if (!fs.existsSync(binPath)) {
         vscode.window.showErrorMessage(`wdyspec-support has no binary for platform "${platform}" and will not work. Contact the developer to fix this.`);
         return;
     }
 
-    let serverOptions: ServerOptions = {
+    const serverOptions: ServerOptions = {
         command: binPath,
         transport: TransportKind.stdio,
     };
-    let clientOptions: LanguageClientOptions = {
+    const clientOptions: LanguageClientOptions = {
         documentSelector: [{scheme: "file", language: "ddd"}],
     };
     client = new LanguageClient(
@@ -47,7 +47,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // Request an XML preview from the language server and show that result in a new editor.
     context.subscriptions.push(vscode.commands.registerCommand("dddl.exportAsciiDoc", () => {
-        let doc = "file://" + vscode.window.activeTextEditor?.document.uri.fsPath;
+        const doc = "file://" + vscode.window.activeTextEditor?.document.uri.fsPath;
         if (doc) {
             client.sendRequest("custom/exportAsciiDoc", doc).then((resp) => {
                 vscode.workspace.openTextDocument({
@@ -86,7 +86,7 @@ export async function activate(context: vscode.ExtensionContext) {
         const app = express();
         const port = 3000;
         app.use(express.static(outputFolderPath.fsPath));
-        var server = app.listen(port, function(){
+        const server = app.listen(port, function(){
             console.log(`Webserver listening at http://localhost:${port}`);
         });
         await page.goto(`http://localhost:${port}`);
@@ -96,31 +96,47 @@ export async function activate(context: vscode.ExtensionContext) {
             // get styled html file
             const html = String(await client.sendRequest("custom/ExportHTML", null));
 
-            await page.setContent(html, {waitUntil: 'networkidle0'});
+            await page.setContent(html, {waitUntil: "networkidle0"});
 
             // styling for header and footer templates
-            const css = '<style>span { font-size:10px; margin: 0px 5px; }</style>';
+            const css = "<style>span { font-size:10px; margin: 0px 5px; }</style>";
 
             // print pdf with options
             const options: PDFOptions = {
                 path: vscode.Uri.joinPath(outputFolderPath, "index.pdf").fsPath,
                 margin: {
-                    top: '50px',
-                    bottom: '50px',
+                    top: "50px",
+                    bottom: "50px",
                 },
                 displayHeaderFooter: true,
                 headerTemplate: `${css}<span class="date" style="margin-left: 5%;"></span>`,
                 footerTemplate: `${css}<span style="display: flex; justify-content: flex-end; width: 95%;">Seite <span class="pageNumber"></span> von <span class="totalPages"></span></span>`,
                 printBackground: true,
+                timeout: 300000,
             }
-            await page.pdf(options);
+            const ProgressOptions: vscode.ProgressOptions = {
+                location: vscode.ProgressLocation.Notification
+            }
+            const task = (progress: vscode.Progress<{
+                message?: string | undefined;
+                increment?: number | undefined;
+            }>, token: vscode.CancellationToken) => {
+                progress.report({
+                    message: "PDF wird generiert",
+                });
+                token.onCancellationRequested(async () => {
+                    console.log("PDF printing cancelled");
+                });
+                return page.pdf(options);
+            };
+            await vscode.window.withProgress(ProgressOptions, task)
         } catch (error) {
             console.log(error);
             isCreated = false;
         } finally {
             await browser.close();
             server.close(function() {
-                console.log('Stopping webserver.')
+                console.log("Stopping webserver.")
             });
         }
 
@@ -131,7 +147,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(vscode.commands.registerCommand("ddd.GenerateGo", () => {
 
-        client.sendRequest("custom/GenerateGo", null).then((resp) => {
+        client.sendRequest("custom/GenerateGo", null).then(() => {
 
         });
     }));
@@ -145,8 +161,8 @@ export async function activate(context: vscode.ExtensionContext) {
         if (typeof resp === "string") {
             if (PreviewPanel.currentPanel != null) {
                 if (resp==="lastPreviewParams missing"){
-                    let tailwindUri = PreviewPanel.currentPanel?._tailwindUri;
-                    let webviewPrefix =  PreviewPanel.currentPanel?._webviewPrefixUri;
+                    const tailwindUri = PreviewPanel.currentPanel?._tailwindUri;
+                    const webviewPrefix =  PreviewPanel.currentPanel?._webviewPrefixUri;
                     client.sendRequest("custom/webViewParams", {WebviewWorkspacePrefix:webviewPrefix?.toString(),TailwindUri: tailwindUri?.toString()}).catch(e => console.log(e))
 
                 }
@@ -160,11 +176,11 @@ export async function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(vscode.commands.registerCommand("wdyspec.previewHTML", () => {
-        let doc = "file://" + vscode.window.activeTextEditor?.document.uri.fsPath;
+        const doc = "file://" + vscode.window.activeTextEditor?.document.uri.fsPath;
         if (doc) {
             PreviewPanel.createOrShow(context.extensionUri, "<p>Einen Moment bitte...</p>");
 
-            let tailwindUri = PreviewPanel.currentPanel?._tailwindUri;
+            const tailwindUri = PreviewPanel.currentPanel?._tailwindUri;
             client.sendRequest("custom/previewHTML", {doc: doc, tailwindUri: tailwindUri?.toString()}).then((resp) => {
                 console.log("shall preview", resp);
 
@@ -180,7 +196,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (vscode.window.registerWebviewPanelSerializer) {
         // Make sure we register a serializer in activation event
         vscode.window.registerWebviewPanelSerializer(PreviewPanel.viewType, {
-            async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
+            async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: unknown) {
                 console.log(`Got state: ${state}`);
                 // Reset the webview options so we use latest uri for `localResourceRoots`.
                 webviewPanel.webview.options = getWebviewOptions(context.extensionUri);
@@ -227,19 +243,20 @@ export function deactivate(): Thenable<void> | undefined {
 
 
 function getWebviewOptions(extensionUri: vscode.Uri): vscode.WebviewOptions {
-    let localWorkspaceUri = vscode.Uri.file("");
+    // let localWorkspaceUri = vscode.Uri.file("");
 
-    if(vscode.workspace.workspaceFolders !== undefined) {
-        localWorkspaceUri = vscode.workspace.workspaceFolders[0].uri;
-    }
-    
+    // if(vscode.workspace.workspaceFolders !== undefined) {
+    //     localWorkspaceUri = vscode.workspace.workspaceFolders[0].uri;
+    // }
+
+    console.log(extensionUri)
 
     return {
         // Enable javascript in the webview
         enableScripts: true,
 
         // And restrict the webview to only loading content from our extension's `media` directory.
-        localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media'), localWorkspaceUri]
+        // localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media'), localWorkspaceUri]
     };
 }
 
@@ -288,8 +305,8 @@ class PreviewPanel {
         PreviewPanel.currentPanel = new PreviewPanel(panel, extensionUri, "...");
         //PreviewPanel.createOrShow(extensionUri, "<p>Einen Moment bitte...</p>");
 
-        let tailwindUri = PreviewPanel.currentPanel?._tailwindUri;
-        let webviewPrefix =  PreviewPanel.currentPanel?._webviewPrefixUri;
+        const tailwindUri = PreviewPanel.currentPanel?._tailwindUri;
+        const webviewPrefix =  PreviewPanel.currentPanel?._webviewPrefixUri;
         client.sendRequest("custom/webViewParams", {WebviewWorkspacePrefix:webviewPrefix?.toString(),TailwindUri: tailwindUri?.toString()}).catch(e => console.log(e))
 
     }
@@ -317,7 +334,7 @@ class PreviewPanel {
 
         // Update the content based on view changes
         this._panel.onDidChangeViewState(
-            e => {
+            () => {
                 if (this._panel.visible) {
                     this._update();
                 }
