@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.31
+Fixed bugs in preview and markup images.
+
 ## 0.0.30
 Limited concurrent plantuml render instances to cpu*2 so that host does not grind to halt.
 Fixed nested render issue.
