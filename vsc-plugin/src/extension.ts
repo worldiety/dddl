@@ -89,14 +89,15 @@ export async function activate(context: vscode.ExtensionContext) {
         const server = app.listen(port, function(){
             console.log(`Webserver listening at http://localhost:${port}`);
         });
-        await page.goto(`http://localhost:${port}`);
 
         let isCreated = true;
         try {
             // get styled html file
             const html = String(await client.sendRequest("custom/ExportHTML", null));
 
-            await page.setContent(html, {waitUntil: "networkidle0"});
+            fs.writeFileSync(outputFolderPath.fsPath + '/index.html', html);
+
+            await page.goto(`http://localhost:${port}/index.html`);
 
             // styling for header and footer templates
             const css = "<style>span { font-size:10px; margin: 0px 5px; }</style>";
@@ -243,11 +244,11 @@ export function deactivate(): Thenable<void> | undefined {
 
 
 function getWebviewOptions(extensionUri: vscode.Uri): vscode.WebviewOptions {
-    // let localWorkspaceUri = vscode.Uri.file("");
+    let localWorkspaceUri = vscode.Uri.file("");
 
-    // if(vscode.workspace.workspaceFolders !== undefined) {
-    //     localWorkspaceUri = vscode.workspace.workspaceFolders[0].uri;
-    // }
+    if(vscode.workspace.workspaceFolders !== undefined) {
+        localWorkspaceUri = vscode.workspace.workspaceFolders[0].uri;
+    }
 
     console.log(extensionUri)
 
@@ -256,7 +257,7 @@ function getWebviewOptions(extensionUri: vscode.Uri): vscode.WebviewOptions {
         enableScripts: true,
 
         // And restrict the webview to only loading content from our extension's `media` directory.
-        // localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media'), localWorkspaceUri]
+        localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'media'), localWorkspaceUri]
     };
 }
 
