@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.0.32
+Purging internal file cache when files are reloaded.
+
 ## 0.0.31
 Fixed bugs in preview and markup images.
 

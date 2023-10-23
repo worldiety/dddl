@@ -43,6 +43,7 @@ func NewServer() *Server {
 }
 
 func (s *Server) reloadFiles() {
+	s.files = map[protocol.DocumentURI]File{}
 	err := filepath.Walk(s.rootPath, func(path string, info fs.FileInfo, err error) error {
 		if info.IsDir() || strings.HasPrefix(info.Name(), ".") {
 			return nil
